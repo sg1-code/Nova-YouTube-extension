@@ -8,13 +8,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Simpan untuk saluran tertentu',
    // 'title:es': 'Guardar para un canal específico',
-   'title:pt': 'Salvar para canal específico',
-   'title:fr': 'Enregistrer pour un canal spécifique',
+   // 'title:pt': 'Salvar para canal específico',
+   // 'title:fr': 'Enregistrer pour un canal spécifique',
    // 'title:it': 'Salva per canale specifico',
    // 'title:tr': '',
-   'title:de': 'Speichern Sie für einen bestimmten Kanal',
+   // 'title:de': 'Speichern Sie für einen bestimmten Kanal',
    'title:pl': 'Zapisz dla określonego kanału',
-   'title:ua': 'Зберегти для конкретного каналу',
+   // 'title:ua': 'Зберегти для конкретного каналу',
    run_on_pages: 'watch, embed',
    section: 'control-panel',
    // desc: '',
@@ -24,16 +24,22 @@ window.nova_plugins.push({
       // alt2 - https://greasyfork.org/en/scripts/397614-youtube-speed-by-channel
       // alt3 - https://greasyfork.org/en/scripts/27091-youtube-speed-rememberer
 
+      /*
+         ** how export channels conf? **
+         There isn't currently, but it's easy to copy it over yourself. Press F12 and open Local Storage. In Chrome it's under "Application", expand "Local storage" on the left and select "https://www.youtube.com". In Firefox it's in the "Storage" tab.
+         Search for "nova" and you should see "nova-channels-state". Just copy the value from there, move it to the other PC and paste it into the same SELECTOR_BTN_ID entry.
+      */
+
       const
          // container <a>
-         SELECTOR_BUTTON_ID = 'nova-channels-state',
-         SELECTOR_BUTTON = '#' + SELECTOR_BUTTON_ID,
-         SELECTOR_BUTTON_CLASS_NAME = 'nova-right-custom-button', // same class in "player-buttons-custom" plugin
+         SELECTOR_BTN_ID = 'nova-channels-state',
+         SELECTOR_BTN = '#' + SELECTOR_BTN_ID,
+         SELECTOR_BTN_CLASS_NAME = 'nova-right-custom-button', // same class in "player-buttons-custom" plugin
          // list <ul>
-         SELECTOR_BUTTON_LIST_ID = SELECTOR_BUTTON_CLASS_NAME + '-list',
-         SELECTOR_BUTTON_LIST = '#' + SELECTOR_BUTTON_LIST_ID,
+         SELECTOR_BTN_LIST_ID = SELECTOR_BTN_CLASS_NAME + '-list',
+         SELECTOR_BTN_LIST = '#' + SELECTOR_BTN_LIST_ID,
          // btn <span>
-         SELECTOR_BUTTON_TITLE_ID = SELECTOR_BUTTON_CLASS_NAME + '-title';
+         SELECTOR_BTN_TITLE_ID = SELECTOR_BTN_CLASS_NAME + '-title';
 
 
       // inset button + list
@@ -52,13 +58,13 @@ window.nova_plugins.push({
                   // // init storage
                   // NOVA.storage_obj_manager.STORAGE_NAME = CACHE_PREFIX + channelId;
 
-                  if (btn = document.getElementById(SELECTOR_BUTTON_ID)) {
+                  if (btn = document.getElementById(SELECTOR_BTN_ID)) {
                      btn.append(genList());
                   }
                   else {
                      const btn = document.createElement('button');
-                     btn.id = SELECTOR_BUTTON_ID;
-                     btn.className = `ytp-button ${SELECTOR_BUTTON_CLASS_NAME}`;
+                     btn.id = SELECTOR_BTN_ID;
+                     btn.className = `ytp-button ${SELECTOR_BTN_CLASS_NAME}`;
                      // empty opacity
                      // if (!NOVA.storage_obj_manager.read()) {
                      //    btn.style.opacity = .5;
@@ -69,7 +75,7 @@ window.nova_plugins.push({
                      // btn.innerHTML = `save`;
 
                      const btnTitle = document.createElement('span');
-                     btnTitle.id = SELECTOR_BUTTON_TITLE_ID;
+                     btnTitle.id = SELECTOR_BTN_TITLE_ID;
                      btnTitle.style.display = 'flex';
                      btnTitle.innerHTML =
                         `<svg width="100%" height="100%" viewBox="0 0 36 36">
@@ -96,23 +102,16 @@ window.nova_plugins.push({
          });
 
       function btnTitleStateUpdate(state) {
-         document.getElementById(SELECTOR_BUTTON_TITLE_ID)
+         document.getElementById(SELECTOR_BTN_TITLE_ID)
             // .style.color = state ? '#27a6e5' : 'inherit';
             // .style.setProperty('color', state ? '#27a6e5' : '');
             .style.setProperty('opacity', state ? 1 : .3);
       }
 
-      // document.addEventListener('yt-navigate-start', () => console.debug('yt-navigate-start'));
-      // document.addEventListener('yt-navigate-finish', () => {
-      //    if
-      // });
-
-      // NOVA.videoElement?.addEventListener('canplay', genList); // update
-
       function genList() {
          // qualityList.innerHTML = '';
          const ul = document.createElement('ul');
-         ul.id = SELECTOR_BUTTON_LIST_ID;
+         ul.id = SELECTOR_BTN_LIST_ID;
 
          // append buttons based on activated plugins
          let listItem = [];
@@ -128,13 +127,16 @@ window.nova_plugins.push({
                // NOVA.waitSelector('#movie_player.playing-mode')
                //    .then(movie_player => movie_player.toggleSubtitlesOn());
 
-               NOVA.waitSelector('#movie_player video')
-                  .then(video => {
-                     video.addEventListener('canplay', async () => {
-                        // await waitMoviePlayer('toggleSubtitlesOn');
-                        movie_player.toggleSubtitlesOn();
-                     }, { capture: true, once: true });
-                  });
+               // NOVA.waitSelector('#movie_player video', { destroy_after_page_leaving: true })
+               //    .then(video => {
+               // video.addEventListener('playing', async () => {
+               document.addEventListener('playing', () => {
+                  if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
+
+                  // await waitMoviePlayer('toggleSubtitlesOn');
+                  movie_player.toggleSubtitlesOn();
+               }, { capture: true, once: true });
+               // });
 
                // async function waitMoviePlayer(fn_name = required()) {
                //    return await NOVA.waitUntil(() => typeof movie_player === 'object' && typeof movie_player[fn_name] === 'function', 500); // 500ms
@@ -272,7 +274,7 @@ window.nova_plugins.push({
 
       function initStyles() {
          NOVA.css.push(
-            SELECTOR_BUTTON + ` {
+            SELECTOR_BTN + ` {
                overflow: visible !important;
                position: relative;
                text-align: center !important;
@@ -284,7 +286,7 @@ window.nova_plugins.push({
                overflow: visible !important;
             }
 
-            ${SELECTOR_BUTTON_LIST} {
+            ${SELECTOR_BTN_LIST} {
                position: absolute;
                bottom: 2.5em !important;
                left: -2.2em;
@@ -294,26 +296,30 @@ window.nova_plugins.push({
             }
 
             /* for embed */
-            html[data-cast-api-enabled] ${SELECTOR_BUTTON_LIST} {
+            html[data-cast-api-enabled] ${SELECTOR_BTN_LIST} {
                margin: 0;
                padding: 0;
                bottom: 3.3em;
                /* --yt-spec-brand-button-background: #c00; */
             }
 
-            ${SELECTOR_BUTTON}:not(:hover) ${SELECTOR_BUTTON_LIST} {
+            ${SELECTOR_BTN}:not(:hover) ${SELECTOR_BTN_LIST} {
                display: none;
             }
+            /*
+            ${SELECTOR_BTN}:hover { color: #66afe9 !important; }
+            ${SELECTOR_BTN}:active { color: #2196f3 !important; }
+            */
 
-            ${SELECTOR_BUTTON_LIST} li {
+            ${SELECTOR_BTN_LIST} li {
                cursor: pointer;
                white-space: nowrap;
                line-height: 1.4;
-               background-color: rgba(28, 28, 28, 0.9);
+               background-color: rgba(28, 28, 28, .9);
                margin: .3em 0;
                padding: .5em 1em;
                border-radius: .3em;
-               color: #fff;
+               color: white;
                text-align: left !important;
                display: grid;
                grid-template-columns: auto auto;
@@ -321,32 +327,32 @@ window.nova_plugins.push({
                justify-content: start;
             }
 
-            ${SELECTOR_BUTTON_LIST} li label {
+            ${SELECTOR_BTN_LIST} li label {
                cursor: pointer;
                padding-left: 5px;
             }
 
-            ${SELECTOR_BUTTON_LIST} li.active { background-color: #720000; }
-            ${SELECTOR_BUTTON_LIST} li.disable { color: #666; }
-            ${SELECTOR_BUTTON_LIST} li:not(:hover) { opacity: .8; }
+            ${SELECTOR_BTN_LIST} li.active { background-color: #720000; }
+            ${SELECTOR_BTN_LIST} li.disable { color: #666; }
+            ${SELECTOR_BTN_LIST} li:not(:hover) { opacity: .8; }
             /* brackets */
-            ${SELECTOR_BUTTON_LIST} li span:not(:empty):before { content: '('; }
-            ${SELECTOR_BUTTON_LIST} li span:not(:empty):after { content: ')'; }
+            ${SELECTOR_BTN_LIST} li span:not(:empty):before { content: '('; }
+            ${SELECTOR_BTN_LIST} li span:not(:empty):after { content: ')'; }
 
             /* checkbox */
-            ${SELECTOR_BUTTON_LIST} [type="checkbox"] {
+            ${SELECTOR_BTN_LIST} [type="checkbox"] {
                appearance: none;
                outline: none;
                cursor: pointer;
             }
 
-            ${SELECTOR_BUTTON_LIST} [type="checkbox"]:checked {
+            ${SELECTOR_BTN_LIST} [type="checkbox"]:checked {
                background-color: #f00;
             }
 
-            ${SELECTOR_BUTTON_LIST} [type="checkbox"]:checked:after {
+            ${SELECTOR_BTN_LIST} [type="checkbox"]:checked:after {
                left: 20px;
-               background-color: #fff;
+               background-color: white;
             }`);
       }
 

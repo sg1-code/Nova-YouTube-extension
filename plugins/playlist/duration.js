@@ -1,6 +1,7 @@
 // for test:
 // https://www.youtube.com/playlist?list=WL
 // https://www.youtube.com/watch?v=Y07--9_sLpA&list=OLAK5uy_nMilHFKO3dZsuNgVWmEKDZirwXRXMl9yM - hidden playlist container
+// https://www.youtube.com/watch?v=9b1R3jqUCP4&list=OLAK5uy_nzbT1Pk541_xoOy1o0zra59nckEOMt4vI - hidden playlist container
 // https://www.youtube.com/playlist?list=PLJP5_qSxMbkLzx-XiaW0U8FcpYGgwlh5s -simple
 // https://www.youtube.com/watch?v=L1bBMndgmM0&list=PLNGZuc13nIrqOrynIHoy3VdQ5FDXypMSO&index=5 - has 36:00 (zero)
 // https://www.youtube.com/watch?v=v0PqdzLdFSk&list=OLAK5uy_m-Dv_8xLBZNZeysu7yXsw7psMf48nJ7tw - 1 unavailable video is hidden
@@ -16,13 +17,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Tampilkan durasi daftar putar',
    // 'title:es': 'Mostrar duración de la lista de reproducción',
-   'title:pt': 'Mostrar duração da lista de reprodução',
-   'title:fr': 'Afficher la durée de la liste de lecture',
+   // 'title:pt': 'Mostrar duração da lista de reprodução',
+   // 'title:fr': 'Afficher la durée de la liste de lecture',
    // 'title:it': 'Mostra la durata della playlist',
    // 'title:tr': 'Oynatma listesi süresini göster',
-   'title:de': 'Wiedergabelistendauer anzeigen',
+   // 'title:de': 'Wiedergabelistendauer anzeigen',
    'title:pl': 'Pokaż czas trwania playlisty',
-   'title:ua': 'Показувати тривалість списку відтворення',
+   // 'title:ua': 'Показувати тривалість списку відтворення',
    run_on_pages: 'watch, playlist, -mobile',
    restart_on_location_change: true,
    section: 'playlist',
@@ -40,6 +41,7 @@ window.nova_plugins.push({
       // alt9 - https://greasyfork.org/en/scripts/475879-youtube-playlist-length
       // alt10 - https://greasyfork.org/en/scripts/484490-youtube-playlist-duration
       // alt11 - https://greasyfork.org/en/scripts/447887-invidious-playlist-length-checker
+      // alt12 - https://greasyfork.org/en/scripts/489937-youtube-ocd-number-replacer
 
       const
          SELECTOR_ID = 'nova-playlist-duration',
@@ -122,7 +124,7 @@ window.nova_plugins.push({
                               ?.then(duration => insertToHTML({ 'container': el, 'text': duration }));
                         }
                      }
-                  }, 2000); // 2 sec
+                  }, 2000); // 2s
 
                   // Warning! don't use "NOVA.waitUntil" below. Incorrect update of current currentIndex
                   // const playlistList = await NOVA.waitUntil(() => {
@@ -270,13 +272,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Mode',
          // 'label:es': 'Modo',
-         'label:pt': 'Modo',
+         // 'label:pt': 'Modo',
          // 'label:fr': 'Mode',
          // 'label:it': 'Modalità',
          // 'label:tr': 'Mod',
-         'label:de': 'Modus',
+         // 'label:de': 'Modus',
          'label:pl': 'Tryb',
-         'label:ua': 'Режим',
+         // 'label:ua': 'Режим',
          label: 'Time display mode',
          'title:zh': '时间显示方式',
          'title:ja': '時間表示モード',
@@ -284,13 +286,13 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': 'Mode tampilan waktu',
          // 'title:es': 'Modo de visualización de la hora',
-         'title:pt': 'Modo de exibição de tempo',
-         'title:fr': "Mode d'affichage de l'heure",
+         // 'title:pt': 'Modo de exibição de tempo',
+         // 'title:fr': "Mode d'affichage de l'heure",
          // 'title:it': "Modalità di visualizzazione dell'ora",
          // 'title:tr': 'Zaman görüntüleme modu',
-         'title:de': 'Zeitanzeigemodus',
+         // 'title:de': 'Zeitanzeigemodus',
          'title:pl': 'Tryb wyświetlania czasu',
-         'title:ua': 'Режим відображення часу',
+         // 'title:ua': 'Режим відображення часу',
          options: [
             {
                label: 'done', value: 'done',
@@ -300,13 +302,13 @@ window.nova_plugins.push({
                // 'label:vi': '',
                // 'label:id': '',
                // 'label:es': 'hecho',
-               'label:pt': 'feito',
-               'label:fr': 'regardé',
+               // 'label:pt': 'feito',
+               // 'label:fr': 'regardé',
                // 'label:it': '',
                // 'label:tr': 'tamamlamak',
-               'label:de': 'fertig',
+               // 'label:de': 'fertig',
                'label:pl': 'zakończone',
-               'label:ua': 'завершено',
+               // 'label:ua': 'завершено',
             },
             {
                label: 'left', value: 'left',
@@ -316,13 +318,13 @@ window.nova_plugins.push({
                // 'label:vi': '',
                // 'label:id': '',
                // 'label:es': 'izquierda',
-               'label:pt': 'deixou',
-               'label:fr': 'à gauche',
+               // 'label:pt': 'deixou',
+               // 'label:fr': 'à gauche',
                // 'label:it': '',
                // 'label:tr': 'sola',
-               'label:de': 'links',
+               // 'label:de': 'links',
                'label:pl': 'pozostało',
-               'label:ua': 'залишилось',
+               // 'label:ua': 'залишилось',
             },
             {
                label: 'total', value: false, selected: true,
@@ -333,12 +335,12 @@ window.nova_plugins.push({
                // 'label:id': '',
                // 'label:es': '',
                // 'label:pt': '',
-               'label:fr': 'le total',
+               // 'label:fr': 'le total',
                // 'label:it': '',
                // 'label:tr': 'toplam',
-               'label:de': 'gesamt',
+               // 'label:de': 'gesamt',
                'label:pl': 'w sumie',
-               'label:ua': 'загалом',
+               // 'label:ua': 'загалом',
             },
          ],
       },
@@ -352,13 +354,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Tambahkan persentase',
          // 'label:es': 'Agregar porcentaje',
-         'label:pt': 'Adicionar porcentagem',
-         'label:fr': 'Ajouter un pourcentage',
+         // 'label:pt': 'Adicionar porcentagem',
+         // 'label:fr': 'Ajouter un pourcentage',
          // 'label:it': 'Aggiungi percentuale',
          // 'label:tr': 'Yüzde ekle',
-         'label:de': 'Prozent hinzufügen',
+         // 'label:de': 'Prozent hinzufügen',
          'label:pl': 'Pokaż procenty',
-         'label:ua': 'Показати %',
+         // 'label:ua': 'Показати %',
          type: 'checkbox',
          // title: '',
          'data-dependent': { 'playlist_duration_progress_type': ['done', 'left'] },

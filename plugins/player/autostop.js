@@ -11,13 +11,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Hentikan pramuat video',
    // 'title:es': 'Detener la precarga de video',
-   'title:pt': 'Parar o pré-carregamento de vídeo',
-   'title:fr': 'Arrêter le préchargement de la vidéo',
+   // 'title:pt': 'Parar o pré-carregamento de vídeo',
+   // 'title:fr': 'Arrêter le préchargement de la vidéo',
    // 'title:it': 'Interrompi il precaricamento del video',
    // 'title:tr': 'Video önyüklemesini durdur',
-   'title:de': 'Beenden Sie das Vorladen des Videos',
+   // 'title:de': 'Beenden Sie das Vorladen des Videos',
    'title:pl': 'Zatrzymaj ładowanie wideo',
-   'title:ua': 'Зупинити передзавантаження відео',
+   // 'title:ua': 'Зупинити передзавантаження відео',
    run_on_pages: 'watch, embed',
    // restart_on_location_change: true,
    section: 'player',
@@ -125,15 +125,23 @@ window.nova_plugins.push({
                }
             }
 
-            // document.addEventListener('keyup', ({ code }) => (code == 'Space') && disableHoldStop());
             document.addEventListener('keyup', evt => {
                if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
 
                if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
                if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
 
-               if (evt.code == 'Space') disableHoldStop();
+               switch (evt.code) {
+                  // Keyboard code - https://docs.microsoft.com/en-us/dotnet/api/android.views.keycode?view=xamarin-android-sdk-12
+                  case 'KeyK':
+                  case 'Space':
+                  case 'MediaPlay':
+                  case 'MediaPlayPause':
+                     disableHoldStop();
+                     break;
+               }
             });
+            navigator.mediaSession.setActionHandler('play', disableHoldStop); // add Media hotkeys support
             document.addEventListener('click', evt => {
                if (evt.isTrusted
                   // Strategy 1 (Universal), click is inside the player
@@ -179,7 +187,7 @@ window.nova_plugins.push({
          // 'label:tr': '',
          // 'label:de': '',
          // 'label:pl': '',
-         'label:ua': 'Застосувати до відео',
+         // 'label:ua': 'Застосувати до відео',
          options: [
             {
                label: 'all', value: false, selected: true,
@@ -195,7 +203,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'всіх',
+               // 'label:ua': 'всіх',
             },
             {
                label: 'embed', value: 'on',
@@ -211,7 +219,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'вбудованих',
+               // 'label:ua': 'вбудованих',
             },
          ],
       },
@@ -224,13 +232,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Abaikan daftar putar',
          // 'label:es': 'Ignorar lista de reproducción',
-         'label:pt': 'Ignorar lista de reprodução',
-         'label:fr': 'Ignorer la liste de lecture',
+         // 'label:pt': 'Ignorar lista de reprodução',
+         // 'label:fr': 'Ignorer la liste de lecture',
          // 'label:it': 'Ignora playlist',
          // 'label:tr': 'Oynatma listesini yoksay',
-         'label:de': 'Wiedergabeliste ignorieren',
+         // 'label:de': 'Wiedergabeliste ignorieren',
          'label:pl': 'Zignoruj listę odtwarzania',
-         'label:ua': 'Ігнорувати список відтворення',
+         // 'label:ua': 'Ігнорувати список відтворення',
          type: 'checkbox',
          // title: '',
          'data-dependent': { 'video_autostop_embed': false },
@@ -250,7 +258,7 @@ window.nova_plugins.push({
          // 'label:tr': '',
          // 'label:de': '',
          // 'label:pl': '',
-         'label:ua': 'Ігнорувати живі трансляції',
+         // 'label:ua': 'Ігнорувати живі трансляції',
          type: 'checkbox',
          // title: '',
          'data-dependent': { 'video_autostop_embed': false },
@@ -264,13 +272,13 @@ window.nova_plugins.push({
       //    'label:vi': '',
       //    'label:id': 'Hanya untuk video tersemat',
       //    'label:es': 'Solo para videos incrustados',
-      //    'label:pt': 'Apenas para vídeos incorporados',
-      //    'label:fr': 'Uniquement pour les vidéos intégrées',
+      //    // 'label:pt': 'Apenas para vídeos incorporados',
+      //    // 'label:fr': 'Uniquement pour les vidéos intégrées',
       //    'label:it': 'Solo per i video incorporati',
       //    'label:tr': 'Yalnızca gömülü videolar için',
-      //    'label:de': 'Nur für eingebettete Videos',
+      //    // 'label:de': 'Nur für eingebettete Videos',
       //    'label:pl': 'Tylko dla osadzonych filmów',
-      //    'label:ua': 'Тільки для вбудованих відео',
+      //    // 'label:ua': 'Тільки для вбудованих відео',
       //    type: 'checkbox',
       // },
       video_autostop_peview_thumbnail: {

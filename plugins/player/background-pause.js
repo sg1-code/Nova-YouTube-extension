@@ -12,13 +12,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Jeda otomatis semua tab latar belakang kecuali yang aktif',
    // 'title:es': 'Pausar automáticamente todas las pestañas excepto la activa',
-   'title:pt': 'Pausar automaticamente todas as guias, exceto a ativa',
-   'title:fr': "Interrompt la lecture des vidéos dans d'autres onglets",
+   // 'title:pt': 'Pausar automaticamente todas as guias, exceto a ativa',
+   // 'title:fr': "Interrompt la lecture des vidéos dans d'autres onglets",
    // 'title:it': 'Metti automaticamente in pausa tutte le schede in background tranne quella attiva',
    // 'title:tr': 'Etkin olan dışındaki tüm sekmeleri otomatik duraklat',
-   'title:de': 'Alle Tabs außer dem aktiven automatisch pausieren',
+   // 'title:de': 'Alle Tabs außer dem aktiven automatisch pausieren',
    'title:pl': 'Zatrzymanie kart w tle oprócz aktywnej',
-   'title:ua': 'Автопауза усіх фонових вкладок окрім активної',
+   // 'title:ua': 'Автопауза усіх фонових вкладок окрім активної',
    run_on_pages: 'watch, embed',
    section: 'player',
    desc: 'Autopause all background tabs except the active one',
@@ -35,7 +35,7 @@ window.nova_plugins.push({
    // // 'desc:tr': "iframe'leri ve diğer pencereleri destekler",
    // 'desc:de': 'Unterstützt iframes und andere Fenster',
    // 'desc:pl': 'Obsługa ramek iframe i innych okien',
-   'desc:ua': 'Автоматично призупинити всі фонові вкладки, крім активної. Підтримує iframe та інші вікна',
+   // 'desc:ua': 'Автоматично призупинити всі фонові вкладки, крім активної. Підтримує iframe та інші вікна',
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/444330-youtube-autoplay-mutex
@@ -95,7 +95,7 @@ window.nova_plugins.push({
                // empty
             } else {
                // Strategy 2. Mark a playing
-               video.addEventListener('play', checkInstance); // gaps in initialization
+               // video.addEventListener('play', checkInstance); // gaps in initialization
                video.addEventListener('playing', checkInstance); // more reliable way
                // remove mark if video stop play
                ['pause', /*'suspend',*/ 'ended'].forEach(evt => video.addEventListener(evt, removeStorage)); // BUG - "suspend" in google drive player
@@ -284,13 +284,13 @@ window.nova_plugins.push({
       //    'label:vi': '',
       //    'label:id': 'Putar otomatis pada fokus tab',
       //    'label:es': 'Reproducción automática en el enfoque de la pestaña',
-      //    'label:pt': 'Reprodução automática no foco da guia',
-      //    'label:fr': "Lecture automatique sur le focus de l'onglet",
+      //    // 'label:pt': 'Reprodução automática no foco da guia',
+      //    // 'label:fr': "Lecture automatique sur le focus de l'onglet",
       //    'label:it': 'Riproduzione automatica su tab focus',
       //    // 'label:tr': 'Sekme odağında otomatik oynatma',
-      //    'label:de': 'Autoplay bei Tab-Fokus',
+      //    // 'label:de': 'Autoplay bei Tab-Fokus',
       //    'label:pl': 'Autoodtwarzanie po wybraniu karty',
-      //    'label:ua': 'Автовідтворення при виборі вкладки',
+      //    // 'label:ua': 'Автовідтворення при виборі вкладки',
       //    type: 'checkbox',
       //    // title: '',
       // },
@@ -303,13 +303,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Putar otomatis pada fokus tab',
          // 'label:es': 'Reproducción automática en el enfoque de la pestaña',
-         'label:pt': 'Reprodução automática no foco da guia',
-         'label:fr': "Lecture automatique sur le focus de l'onglet",
+         // 'label:pt': 'Reprodução automática no foco da guia',
+         // 'label:fr': "Lecture automatique sur le focus de l'onglet",
          // 'label:it': 'Riproduzione automatica su tab focus',
          // 'label:tr': 'Sekme odağında otomatik oynatma',
-         'label:de': 'Autoplay bei Tab-Fokus',
+         // 'label:de': 'Autoplay bei Tab-Fokus',
          'label:pl': 'Autoodtwarzanie po wybraniu karty',
-         'label:ua': 'Автовідтворення при виборі вкладки',
+         // 'label:ua': 'Автовідтворення при виборі вкладки',
          options: [
             {
                label: 'disable', /* value: false, */ selected: true, // fill value if no "selected" mark another option
@@ -370,13 +370,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Jeda otomatis video jika tab kehilangan fokus',
          // 'label:es': 'Pausa automática del video si la pestaña pierde el foco',
-         'label:pt': 'Pausar automaticamente o vídeo se a guia perder o foco',
-         'label:fr': "Pause automatique de la vidéo si l'onglet perd le focus",
+         // 'label:pt': 'Pausar automaticamente o vídeo se a guia perder o foco',
+         // 'label:fr': "Pause automatique de la vidéo si l'onglet perd le focus",
          // 'label:it': 'Metti automaticamente in pausa il video se la scheda perde la messa a fuoco',
          // 'label:tr': 'Sekme odağı kaybederse videoyu otomatik duraklat',
-         'label:de': 'Video automatisch pausieren, wenn der Tab den Fokus verliert',
+         // 'label:de': 'Video automatisch pausieren, wenn der Tab den Fokus verliert',
          'label:pl': 'Automatycznie wstrzymaj wideo, jeśli karta straci ostrość',
-         'label:ua': 'Автопауза при зміні вкладки',
+         // 'label:ua': 'Автопауза при зміні вкладки',
          type: 'checkbox',
          // title: '',
       },

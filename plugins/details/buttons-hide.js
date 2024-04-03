@@ -2,10 +2,10 @@
 // https://www.youtube.com/watch?v=J07l-Qe9xgs - thanks button
 
 window.nova_plugins.push({
-   id: 'details-buttons',
+   id: 'details-buttons-visibility',
    title: 'Buttons hide',
-   // 'title:zh': '',
-   // 'title:ja': '',
+   'title:zh': '按钮隐藏',
+   'title:ja': 'ボタンを非表示にする',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -25,15 +25,18 @@ window.nova_plugins.push({
 
       // alt1 - https://greasyfork.org/en/scripts/488224-control-panel-for-youtube
       // alt2 - https://greasyfork.org/en/scripts/472081-youtube-hide-tool
+      // alt3 - https://greasyfork.org/en/scripts/447614-youtube-hide-download-clip-and-thanks-buttons
 
       const SELECTOR_BTN_CONTAINER = 'ytd-watch-metadata #actions';
 
-      // alt - https://greasyfork.org/en/scripts/447614-youtube-hide-download-clip-and-thanks-buttons
       if (user_settings.details_buttons_hide?.length
          && (stylesList = getHideButtonsList())
          && stylesList.length
       ) {
-         NOVA.css.push(stylesList.join(',\n') + ` { display: none !important; }`);
+         NOVA.css.push(stylesList.join(',\n') + ` {
+            display: none !important;
+            background-color: red;
+         }`);
          // NOVA.css.push({
          //    'display': 'none !important',
          // }, stylesList.join(',\n'));
@@ -73,6 +76,7 @@ window.nova_plugins.push({
 
          if (user_settings.details_buttons_hide.includes('download')) {
             stylesList.push(`${SELECTOR_BTN_CONTAINER} ytd-download-button-renderer`);
+            NOVA.css.push(`#flexible-item-buttons { width: inherit; }`);
          }
 
          // To above v105 https://developer.mozilla.org/en-US/docs/Web/CSS/:has
@@ -81,7 +85,6 @@ window.nova_plugins.push({
                `${SELECTOR_BTN_CONTAINER} ytd-button-renderer`,
                `${SELECTOR_BTN_CONTAINER} button`,
                'ytd-popup-container ytd-menu-service-item-renderer', // thanks overflow menu
-               `${SELECTOR_BTN_CONTAINER} #flexible-item-buttons`, // download button
             ];
 
             if (user_settings.details_buttons_hide.includes('share')) {
@@ -164,13 +167,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Tombol tanpa label',
          // 'label:es': 'Botones sin etiquetas',
-         'label:pt': 'Botões sem rótulos',
-         'label:fr': 'Boutons sans étiquettes',
+         // 'label:pt': 'Botões sem rótulos',
+         // 'label:fr': 'Boutons sans étiquettes',
          // 'label:it': 'Bottoni senza etichette',
          // 'label:tr': '',
-         'label:de': 'Knöpfe ohne Beschriftung',
+         // 'label:de': 'Knöpfe ohne Beschriftung',
          'label:pl': 'Guziki bez etykiet',
-         'label:ua': 'Кнопки без написів',
+         // 'label:ua': 'Кнопки без написів',
          type: 'checkbox',
          title: 'Requires support for css tag ":has()"',
          // 'title:zh': '',
@@ -196,13 +199,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Kegelapan',
          // 'label:es': 'Opacidad',
-         'label:pt': 'Opacidade',
-         'label:fr': 'Opacité',
+         // 'label:pt': 'Opacidade',
+         // 'label:fr': 'Opacité',
          // 'label:it': 'Opacità',
          // 'label:tr': 'Opaklık',
-         'label:de': 'Opazität',
+         // 'label:de': 'Opazität',
          'label:pl': 'Przejrzystość',
-         'label:ua': 'Прозорість',
+         // 'label:ua': 'Прозорість',
          type: 'number',
          title: '0 - disable',
          // 'title:zh': '',
@@ -233,13 +236,13 @@ window.nova_plugins.push({
       //    'label:vi': '',
       //    'label:id': 'Sembunyikan tombol',
       //    'label:es': 'Ocultar botones',
-      //    'label:pt': 'Ocultar botões',
-      //    'label:fr': 'Masquer les boutons',
+      //    // 'label:pt': 'Ocultar botões',
+      //    // 'label:fr': 'Masquer les boutons',
       //    'label:it': 'Nascondi pulsanti',
       //    // 'label:tr': 'Düğmeleri gizle',
-      //    'label:de': 'Verstecken tasten',
+      //    // 'label:de': 'Verstecken tasten',
       //    'label:pl': 'Ukryj przyciski',
-      //    'label:ua': 'Сховати кнопки',
+      //    // 'label:ua': 'Сховати кнопки',
       //    type: 'checkbox',
       // },
       details_buttons_hide: {
@@ -266,13 +269,13 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': '[Ctrl+Klik] untuk memilih beberapa',
          // 'title:es': '[Ctrl+Click] para seleccionar varias',
-         'title:pt': '[Ctrl+Click] para selecionar vários',
-         'title:fr': '[Ctrl+Click] pour sélectionner plusieurs',
+         // 'title:pt': '[Ctrl+Click] para selecionar vários',
+         // 'title:fr': '[Ctrl+Click] pour sélectionner plusieurs',
          // 'title:it': '[Ctrl+Clic] per selezionarne diversi',
          // 'title:tr': 'Birkaç tane seçmek için [Ctrl+Tıkla]',
-         'title:de': '[Ctrl+Click] um mehrere auszuwählen',
+         // 'title:de': '[Ctrl+Click] um mehrere auszuwählen',
          'title:pl': 'Ctrl+kliknięcie, aby zaznaczyć kilka',
-         'title:ua': '[Ctrl+Click] щоб обрати декілька',
+         // 'title:ua': '[Ctrl+Click] щоб обрати декілька',
          multiple: null, // don't use - selected: true
          // required: true, // don't use - selected: true
          size: 8, // = options.length

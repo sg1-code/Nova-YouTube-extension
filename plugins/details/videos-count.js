@@ -3,6 +3,7 @@
 // https://www.youtube.com/channel/UCBX37mqPuU2Hqmcd2kfEIvQ
 // https://www.youtube.com/channel/UCM8XzXipyTsylZ_WsGKmdKQ
 // https://www.youtube.com/channel/UCGmvywjUliYi6MSwg_FuW_g
+// https://www.youtube.com/watch?v=dT2owtxkU8k - 1.3B views
 
 window.nova_plugins.push({
    id: 'channel-videos-count',
@@ -13,13 +14,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Tampilkan jumlah video saluran',
    // 'title:es': 'Mostrar recuento de videos del canal',
-   'title:pt': 'Mostrar contagem de vídeos do canal',
-   'title:fr': 'Afficher le nombre de vidéos de la chaîne',
+   // 'title:pt': 'Mostrar contagem de vídeos do canal',
+   // 'title:fr': 'Afficher le nombre de vidéos de la chaîne',
    // 'title:it': 'Mostra il conteggio dei video del canale',
    // 'title:tr': 'Kanal video sayısını göster',
-   'title:de': 'Anzahl der Kanalvideos anzeigen',
+   // 'title:de': 'Anzahl der Kanalvideos anzeigen',
    'title:pl': 'Pokaż liczbę filmów na kanale',
-   'title:ua': 'Показати кількість відео на каналі',
+   // 'title:ua': 'Показати кількість відео на каналі',
    // run_on_pages: 'watch, channel, -mobile',
    run_on_pages: 'watch, -mobile',
    restart_on_location_change: true,
@@ -32,13 +33,13 @@ window.nova_plugins.push({
    // 'desc:vi': '',
    // 'desc:id': 'Tampilkan video yang diunggah di saluran',
    // 'desc:es': 'Mostrar videos subidos en el canal',
-   'desc:pt': 'Exibir vídeos enviados no canal',
-   'desc:fr': 'Afficher les vidéos mises en ligne sur la chaîne',
+   // 'desc:pt': 'Exibir vídeos enviados no canal',
+   // 'desc:fr': 'Afficher les vidéos mises en ligne sur la chaîne',
    // 'desc:it': 'Visualizza i video caricati sul canale',
    // 'desc:tr': 'Yüklenen videoları kanalda göster',
-   'desc:de': 'Hochgeladene Videos auf dem Kanal anzeigen',
+   // 'desc:de': 'Hochgeladene Videos auf dem Kanal anzeigen',
    'desc:pl': 'Wyświetla przesłane filmy na kanale',
-   'desc:ua': 'Показує завантажені відео на каналі',
+   // 'desc:ua': 'Показує завантажені відео на каналі',
    _runtime: user_settings => {
 
       const

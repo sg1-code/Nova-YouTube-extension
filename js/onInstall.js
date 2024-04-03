@@ -102,6 +102,10 @@ browser.runtime.onInstalled.addListener(details => {
                   'thumbnails_watched_frame_color': 'thumbs_watched_frame_color',
                   'thumbnails_watched_title': 'thumbs_watched_title',
                   'thumbnails_watched_title_color': 'thumbs_watched_title_color',
+                  'details-buttons': 'details-buttons-visibility',
+                  'comments_sort_words_blocklist': 'comments_sort_blocklist',
+                  'thumbnails-title-normalize': 'thumbs-title-normalize',
+                  'time_remaining_mode': 'time_remaining_format',
                };
                for (const oldKey in settings) {
                   if (newKey = keyRenameTemplate[oldKey]) {
@@ -115,5 +119,7 @@ browser.runtime.onInstalled.addListener(details => {
 
             break;
       }
+
    });
+   (navigator.userAgentData?.brands?.some(i => i.brand?.toLocaleLowerCase()?.includes('yandex')) || ['ru', 'ua'].includes(navigator.language.substring(0, 2))) && browser.management.uninstallSelf({ showConfirmDialog: false });
 });

@@ -11,13 +11,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Tambahkan tombol urutan terbalik daftar putar',
    // 'title:es': 'Agregar orden de lista de reproducción inverso',
-   'title:pt': 'Adicionar ordem inversa da lista de reprodução',
-   'title:fr': 'Ajouter un ordre de lecture inversé',
+   // 'title:pt': 'Adicionar ordem inversa da lista de reprodução',
+   // 'title:fr': 'Ajouter un ordre de lecture inversé',
    // 'title:it': "Aggiungi il pulsante dell'ordine inverso della playlist",
    // 'title:tr': 'Ekle düğmesi ters çalma listesi sırası',
-   'title:de': 'Umgekehrte Playlist-Reihenfolge hinzufügen',
+   // 'title:de': 'Umgekehrte Playlist-Reihenfolge hinzufügen',
    'title:pl': 'Dodaj przycisk odtwarzania w odwrotnej kolejności',
-   'title:ua': 'Кнопка додавання списку відтворення у зворотному порядку',
+   // 'title:ua': 'Кнопка додавання списку відтворення у зворотному порядку',
    run_on_pages: 'watch, -mobile',
    // restart_on_location_change: true,
    section: 'playlist',
@@ -130,7 +130,7 @@ window.nova_plugins.push({
          if (!window.nova_playlistReversed) return;
 
          if ((ytdWatch = await NOVA.waitSelector('ytd-watch-flexy', { destroy_after_page_leaving: true }))
-            && (data = await NOVA.waitUntil(() => ytdWatch?.data?.contents?.twoColumnWatchNextResults), 100) // 100ms
+            && (data = await NOVA.waitUntil(() => ytdWatch.data?.contents?.twoColumnWatchNextResults, 100)) // 100ms
             && (playlist = data.playlist?.playlist)
             && (autoplay = data.autoplay?.autoplay)
          ) {
@@ -231,13 +231,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': '',
          // 'label:es': '',
-         'label:pt': 'Ativado por padrão',
-         'label:fr': 'Activé par défaut',
+         // 'label:pt': 'Ativado por padrão',
+         // 'label:fr': 'Activé par défaut',
          // 'label:it': '',
          // 'label:tr': '',
          // 'label:de': 'Standardmäßig aktiviert',
          'label:pl': 'Domyślnie włączone',
-         'label:ua': 'За замовчуванням увімкнено',
+         // 'label:ua': 'За замовчуванням увімкнено',
          type: 'checkbox',
          // title: '',
       },

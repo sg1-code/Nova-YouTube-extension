@@ -484,7 +484,7 @@ window.addEventListener('load', () => {
       // add script info to open issues link
       document.body.querySelector('a[href$="issues/new"]')
          .addEventListener('click', ({ target }) => {
-            target.href += '?body=' + encodeURIComponent(browser.runtime.getManifest().version + ' | ' + navigator.userAgent);
+            target.href += '?body=' + encodeURIComponent(browser.runtime.getManifest().version + ' | ' + navigator.userAgent) + '&labels=bug&template=bug_report.md';
          });
    }
 

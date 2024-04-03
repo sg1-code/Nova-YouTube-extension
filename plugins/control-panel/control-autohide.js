@@ -9,13 +9,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Sembunyikan kontrol pada pemutar',
    // 'title:es': 'Ocultar automáticamente los controles en el reproductor',
-   'title:pt': 'Auto-ocultar controles no player',
-   'title:fr': 'Masque le panneau de contrôle du lecteur',
+   // 'title:pt': 'Auto-ocultar controles no player',
+   // 'title:fr': 'Masque le panneau de contrôle du lecteur',
    // 'title:it': 'Nascondi i controlli sul giocatore',
    // 'title:tr': 'Oynatıcıdaki kontrolleri otomatik gizle',
-   'title:de': 'Blendet das Player-Bedienfeld aus',
+   // 'title:de': 'Blendet das Player-Bedienfeld aus',
    'title:pl': 'Ukrywaj elementy w odtwarzaczu',
-   'title:ua': 'Приховати панель керування у відтворювачі',
+   // 'title:ua': 'Приховати панель керування у відтворювачі',
    run_on_pages: 'watch, -mobile',
    section: 'control-panel',
    desc: 'Hover controls to display it',
@@ -25,13 +25,13 @@ window.nova_plugins.push({
    // 'desc:vi': '',
    // 'desc:id': 'Arahkan kontrol untuk menampilkannya',
    // 'desc:es': 'Coloca el cursor sobre él para mostrarlo',
-   'desc:pt': 'Passe o mouse sobre ele para exibi-lo',
-   'desc:fr': "Survolez-le pour l'afficher",
+   // 'desc:pt': 'Passe o mouse sobre ele para exibi-lo',
+   // 'desc:fr': "Survolez-le pour l'afficher",
    // 'desc:it': 'Passa il mouse sui controlli per visualizzarlo',
    // 'desc:tr': 'Görüntülemek için üzerine gelin',
-   'desc:de': 'Bewegen Sie den Mauszeiger darüber, um es anzuzeigen',
+   // 'desc:de': 'Bewegen Sie den Mauszeiger darüber, um es anzuzeigen',
    'desc:pl': 'Najedź, aby wyświetlić',
-   'desc:ua': 'Наведіть мишкою щоб показати',
+   // 'desc:ua': 'Наведіть мишкою щоб показати',
    'plugins-conflict': 'player-control-below',
    _runtime: user_settings => {
 
@@ -61,6 +61,15 @@ window.nova_plugins.push({
 
             break;
 
+         // case 'subtitle':
+         //    if (user_settings['subtitle-style']
+         //       && user_settings.subtitle_fixed
+         //       && document.body.querySelector('.caption-window')
+         //    ) {
+         //       return;
+         //    }
+         //    break;
+
          // case 'control':
          default:
             selectorHover = '.ytp-chrome-bottom:hover';
@@ -75,11 +84,6 @@ window.nova_plugins.push({
          }
          ${selectorHover} {
             opacity: 1;
-         }
-
-         /* patch for plugin [player-float-progress-bar] */
-         ytd-watch-flexy:not([fullscreen]) #movie_player.ytp-autohide:hover #nova-player-float-progress-bar {
-            visibility: hidden !important;
          }`);
 
       // To above v105 https://developer.mozilla.org/en-US/docs/Web/CSS/:has
@@ -87,6 +91,26 @@ window.nova_plugins.push({
          `${selectorGradientHide} {
             opacity: 0;
          }`);
+
+      if (user_settings.player_control_autohide_show_on_seek) {
+         // NOVA.waitSelector('#movie_player video')
+         //    .then(video => {
+         let timeout;
+
+         // video.addEventListener('seeked', () => {
+         document.addEventListener('seeked', ({ target }) => {
+            if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
+
+            if (el = document.body.querySelector('#movie_player .ytp-chrome-bottom')) {
+               clearTimeout(timeout);
+               el.style.opacity = 1;
+               timeout = setTimeout(() => el.style.removeProperty('opacity'), 1500); // 1.5s
+               // el.removeAttribute('hidden');
+               // timeout = setTimeout(() => el.setAttribute('hidden', true), 1500); // 1.5s
+            }
+         });
+         // });
+      }
 
 
       function triggerOnHoverElement({ element = required(), callback = required() }) {
@@ -142,7 +166,7 @@ window.nova_plugins.push({
          // 'label:tr': '',
          // 'label:de': '',
          // 'label:pl': '',
-         'label:ua': 'Відображати вміст при наведенні',
+         // 'label:ua': 'Відображати вміст при наведенні',
          options: [
             {
                label: 'player', value: 'player', selected: true,
@@ -158,7 +182,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'програвач',
+               // 'label:ua': 'програвач',
             },
             {
                label: 'control', value: 'control',
@@ -174,9 +198,58 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'панель керування',
+               // 'label:ua': 'панель керування',
             },
+            // {
+            //    label: 'on subtitle', value: 'subtitle',
+            //    // 'label:zh': '',
+            //    // 'label:ja': '',
+            //    // 'label:ko': '',
+            //    // 'label:vi': '',
+            //    // 'label:id': '',
+            //    // 'label:es': '',
+            //    // 'label:pt': '',
+            //    // 'label:fr': '',
+            //    // 'label:it': '',
+            //    // 'label:tr': '',
+            //    // 'label:de': '',
+            //    // 'label:pl': '',
+            //    // 'label:ua': '',
+            //    title: 'if enable "Fixed from below"',
+            //    // 'title:zh': '',
+            //    // 'title:ja': '',
+            //    // 'title:ko': '',
+            //    // 'title:vi': '',
+            //    // 'title:id': '',
+            //    // 'title:es': '',
+            //    // 'title:pt': '',
+            //    // 'title:fr': '',
+            //    // 'title:it': '',
+            //    // 'title:tr': '',
+            //    // 'title:de': '',
+            //    // 'title:pl': '',
+            //    // 'title:ua': '',
+            // },
          ],
+      },
+      player_control_autohide_show_on_seek: {
+         _tagName: 'input',
+         label: 'Show on seeked',
+         // 'label:zh': '',
+         // 'label:ja': '',
+         // 'label:ko': '',
+         // 'label:vi': '',
+         // 'label:id': '',
+         // 'label:es': '',
+         // 'label:pt': '',
+         // 'label:fr': '',
+         // 'label:it': '',
+         // 'label:tr': '',
+         // 'label:de': '',
+         // 'label:pl': '',
+         // 'label:ua': '',
+         type: 'checkbox',
+         // title: '',
       },
    }
 });

@@ -17,13 +17,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Kontrol kecepatan pemutaran',
    // 'title:es': 'Controle de velocidade de reprodução',
-   'title:pt': 'Controle de velocidade de reprodução',
-   'title:fr': 'Contrôle de la vitesse de lecture',
+   // 'title:pt': 'Controle de velocidade de reprodução',
+   // 'title:fr': 'Contrôle de la vitesse de lecture',
    // 'title:it': 'Controllo della velocità di riproduzione',
    // 'title:tr': 'Oynatma hızı kontrolü',
-   'title:de': 'Steuerung der Wiedergabegeschwindigkeit',
+   // 'title:de': 'Steuerung der Wiedergabegeschwindigkeit',
    'title:pl': 'Kontrola prędkości odtwarzania',
-   'title:ua': 'Контроль швидкості відтворення',
+   // 'title:ua': 'Контроль швидкості відтворення',
    // run_on_pages: 'watch, embed, -mobile',
    run_on_pages: 'home, results, feed, channel, playlist, watch, embed',
    section: 'player',
@@ -35,13 +35,13 @@ window.nova_plugins.push({
    // 'desc:vi': '',
    // 'desc:id': 'Dengan roda mouse',
    // 'desc:es': 'Con rueda de ratón',
-   'desc:pt': 'Com roda do mouse',
-   'desc:fr': 'Avec molette de la souris',
+   // 'desc:pt': 'Com roda do mouse',
+   // 'desc:fr': 'Avec molette de la souris',
    // 'desc:it': 'Con rotellina del mouse',
    // 'desc:tr': 'Fare tekerleği ile',
-   'desc:de': 'Mit mausrad',
+   // 'desc:de': 'Mit mausrad',
    'desc:pl': 'Za pomocą kółka myszy',
-   'desc:ua': 'За допомогою колеса мишки',
+   // 'desc:ua': 'За допомогою колеса мишки',
    _runtime: user_settings => {
 
       // speed buttons (-/+)
@@ -111,15 +111,15 @@ window.nova_plugins.push({
 
             NOVA.runOnPageLoad(async () => {
                // const fn = () => playerRate.set(userRate);
-               // video.removeEventListener('canplay', fn);
+               // video.removeEventListener('playing', fn);
                if (NOVA.currentPage == 'watch' || NOVA.currentPage == 'embed') {
                   // custom speed from [save-channel-state] plugin
                   // alt - https://greasyfork.org/en/scripts/27091-youtube-speed-rememberer
                   if (user_settings['save-channel-state']) {
                      if (userRate = await NOVA.storage_obj_manager.getParam('speed')) {
-                        // video.addEventListener('canplay', fn);
+                        // video.addEventListener('playing', fn);
                         // playerRate.set(userRate);
-                        video.addEventListener('canplay', () => playerRate.set(userRate), { capture: true, once: true });
+                        video.addEventListener('playing', () => playerRate.set(userRate), { capture: true, once: true });
                      }
                   }
                   // expand memu
@@ -213,8 +213,8 @@ window.nova_plugins.push({
             && (+rate <= 2)
             // && ((+user_settings.rate_step % .25) === 0)
             && (+user_settings.rate_default <= 2)
-            && (NOVA.videoElement.playbackRate <= 2)
-            && ((NOVA.videoElement.playbackRate % .25) === 0)
+            && (NOVA.videoElement?.playbackRate <= 2)
+            && ((NOVA.videoElement?.playbackRate % .25) === 0)
             && (typeof movie_player === 'object' && typeof movie_player.getPlaybackRate === 'function'),
          // && movie_player.hasOwnProperty('getPlaybackRate') && ('getPlaybackRate' in movie_player)),
 
@@ -385,7 +385,7 @@ window.nova_plugins.push({
 
             ${SELECTOR} [type="checkbox"]:checked:after {
                left: 20px;
-               background-color: #fff;
+               background-color: white;
             }`);
 
          // slider
@@ -588,13 +588,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Kecepatan saat startup',
          // 'label:es': 'Velocidad al inicio',
-         'label:pt': 'Velocidade na inicialização',
-         'label:fr': 'Rapidité au démarrage',
+         // 'label:pt': 'Velocidade na inicialização',
+         // 'label:fr': 'Rapidité au démarrage',
          // 'label:it': "Velocità all'avvio",
          // 'label:tr': 'Başlangıçta hız',
-         'label:de': 'Geschwindigkeit beim Start',
+         // 'label:de': 'Geschwindigkeit beim Start',
          'label:pl': 'Prędkość przy uruchamianiu',
-         'label:ua': 'Звичайна швидкість',
+         // 'label:ua': 'Звичайна швидкість',
          type: 'number',
          title: '1 - default',
          step: 0.05,
@@ -625,13 +625,13 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': 'Deteksi diperpanjang - dapat memicu salah',
          // 'title:es': 'Detección extendida - puede activarse falsamente',
-         'title:pt': 'Detecção estendida - pode disparar falsamente',
-         'title:fr': 'Détection étendue - peut se déclencher par erreur',
+         // 'title:pt': 'Detecção estendida - pode disparar falsamente',
+         // 'title:fr': 'Détection étendue - peut se déclencher par erreur',
          // 'title:it': 'Rilevamento esteso - potrebbe attivarsi in modo errato',
          // 'title:tr': 'Genişletilmiş algılama - yanlış tetiklenebilir',
-         'title:de': 'Erweiterte Erkennung - kann fälschlicherweise auslösen',
+         // 'title:de': 'Erweiterte Erkennung - kann fälschlicherweise auslösen',
          'title:pl': 'Rozszerzona detekcja - może działać błędnie',
-         'title:ua': 'Розширене виявлення - може спрацювати помилково',
+         // 'title:ua': 'Розширене виявлення - може спрацювати помилково',
          options: [
             {
                label: 'skip', value: true, selected: true,
@@ -641,13 +641,13 @@ window.nova_plugins.push({
                // 'label:vi': '',
                // 'label:id': 'merindukan',
                // 'label:es': 'saltar',
-               'label:pt': 'pular',
-               'label:fr': 'sauter',
+               // 'label:pt': 'pular',
+               // 'label:fr': 'sauter',
                // 'label:it': 'Perdere',
                // 'label:tr': 'atlamak',
-               'label:de': 'überspringen',
+               // 'label:de': 'überspringen',
                'label:pl': 'tęsknić',
-               'label:ua': 'пропустити',
+               // 'label:ua': 'пропустити',
             },
             // {
             //    label: 'skip (extended)', value: 'expanded',
@@ -656,13 +656,13 @@ window.nova_plugins.push({
             //    'label:ko': '건너뛰다(확장)',
             //    'label:id': 'lewati (diperpanjang)',
             //    'label:es': 'omitir (extendida)',
-            //    'label:pt': 'pular (estendido)',
-            //    'label:fr': 'sauter (étendu)',
+            //    // 'label:pt': 'pular (estendido)',
+            //    // 'label:fr': 'sauter (étendu)',
             //    'label:it': 'salta (esteso)',
             //    // 'label:tr': 'atlamak (genişletilmiş)',
-            //    'label:de': 'überspringen (erweitert)',
+            //    // 'label:de': 'überspringen (erweitert)',
             //    'label:pl': 'pomiń (rozszerzony)',
-            //    'label:ua': 'пропустити (розширено)',
+            //    // 'label:ua': 'пропустити (розширено)',
             // },
             {
                label: 'force apply', value: false,
@@ -672,13 +672,13 @@ window.nova_plugins.push({
                // 'label:vi': '',
                // 'label:id': 'berlaku paksa',
                // 'label:es': 'aplicar fuerza',
-               'label:pt': 'aplicar força',
-               'label:fr': 'appliquer la force',
+               // 'label:pt': 'aplicar força',
+               // 'label:fr': 'appliquer la force',
                // 'label:it': 'applicare la forza',
                // 'label:tr': 'zorlamak',
-               'label:de': 'kraft anwenden',
+               // 'label:de': 'kraft anwenden',
                'label:pl': 'zastosować siłę',
-               'label:ua': 'примусово активувати',
+               // 'label:ua': 'примусово активувати',
             },
          ],
          'data-dependent': { 'rate_default': '!1' },
@@ -725,13 +725,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Tombol pintas',
          // 'label:es': 'Tecla de acceso rápido',
-         'label:pt': 'Tecla de atalho',
-         'label:fr': 'Raccourci',
+         // 'label:pt': 'Tecla de atalho',
+         // 'label:fr': 'Raccourci',
          // 'label:it': 'Tasto di scelta rapida',
          // 'label:tr': 'Kısayol tuşu',
-         'label:de': 'Schnelltaste',
+         // 'label:de': 'Schnelltaste',
          'label:pl': 'Klawisz skrótu',
-         'label:ua': 'Гаряча клавіша',
+         // 'label:ua': 'Гаряча клавіша',
          options: [
             // { label: 'none', /* value: false */ }, // fill value if no "selected" mark another option
             { label: 'none', value: false }, // need for for 'data-dependent' in rate_max
@@ -751,13 +751,13 @@ window.nova_plugins.push({
       //    // 'label:vi': '',
       //    // 'label:id': 'Mode',
       //    // 'label:es': 'Modo',
-      //    'label:pt': 'Modo',
+      //    // 'label:pt': 'Modo',
       //    // 'label:fr': 'Mode',
       //    // 'label:it': 'Modalità',
       //    // 'label:tr': 'Mod',
-      //    'label:de': 'Modus',
+      //    // 'label:de': 'Modus',
       //    'label:pl': 'Tryb',
-      //    'label:ua': 'Режим',
+      //    // 'label:ua': 'Режим',
       //    options: [
       //       {
       //          label: 'collapse', value: 'hide', selected: true,
@@ -903,13 +903,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Melangkah',
          // 'label:es': 'Paso',
-         'label:pt': 'Degrau',
-         'label:fr': 'Étape',
+         // 'label:pt': 'Degrau',
+         // 'label:fr': 'Étape',
          // 'label:it': 'Fare un passo',
          // 'label:tr': 'Adım',
-         'label:de': 'Schritt',
+         // 'label:de': 'Schritt',
          'label:pl': 'Krok',
-         'label:ua': 'Крок',
+         // 'label:ua': 'Крок',
          type: 'number',
          title: '0.25 - default',
          // 'title:zh': '',

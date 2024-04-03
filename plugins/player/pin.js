@@ -16,13 +16,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Sematkan pemutar saat menggulir',
    // 'title:es': 'Fijar jugador mientras se desplaza',
-   'title:pt': 'Fixar jogador enquanto rola',
-   'title:fr': 'Épingler le lecteur pendant le défilement',
+   // 'title:pt': 'Fixar jogador enquanto rola',
+   // 'title:fr': 'Épingler le lecteur pendant le défilement',
    // 'title:it': 'Blocca il lettore durante lo scorrimento',
    // 'title:tr': 'Kaydırırken oynatıcıyı sabitle',
-   'title:de': 'Pin-Player beim Scrollen',
+   // 'title:de': 'Pin-Player beim Scrollen',
    'title:pl': 'Przypnij odtwarzacz podczas przewijania',
-   'title:ua': 'Закріпити відтворювач коли гортаєш сторінку',
+   // 'title:ua': 'Закріпити відтворювач коли гортаєш сторінку',
    run_on_pages: 'watch, -mobile',
    section: 'player',
    desc: 'Show mini player when scrolling down',
@@ -39,7 +39,7 @@ window.nova_plugins.push({
    // 'desc:tr': 'Kaydırma sırasında oyuncu her zaman görünür kalır',
    // 'desc:de': 'Player bleibt beim Scrollen immer sichtbar',
    // 'desc:ua': 'Відтворювач завжди залишається видимим коли гортаєш',
-   'plugins-conflict': 'player-pip',
+   // 'plugins-conflict': 'player-pip',
    _runtime: user_settings => {
 
       // alt1 - https://chrome.google.com/webstore/detail/aeilijiaejfdnbagnpannhdoaljpkbhe
@@ -214,9 +214,9 @@ window.nova_plugins.push({
             height: miniSize.height + 'px',
             position: 'fixed',
             'z-index': 'var(--zIndex)',
-            'box-shadow': '0 16px 24px 2px rgba(0, 0, 0, 0.14),' +
-               '0 6px 30px 5px rgba(0, 0, 0, 0.12),' +
-               '0 8px 10px -5px rgba(0, 0, 0, 0.4)',
+            'box-shadow': '0 16px 24px 2px rgba(0, 0, 0, .14),' +
+               '0 6px 30px 5px rgba(0, 0, 0, .12),' +
+               '0 8px 10px -5px rgba(0, 0, 0, .4)',
          };
 
          // set pin player position
@@ -325,7 +325,7 @@ window.nova_plugins.push({
                z-index: var(--zIndex);
                font-size: 24px;
                font-weight: bold;
-               background-color: rgba(0, 0, 0, 0.8);
+               background-color: rgba(0, 0, 0, .8);
                transition: opacity 100ms linear;
                /* text-transform: uppercase; */
             }
@@ -449,7 +449,7 @@ window.nova_plugins.push({
 
             this.moving = false;
             this.dragTarget.style.pointerEvents = null;
-            document.body.style.cursor = null;
+            document.body.style.removeProperty('cursor');
             this.dragTarget.removeAttribute(this.attrNameMoving); // unmark after moved
          },
 
@@ -616,11 +616,11 @@ window.nova_plugins.push({
       //    // 'label:vi': '',
       //    // 'label:id': 'Mode',
       //    'label:es': 'Modo',
-      //    'label:pt': 'Modo',
+      //    // 'label:pt': 'Modo',
       //    // 'label:fr': 'Mode',
       //    'label:it': 'Modalità',
       //    'label:tr': 'Mod',
-      //    'label:de': 'Modus',
+      //    // 'label:de': 'Modus',
       //    'label:pl': 'Tryb',
       //    // title: '',
       //    options: [
@@ -637,13 +637,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Ukuran pemain',
          // 'label:es': 'Tamaño del jugador',
-         'label:pt': 'Tamanho do jogador',
-         'label:fr': 'Taille du joueur',
+         // 'label:pt': 'Tamanho do jogador',
+         // 'label:fr': 'Taille du joueur',
          // 'label:it': 'Dimensioni del giocatore',
          // 'label:tr': 'Oyuncu boyutu',
-         'label:de': 'Spielergröße',
+         // 'label:de': 'Spielergröße',
          'label:pl': 'Rozmiar odtwarzacza',
-         'label:ua': 'Розмір відтворювача',
+         // 'label:ua': 'Розмір відтворювача',
          type: 'number',
          title: 'Less value - larger size',
          'title:zh': '较小的值 - 较大的尺寸',
@@ -652,13 +652,13 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': 'Nilai lebih kecil - ukuran lebih besar',
          // 'title:es': 'Valor más pequeño - tamaño más grande',
-         'title:pt': 'Valor menor - tamanho maior',
-         'title:fr': 'Plus petite valeur - plus grande taille',
+         // 'title:pt': 'Valor menor - tamanho maior',
+         // 'title:fr': 'Plus petite valeur - plus grande taille',
          // 'title:it': 'Meno valore - dimensioni maggiori',
          // 'title:tr': 'Daha az değer - daha büyük boyut',
-         'title:de': 'Kleiner Wert - größere Größe',
+         // 'title:de': 'Kleiner Wert - größere Größe',
          'title:pl': 'Mniejsza wartość - większy rozmiar',
-         'title:ua': 'Менше значення - більший розмір',
+         // 'title:ua': 'Менше значення - більший розмір',
          placeholder: '2-5',
          step: 0.1,
          min: 1,
@@ -676,13 +676,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Posisi pemain',
          // 'label:es': 'Posición de jugador',
-         'label:pt': 'Posição do jogador',
-         'label:fr': 'La position du joueur',
+         // 'label:pt': 'Posição do jogador',
+         // 'label:fr': 'La position du joueur',
          // 'label:it': 'Posizione del giocatore',
          // 'label:tr': 'Oyuncu pozisyonu',
-         'label:de': 'Spielerposition',
+         // 'label:de': 'Spielerposition',
          'label:pl': 'Pozycja odtwarzacza',
-         'label:ua': 'Позиція відтворювача',
+         // 'label:ua': 'Позиція відтворювача',
          options: [
             {
                // label: 'Top left', value: 'top-left',
@@ -764,13 +764,13 @@ window.nova_plugins.push({
       //    'label:vi': '',
       //    'label:id': 'Rentang visibilitas sensitivitas pemain',
       //    'label:es': 'Rango de visibilidad de la sensibilidad del jugador',
-      //    'label:pt': 'Faixa de visibilidade da sensibilidade do jogador',
-      //    'label:fr': 'Plage de visibilité de la sensibilité du joueur',
+      //    // 'label:pt': 'Faixa de visibilidade da sensibilidade do jogador',
+      //    // 'label:fr': 'Plage de visibilité de la sensibilité du joueur',
       //    'label:it': 'Intervallo di visibilità della sensibilità del giocatore',
       //    'label:tr': 'Oyuncu duyarlılığı görünürlük aralığı',
-      //    'label:de': 'Sichtbarkeitsbereich der Spielerempfindlichkeit',
+      //    // 'label:de': 'Sichtbarkeitsbereich der Spielerempfindlichkeit',
       //    'label:pl': 'Pozycja odtwarzacza',
-      //    'label:ua': 'Діапазон видимості чутливості відтворювача',
+      //    // 'label:ua': 'Діапазон видимості чутливості відтворювача',
       //    type: 'number',
       //    title: 'in %',
       //    // 'title:zh': '',

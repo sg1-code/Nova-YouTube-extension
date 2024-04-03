@@ -42,9 +42,11 @@ window.nova_plugins.push({
          SELECTOR_CLASS_NAME = 'nova-thumbs-not-interested-btn',
          thumbsSelectors = [
             'ytd-rich-item-renderer', // home, channel, feed
-            'ytd-video-renderer', // results
+            // 'ytd-video-renderer', // results
+            // 'ytd-playlist-renderer', // results
             // 'ytd-grid-video-renderer', // feed (old)
             'ytd-compact-video-renderer', // sidepanel in watch
+            'yt-append-continuation-items-action', // sidepanel append in watch
             'ytm-compact-video-renderer', // mobile /results page (ytm-rich-item-renderer)
             'ytm-item-section-renderer' // mobile /subscriptions page
          ]
@@ -170,7 +172,7 @@ window.nova_plugins.push({
                   // if(confirm('click to mark red item?')) {
                   await menuItemEl.click();
                   // }
-                  menuItemEl.style.backgroundColor = null;
+                  menuItemEl.style.removeProperty('backgroundColor');
                }
                // document.body.click(); // close menu
                // menu.click();

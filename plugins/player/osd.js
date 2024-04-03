@@ -51,27 +51,26 @@ window.nova_plugins.push({
                // loaded description == loaded chapterList
                NOVA.waitSelector('ytd-watch-metadata #description.ytd-watch-metadata')
                   .then(() => {
-                     const getNextChapterIndex = () => chapterList?.findIndex(c => c.sec > Math.trunc(video.currentTime));
+                     const getNextChapterIdx = () => chapterList?.findIndex(c => c.sec > video.currentTime);
                      let chapterList, lastChapTime = 0;
 
                      // reset chapterList
                      video.addEventListener('loadeddata', () => chapterList = []);
 
                      video.addEventListener('timeupdate', function () {
-                        // const nextChapterIndex = chapterList?.findIndex(c => c.sec > this.currentTime);
                         if (chapterList !== null && !chapterList?.length) {
                            chapterList = NOVA.getChapterList(movie_player.getDuration()) || null;
-                           // console.debug('chapterList:', chapterList);
                         }
 
                         if (chapterList?.length // has chapters
-                           // && nextChapterIndex !== -1 // chapters not ended
+                           // && nextChapterIdx !== -1 // chapters not ended
                            && this.currentTime > lastChapTime
                         ) {
-                           const nextChapterIndex = getNextChapterIndex();
-                           lastChapTime = chapterList[nextChapterIndex]?.sec;
+                           let nextChapterIdx = getNextChapterIdx();
+                           if (nextChapterIdx === -1) nextChapterIdx = chapterList.length; // last chp fix
+                           lastChapTime = chapterList[nextChapterIdx]?.sec;
 
-                           if (chapterData = chapterList[nextChapterIndex - 1]) {
+                           if (chapterData = chapterList[nextChapterIdx - 1]) {
                               const separator = ' • ';
                               const msg = chapterData.title + separator + chapterData.time;
                               NOVA.showOSD(msg);
@@ -79,7 +78,7 @@ window.nova_plugins.push({
                         }
                      });
                      video.addEventListener('seeking', () => {
-                        if (chapterList?.length && (nexChapterData = chapterList[getNextChapterIndex()])) {
+                        if (chapterList?.length && (nexChapterData = chapterList[getNextChapterIdx()])) {
                            lastChapTime = nexChapterData.sec;
                         }
                         // console.debug('seeking write', lastChapTime);
@@ -107,14 +106,13 @@ window.nova_plugins.push({
                // }
                // console.debug('bezel mutation detected', record.type, target.textContent);
                if (target.textContent) {
+                  let unlimitVol;
                   // fix round volume level on range player change
                   if ((target.textContent?.endsWith('%')
-                     // && (parseInt(target.textContent) <= 100
-                     //    || (user_settings.volume_unlimit && parseInt(target.textContent) <= 600)
-                     // )
+                     && !(unlimitVol = (user_settings.volume_unlimit && parseInt(target.textContent) > 100))
                   )
-                     || target.textContent?.endsWith('x')
-                     || target.textContent?.startsWith('+')
+                     || ((user_settings['video-rate'] || user_settings.player_buttons_custom_items?.includes('range-speed')) && (target.textContent?.length < 6) && target.textContent?.endsWith('x'))
+                     || (user_settings['time-jump'] && target.textContent?.startsWith(`+${user_settings.time_jump_step}`))
                   ) {
                      return;
                   }
@@ -122,7 +120,7 @@ window.nova_plugins.push({
                      'pt': target.textContent,
                      // 'suffix': '',
                      'timeout_ms': (user_settings.player_indicator_chapter_time || 1.8) * 1000, // ms
-                     // 'clear_previous_text': false,
+                     'clear_previous_text': unlimitVol,
                   });
                }
             })
@@ -149,8 +147,8 @@ window.nova_plugins.push({
             // init common css
             NOVA.css.push(
                `#${SELECTOR_ID} {
-                  --color: #fff;
-                  --bg-color: rgba(0,0,0,${user_settings.player_indicator_opacity || .3});
+                  --color: white;
+                  --bg-color: rgba(0, 0, 0, ${user_settings.player_indicator_opacity || .3});
                   --zindex: ${1 + Math.max(NOVA.css.get('.ytp-chrome-top', 'z-index'), 60)};
 
                   position: absolute;
@@ -161,6 +159,17 @@ window.nova_plugins.push({
                   opacity: 0;
                   background-color: var(--bg-color);
                   color: var(--color);
+               }
+
+               #${SELECTOR_ID} span {
+                  text-overflow: ellipsis;
+                  word-wrap: break-word;
+                  overflow: hidden;
+
+                  display: -webkit-box;
+                  -webkit-line-clamp: 5; /* number of lines to show */
+                  line-clamp: 5;
+                  -webkit-box-orient: vertical;
                }`);
             // template
 
@@ -189,7 +198,7 @@ window.nova_plugins.push({
                   // this.spanOSD.style.cssText = '';
                   Object.assign(this.spanOSD.style, {
                      'background-color': COLOR_OSD,
-                     transition: 'width 100ms ease-out 0s',
+                     transition: 'width 100ms ease-out',
                      display: 'inline-block',
                   });
                   // if (span_align == 'left') {
@@ -304,13 +313,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Mode',
          // 'label:es': 'Modo',
-         'label:pt': 'Modo',
+         // 'label:pt': 'Modo',
          // 'label:fr': 'Mode',
          // 'label:it': 'Modalità',
          // 'label:tr': 'Mod',
-         'label:de': 'Modus',
+         // 'label:de': 'Modus',
          'label:pl': 'Tryb',
-         'label:ua': 'Режим',
+         // 'label:ua': 'Режим',
          // label: 'OSD type',
          // 'label:zh': '指标类型',
          // 'label:ja': 'インジケータータイプ',
@@ -340,7 +349,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'текст зверху',
+               // 'label:ua': 'текст зверху',
             },
             {
                label: 'bar-top', value: 'bar-top',
@@ -356,7 +365,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'панель зверху',
+               // 'label:ua': 'панель зверху',
             },
             {
                label: 'bar-center', value: 'bar-center',
@@ -372,7 +381,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'панель в центрі',
+               // 'label:ua': 'панель в центрі',
             },
             {
                label: 'bar-vertical', value: 'bar-vertical',
@@ -388,7 +397,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'вертикальна панель',
+               // 'label:ua': 'вертикальна панель',
             },
          ],
       },
@@ -401,13 +410,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Kegelapan',
          // 'label:es': 'Opacidad',
-         'label:pt': 'Opacidade',
-         'label:fr': 'Opacité',
+         // 'label:pt': 'Opacidade',
+         // 'label:fr': 'Opacité',
          // 'label:it': 'Opacità',
          'label:tr': 'opaklık',
-         'label:de': 'Opazität',
+         // 'label:de': 'Opazität',
          'label:pl': 'Przezroczystość',
-         'label:ua': 'Прозорість',
+         // 'label:ua': 'Прозорість',
          type: 'number',
          title: 'less value - more transparency',
          // 'title:zh': '',
@@ -441,13 +450,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Warna',
          // 'label:es': 'Color',
-         'label:pt': 'Cor',
-         'label:fr': 'Couleur',
+         // 'label:pt': 'Cor',
+         // 'label:fr': 'Couleur',
          // 'label:it': 'Colore',
          // 'label:tr': 'Renk',
-         'label:de': 'Farbe',
+         // 'label:de': 'Farbe',
          'label:pl': 'Kolor',
-         'label:ua': 'Колір',
+         // 'label:ua': 'Колір',
          // title: '',
          'data-dependent': { 'player_indicator_type': '!text-top' },
       },
@@ -460,13 +469,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Tampilkan info di awal bab',
          // 'label:es': 'Mostrar información al inicio del capítulo',
-         'label:pt': 'Mostrar informações no capítulo inicial',
-         'label:fr': 'Afficher les informations au début du chapitre',
+         // 'label:pt': 'Mostrar informações no capítulo inicial',
+         // 'label:fr': 'Afficher les informations au début du chapitre',
          // 'label:it': "Mostra informazioni all'inizio del capitolo",
          // 'label:tr': '',
-         'label:de': 'Info beim Startkapitel anzeigen',
+         // 'label:de': 'Info beim Startkapitel anzeigen',
          'label:pl': 'Pokaż informacje na początku rozdziału',
-         'label:ua': 'Показати інформацію на початку розділу',
+         // 'label:ua': 'Показати інформацію на початку розділу',
          type: 'checkbox',
          // title: '',
       },
@@ -493,8 +502,8 @@ window.nova_plugins.push({
          _tagName: 'input',
          label: 'Chapter timeout',
          type: 'number',
-         // 'label:zh': '',
-         // 'label:ja': '',
+         'label:zh': '章节超时',
+         'label:ja': 'チャプターのタイムアウト',
          // 'label:ko': '',
          // 'label:vi': '',
          // 'label:id': '',

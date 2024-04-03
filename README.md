@@ -35,7 +35,7 @@ Only this versions allow you to override the setting to enforce the extension si
 2. Type `about:config` page in your address bar to bring up the "Firefox Configuration Editor" page. Agree with warning
 3. Type in new input `xpinstall.signatures.required` and change the setting to `false`.
 4. Type `about:addons` in your address bar to bring up the "Add-ons Manager" page.
-5. Drag the script onto the "Add-ons Manager" page OR Click to __Gear icon__ and choose "Install Add-ons From File...".
+5. Drag the script onto the "Add-ons Manager" page OR Click to __Gear icon__ and (`⚙`) choose "Install Add-ons From File...".
 
 ## Development
 

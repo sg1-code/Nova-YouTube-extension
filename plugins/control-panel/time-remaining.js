@@ -1,6 +1,3 @@
-// for test
-// https://radio.nv.ua/online-radio-nv - live embed
-
 window.nova_plugins.push({
    id: 'time-remaining',
    title: 'Remaining time',
@@ -10,13 +7,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Waktu yang tersisa',
    // 'title:es': 'Tiempo restante',
-   'title:pt': 'Tempo restante',
-   'title:fr': 'Temps restant',
+   // 'title:pt': 'Tempo restante',
+   // 'title:fr': 'Temps restant',
    // 'title:it': 'Tempo rimanente',
    // 'title:tr': 'Kalan süre',
-   'title:de': 'Verbleibende Zeit',
+   // 'title:de': 'Verbleibende Zeit',
    'title:pl': 'Pozostały czas',
-   'title:ua': 'Час, що залишився',
+   // 'title:ua': 'Час, що залишився',
    run_on_pages: 'watch, embed, -mobile',
    section: 'control-panel',
    desc: 'Remaining time until the end of the video',
@@ -26,13 +23,13 @@ window.nova_plugins.push({
    // 'desc:vi': '',
    // 'desc:id': 'Sisa waktu sampai akhir video',
    // 'desc:es': 'Tiempo restante hasta el final del video',
-   'desc:pt': 'Tempo restante até o final do vídeo',
-   'desc:fr': "Temps restant jusqu'à la fin de la vidéo",
+   // 'desc:pt': 'Tempo restante até o final do vídeo',
+   // 'desc:fr': "Temps restant jusqu'à la fin de la vidéo",
    // 'desc:it': 'Tempo rimanente fino alla fine del video',
    // 'desc:tr': 'Videonun sonuna kalan süre',
-   'desc:de': 'Verbleibende Zeit bis zum Ende des Videos',
+   // 'desc:de': 'Verbleibende Zeit bis zum Ende des Videos',
    'desc:pl': 'Czas pozostały do końca filmu',
-   'desc:ua': 'Час, що залишився до кінця відео',
+   // 'desc:ua': 'Час, що залишився до кінця відео',
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/432706-youtube-speeder
@@ -46,7 +43,15 @@ window.nova_plugins.push({
       const SELECTOR_ID = 'nova-player-time-remaining';
 
       // NOVA.waitSelector('.ytp-time-duration, ytm-time-display .time-display-content, .player-controls-bottom .ytm-time-display .time-display-content')
-      NOVA.waitSelector('.ytp-time-duration, ytm-time-display .time-display-content')
+
+      let selectorOutAfter;
+      switch (user_settings.time_remaining_position) {
+         case 'description': selectorOutAfter = '#title h1'; break;
+         // case 'player':
+         default: selectorOutAfter = '.ytp-time-duration, ytm-time-display .time-display-content'; break;
+      }
+
+      NOVA.waitSelector(selectorOutAfter)
          .then(container => {
 
             NOVA.waitSelector('video')
@@ -67,54 +72,46 @@ window.nova_plugins.push({
                   || movie_player.getVideoData().isLive // stream. Doesn't work in embed
                   || (NOVA.currentPage == 'embed' && document.URL.includes('live_stream'))
                   || document.visibilityState == 'hidden' // tab inactive
-                  || movie_player.classList.contains('ytp-autohide')
+                  || ((user_settings.time_remaining_position != 'description') && movie_player.classList.contains('ytp-autohide'))
                ) return;
 
                const
-                  // for optimization
                   currentTime = Math.trunc(this.currentTime),
                   duration = Math.trunc(this.duration),
-                  delta = duration - currentTime,
-                  getPercent = () => {
+                  delta_ = duration - currentTime, // tiny optimization
+                  getPercent = percentage_type_left => {
                      const
                         floatRound = pt => (this.duration > 3600)
                            ? pt.toFixed(2) // >1 hour
                            : (this.duration > 1500)
                               ? pt.toFixed(1) // >25 Minute
                               : Math.round(pt),
-                        percentLeft = user_settings.time_remaining_pt_left
-                           ? delta * 100 / duration
-                           : currentTime * 100 / duration
+                        calcPercentage = percentage_type_left
+                           ? delta_ * 100 / duration
+                           : currentTime * 100 / duration;
 
-                     return floatRound(percentLeft) + '%';
+                     return floatRound(calcPercentage) + '%';
                   },
-                  getTimeLeft = () => NOVA.formatTimeOut.HMS.digit(delta),
-                  getTimeLeftByRate = () => '-' + NOVA.formatTimeOut.HMS.digit(delta / this.playbackRate);
+                  getTimeLeft = () => NOVA.formatTimeOut.HMS.digit(delta_),
+                  getTimeLeftByRate = () => '-' + NOVA.formatTimeOut.HMS.digit(delta_ / this.playbackRate);
+               // getTimeLeftByRate = () => (this.playbackRate == 1) ? '' : '-' + NOVA.formatTimeOut.HMS.digit(delta_ / this.playbackRate);
 
-               let text;
+               const text = user_settings.time_remaining_format
+                  .replace(/total|left(\*speed|%)?|done(%)?|'([^']|'')*'/g, partPattern => { // remove key "a" for use text "at"
+                     let out;
+                     switch (partPattern) {
+                        case 'left*speed': out = getTimeLeftByRate(); break;
+                        case 'left': out = getTimeLeft(); break;
+                        case 'left%': out = getPercent('L'); break;
+                        case 'done': out = currentTime; break;
+                        case 'done%': out = getPercent(); break;
+                        case 'duration': out = duration; break;
+                        // default: console.debug('skiped:', partPattern); break;
+                     }
+                     return out;
+                  });
 
-               switch (user_settings.time_remaining_mode) {
-                  case 'pt': text = ' • ' + getPercent(); break;
-                  case 'time': text = getTimeLeftByRate(); break;
-                  case 'time_full':
-                     text = getTimeLeftByRate();
-                     if (this.playbackRate != 1) text += `(${getTimeLeft()})`;
-                     break;
-                  case 'time_full_pt':
-                     text = getTimeLeftByRate();
-                     if (this.playbackRate != 1) text += `(${getTimeLeft()})`;
-                     text += text && ` (${getPercent()})`; // prevent show NaN
-                     break;
-                  // case 'full_pt':
-                  // case 'full':
-                  default:
-                     text = getTimeLeftByRate();
-                     text += text && ` (${getPercent()})`; // prevent show NaN
-               }
-
-               if (text) {
-                  insertToHTML({ 'text': text, 'container': container });
-               }
+               if (text) insertToHTML({ 'text': text, 'container': container });
             }
 
             function insertToHTML({ text = '', container = required() }) {
@@ -138,24 +135,25 @@ window.nova_plugins.push({
 
    },
    options: {
-      time_remaining_mode: {
+      time_remaining_format: {
          _tagName: 'select',
-         label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
-         // 'label:ko': '방법',
-         // 'label:fd': 'Mode',
-         // 'label:es': 'Modo',
-         'label:pt': 'Modo',
-         // 'label:fr': 'Mode',
-         // 'label:it': 'Modalità',
-         // 'label:tr': 'Mod',
-         'label:de': 'Modus',
-         'label:pl': 'Tryb',
-         'label:ua': 'Режим',
+         label: 'Time pattern',
+         // 'label:zh': '',
+         // 'label:ja': '',
+         // 'label:ko': '',
+         // 'label:vi': '',
+         // 'label:id': '',
+         // 'label:es': '',
+         // 'label:pt': '',
+         // 'label:fr': '',
+         // 'label:it': '',
+         // 'label:tr': '',
+         // 'label:de': '',
+         // 'label:pl': '',
+         // 'label:ua': '',
          options: [
             {
-               label: 'time+(%)', value: 'full',
+               label: 'left*speed', value: 'left*speed', selected: true,
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -168,10 +166,10 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'час+(%)',
+               // 'label:ua': '',
             },
             {
-               label: 'time(full)', value: 'time_full',
+               label: 'left*speed (done%)', value: 'left*speed (done%)',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -184,10 +182,10 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               // '',
+               // 'label:ua': '',
             },
             {
-               label: 'time(full)+%', value: 'time_full_pt',
+               label: 'left*speed (left%)', value: 'left*speed (left%)',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -200,10 +198,10 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               // '',
+               // 'label:ua': '',
             },
             {
-               label: 'time', value: 'time', selected: true,
+               label: 'left', value: 'left',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -216,10 +214,58 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'час',
+               // 'label:ua': '',
             },
             {
-               label: 'done %', value: 'pt',
+               label: 'left%', value: 'left%',
+               // 'label:zh': '',
+               // 'label:ja': '',
+               // 'label:ko': '',
+               // 'label:vi': '',
+               // 'label:id': '',
+               // 'label:es': '',
+               // 'label:pt': '',
+               // 'label:fr': '',
+               // 'label:it': '',
+               // 'label:tr': '',
+               // 'label:de': '',
+               // 'label:pl': '',
+               // 'label:ua': '',
+            },
+            {
+               label: 'done%', value: 'done%',
+               // 'label:zh': '',
+               // 'label:ja': '',
+               // 'label:ko': '',
+               // 'label:vi': '',
+               // 'label:id': '',
+               // 'label:es': '',
+               // 'label:pt': '',
+               // 'label:fr': '',
+               // 'label:it': '',
+               // 'label:tr': '',
+               // 'label:de': '',
+               // 'label:pl': '',
+               // 'label:ua': '',
+            },
+            {
+               label: 'left/left*speed', value: 'left/left*speed (done%)',
+               // 'label:zh': '',
+               // 'label:ja': '',
+               // 'label:ko': '',
+               // 'label:vi': '',
+               // 'label:id': '',
+               // 'label:es': '',
+               // 'label:pt': '',
+               // 'label:fr': '',
+               // 'label:it': '',
+               // 'label:tr': '',
+               // 'label:de': '',
+               // 'label:pl': '',
+               // 'label:ua': '',
+            },
+            {
+               label: 'left*speed/duration (done%)', value: 'left*speed/duration (done%)',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -236,9 +282,9 @@ window.nova_plugins.push({
             },
          ],
       },
-      time_remaining_pt_left: {
-         _tagName: 'input',
-         label: 'left %',
+      time_remaining_position: {
+         _tagName: 'select',
+         label: 'Render position',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',
@@ -252,22 +298,40 @@ window.nova_plugins.push({
          // 'label:de': '',
          // 'label:pl': '',
          // 'label:ua': '',
-         type: 'checkbox',
-         title: 'by default "done"',
-         // 'title:zh': '',
-         // 'title:ja': '',
-         // 'title:ko': '',
-         // 'title:vi': '',
-         // 'title:id': '',
-         // 'title:es': '',
-         // 'title:pt': '',
-         // 'title:fr': '',
-         // 'title:it': '',
-         // 'title:tr': '',
-         // 'title:de': '',
-         // 'title:pl': '',
-         // 'title:ua': '',
-         'data-dependent': { 'time_remaining_mode': ['time_full_pt', 'pt'] },
+         options: [
+            {
+               label: 'player', value: 'player', selected: true,
+               // 'label:zh': '',
+               // 'label:ja': '',
+               // 'label:ko': '',
+               // 'label:vi': '',
+               // 'label:id': '',
+               // 'label:es': '',
+               // 'label:pt': '',
+               // 'label:fr': '',
+               // 'label:it': '',
+               // 'label:tr': '',
+               // 'label:de': '',
+               // 'label:pl': '',
+               // 'label:ua': '',
+            },
+            {
+               label: 'description', value: 'description',
+               // 'label:zh': '',
+               // 'label:ja': '',
+               // 'label:ko': '',
+               // 'label:vi': '',
+               // 'label:id': '',
+               // 'label:es': '',
+               // 'label:pt': '',
+               // 'label:fr': '',
+               // 'label:it': '',
+               // 'label:tr': '',
+               // 'label:de': '',
+               // 'label:pl': '',
+               // 'label:ua': '',
+            },
+         ],
       },
    }
 });

@@ -8,8 +8,8 @@ window.nova_plugins.push({
    id: 'video-date-format',
    // title: 'Displaying date format',
    title: 'Date format display',
-   // 'title:zh': '',
-   // 'title:ja': '',
+   'title:zh': '显示日期格式',
+   'title:ja': '日付形式の表示',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -177,10 +177,10 @@ window.nova_plugins.push({
                   if (outList.length) {
                      insertToHTML({ 'text': outList.join(' '), 'container': container });
                      // save cache in tabs
-                     sessionStorage.setItem(CACHE_PREFIX + videoId, {
+                     sessionStorage.setItem(CACHE_PREFIX + videoId, JSON.stringify({
                         'date': outList.join(' '),
                         'format': user_settings.video_date_format
-                     });
+                     }));
                   }
                   // else {
                   //    return console.warn('API is change', item);

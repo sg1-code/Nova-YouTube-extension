@@ -11,13 +11,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Bilah kemajuan pemain mengambang',
    // 'title:es': 'Barra de progreso flotante del jugador',
-   'title:pt': 'Barra de progresso do jogador flutuante',
-   'title:fr': 'Barre de progression du joueur flottant',
+   // 'title:pt': 'Barra de progresso do jogador flutuante',
+   // 'title:fr': 'Barre de progression du joueur flottant',
    // 'title:it': 'Barra di avanzamento del giocatore mobile',
    // 'title:tr': 'Kayan oyuncu ilerleme çubuğu',
-   'title:de': 'Float-Player-Fortschrittsbalken',
+   // 'title:de': 'Float-Player-Fortschrittsbalken',
    'title:pl': 'Pływający pasek postępu odtwarzacza',
-   'title:ua': 'Плаваючий індикатор прогресу відтворення',
+   // 'title:ua': 'Плаваючий індикатор прогресу відтворення',
    run_on_pages: 'watch, embed, -mobile',
    section: 'control-panel',
    // desc: '',
@@ -51,7 +51,7 @@ window.nova_plugins.push({
          CHAPTERS_MARK_WIDTH_PX = '2px',
          CHP_JUMP_TOGGLE_CLASS_VALUE = 'nova-chapters-jump-active';
 
-      NOVA.waitSelector(`${SELECTOR_CONTAINER} video`)
+      NOVA.waitSelector(`${user_settings['player-control-autohide'] ? '#movie_player' : SELECTOR_CONTAINER} video`)
          .then(video => {
             const
                container = insertFloatBar({
@@ -64,7 +64,7 @@ window.nova_plugins.push({
             renderChapters.init(video); // init "resetBar()"
 
             // resetBar on new video loaded
-            // video.addEventListener('play', resetBar); // fix: live_stream visibility
+            video.addEventListener('progress', () => container.classList.add('transition'), { capture: true, once: true }); // skip on init transition
             video.addEventListener('loadeddata', resetBar);
             document.addEventListener('yt-navigate-finish', resetBar);
 
@@ -191,7 +191,7 @@ window.nova_plugins.push({
                }*/
 
                ${SELECTOR_CONTAINER} ${SELECTOR}.transition [id|=${SELECTOR_ID}] {
-                  transition: transform .2s linear;
+                  transition: transform 200ms linear;
                }
 
                ${SELECTOR}-progress, ${SELECTOR}-buffer {
@@ -224,10 +224,18 @@ window.nova_plugins.push({
                   margin: 0;
                }
 
-               /* ${SELECTOR}-chapters span:not(:first-child) { */
-               ${SELECTOR}-chapters span:not([time="0:00"]) {
-                  /* border-left: ${CHAPTERS_MARK_WIDTH_PX} solid #000; */
+               ${SELECTOR}-chapters > span:first-child:not([time$="0:00"]), /* any zeros - https://www.youtube.com/watch?v=rAhn7AJIt54 */
+               ${SELECTOR}-chapters > span:not(:first-child) {
+                  /* border-left: ${CHAPTERS_MARK_WIDTH_PX} solid black; */
                   border-left: ${CHAPTERS_MARK_WIDTH_PX} solid rgba(255,255,255,.7);
+               }
+
+               /* fix for [sponsor-block] plugin */
+               ${SELECTOR}-chapters > span {
+                  position: relative;
+               }
+               ${SELECTOR}-chapters > span > span {
+                  position: absolute;
                }
 
                .${CHP_JUMP_TOGGLE_CLASS_VALUE} {
@@ -243,16 +251,44 @@ window.nova_plugins.push({
                   background-color: rgba(255,255,255,.7);
                }`);
 
+            // fix for [player-control-autohide] plugin
+            if (user_settings['player-control-autohide']) {
+               switch (user_settings.player_control_autohide_container) {
+                  case 'player':
+                     NOVA.css.push(
+                        `${SELECTOR_CONTAINER}:not(:hover) ${SELECTOR} {
+                           visibility: visible !important;
+                        }`);
+                     break;
+
+                  case 'control':
+                     NOVA.css.push(
+                        // #movie_player:not(.ytp-autohide):hover ${SELECTOR} {
+                        //    visibility: visible !important;
+                        // }
+                        `.ytp-chrome-bottom:not(:hover) ~ ${SELECTOR} {
+                           visibility: visible !important;
+                        }`);
+                     break;
+               }
+               if (user_settings.player_control_autohide_show_on_seek) {
+                  NOVA.css.push(
+                     `[style*="opacity: 1"] ~ ${SELECTOR} {
+                        visibility: hidden !important;
+                     }`);
+               }
+            }
+
             return document.getElementById(SELECTOR_ID);
          })();
       }
 
       function connectChapterJump() {
          let hotkeyActivated;
-         document.addEventListener('keydown', showSwitch);
-         document.addEventListener('keyup', showSwitch);
+         document.addEventListener('keydown', showChapterSwitch);
+         document.addEventListener('keyup', showChapterSwitch);
 
-         function showSwitch(evt) {
+         function showChapterSwitch(evt) {
             if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
             if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
             // if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
@@ -279,7 +315,7 @@ window.nova_plugins.push({
                }
             }
          }
-
+         // click event
          document.getElementById(SELECTOR_ID)
             .addEventListener('click', ({ target }) => {
                if (!(secTime = target.getAttribute('time'))) return;
@@ -333,6 +369,7 @@ window.nova_plugins.push({
          },
 
          from_description(duration = required()) {
+            if (isNaN(duration)) return console.error('duration isNaN:', duration);
             if (Math.sign(duration) !== 1) return console.error('duration not positive number:', duration);
 
             // <a href="/playlist?list=XX"> - erroneous filtering "t=XX" without the character "&"
@@ -345,7 +382,11 @@ window.nova_plugins.push({
 
             // search in comments
             NOVA.waitSelector(`#comments #comment #comment-content ${selectorTimestampLink}`, { destroy_after_page_leaving: true })
-               .then(() => this.renderChaptersMarkers(duration));
+               .then(() => {
+                  // skip if get successfully from description
+                  if (document.body.querySelector(`${SELECTOR}-chapters > span[time]`)) return;
+                  this.renderChaptersMarkers(duration);
+               });
             // search in first/pinned comment
             // NOVA.waitSelector(`#comments ytd-comment-thread-renderer:first-child #content ${selectorTimestampLink}`)
             //    .then(() => this.renderChaptersMarkers(duration));
@@ -370,7 +411,7 @@ window.nova_plugins.push({
             }
          },
 
-         renderChaptersMarkers(duration) {
+         renderChaptersMarkers(duration = required()) {
             // console.debug('renderChaptersMarkers', ...arguments);
             if (isNaN(duration)) return console.error('duration isNaN:', duration);
 
@@ -422,13 +463,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Tinggi',
          // 'label:es': 'Altura',
-         'label:pt': 'Altura',
-         'label:fr': 'Hauteur',
+         // 'label:pt': 'Altura',
+         // 'label:fr': 'Hauteur',
          // 'label:it': 'Altezza',
          // 'label:tr': 'Yükseklik',
-         'label:de': 'Höhe',
+         // 'label:de': 'Höhe',
          'label:pl': 'Wysokość',
-         'label:ua': 'Висота',
+         // 'label:ua': 'Висота',
          type: 'number',
          title: 'in pixels',
          // 'title:zh': '',
@@ -458,13 +499,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Kegelapan',
          // 'label:es': 'Opacidad',
-         'label:pt': 'Opacidade',
-         'label:fr': 'Opacité',
+         // 'label:pt': 'Opacidade',
+         // 'label:fr': 'Opacité',
          // 'label:it': 'Opacità',
          // 'label:tr': 'Opaklık',
-         'label:de': 'Opazität',
+         // 'label:de': 'Opazität',
          'label:pl': 'Przejrzystość',
-         'label:ua': 'Прозорість',
+         // 'label:ua': 'Прозорість',
          type: 'number',
          // title: '',
          placeholder: '0-1',
@@ -475,9 +516,9 @@ window.nova_plugins.push({
       },
       player_float_progress_bar_hotkey: {
          _tagName: 'select',
-         label: 'Hotkey to jump by click',
-         // 'label:zh': '',
-         // 'label:ja': '',
+         label: 'Hotkey to chapters jump (by click)',
+         'label:zh': '章节跳转热键（点击）',
+         'label:ja': '章にジャンプするホットキー (クリックによる)',
          // 'label:ko': '',
          // 'label:vi': '',
          // 'label:id': '',

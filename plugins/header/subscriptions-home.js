@@ -7,7 +7,7 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': '',
    // 'title:es': '',
-   'title:pt': 'Redirecionar da página inicial para a página de assinaturas',
+   // 'title:pt': 'Redirecionar da página inicial para a página de assinaturas',
    // 'title:fr': 'Redirection de la page d'accueil vers la page d'abonnements',
    // 'title:it': '',
    // 'title:tr': '',

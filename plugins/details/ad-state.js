@@ -1,5 +1,6 @@
 // for test:
 // https://www.youtube.com/watch?v=Zrv1EDIqHkY - Includes paid promotion
+// https://www.youtube.com/watch?v=1RjnI64Rwqs - Includes paid promotion
 
 window.nova_plugins.push({
    id: 'ad-state',

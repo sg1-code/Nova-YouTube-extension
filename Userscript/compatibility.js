@@ -1,4 +1,5 @@
 // https://adguard.com/kb/general/userscripts/
+// https://violentmonkey.github.io/posts/how-to-edit-scripts-with-your-favorite-editor/
 
 // support check start
 
@@ -13,13 +14,16 @@ if (!('MutationObserver' in window)) {
    errorAlert('MutationObserver not supported');
 }
 
-// chaining operator test
+// chaining operator test - https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining#browser_compatibility
 try {
    // throw 'test';
    document?.body;
 } catch (error) {
    errorAlert('Your browser does not support chaining operator');
 }
+
+// don't use this shit
+if (navigator.userAgentData?.brands?.some(i => i.brand?.toLocaleLowerCase()?.includes('yandex'))) returnж
 
 // css ":has()" test
 // if (!CSS.supports('selector(:has(*))')

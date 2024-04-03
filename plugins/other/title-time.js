@@ -10,21 +10,21 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Tampilkan waktu di judul tab',
    // 'title:es': 'Mostrar la hora en el título de la pestaña',
-   'title:pt': 'Mostrar tempo no título da guia',
-   'title:fr': "Afficher l'heure dans le titre de l'onglet",
+   // 'title:pt': 'Mostrar tempo no título da guia',
+   // 'title:fr': "Afficher l'heure dans le titre de l'onglet",
    // 'title:it': "Mostra l'ora nel titolo della scheda",
    // 'title:tr': 'Sekme başlığında zamanı göster',
-   'title:de': 'Zeit im Tab-Titel anzeigen',
+   // 'title:de': 'Zeit im Tab-Titel anzeigen',
    'title:pl': 'Pokaż czas w tytule karty',
-   'title:ua': 'Відображення часу в заголовку вкладки',
+   // 'title:ua': 'Відображення часу в заголовку вкладки',
    run_on_pages: 'watch',
    section: 'other',
    // desc: 'Show the current time of the video on the title',
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/450646-youtube-better-window-title
-      // alt2 - https://greasyfork.org/en/scripts/450734-youtube-com-channel-name-and-upload-date-in-tab-title-no-notification-count
-      // alt3 - https://greasyfork.org/en/scripts/485000-youtube-video-duration-in-title/code
+      // alt2 - https://greasyfork.org/en/scripts/450734
+      // alt3 - https://greasyfork.org/en/scripts/485000-youtube-video-duration-in-title
 
       NOVA.waitSelector('video')
          .then(video => {
@@ -127,13 +127,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Mode',
          // 'label:es': 'Modo',
-         'label:pt': 'Modo',
+         // 'label:pt': 'Modo',
          // 'label:fr': 'Mode',
          // 'label:it': 'Modalità',
          // 'label:tr': 'Mod',
-         'label:de': 'Modus',
+         // 'label:de': 'Modus',
          'label:pl': 'Tryb',
-         'label:ua': 'Режим',
+         // 'label:ua': 'Режим',
          options: [
             // {
             //    label: 'current', value: 'current',
@@ -143,13 +143,13 @@ window.nova_plugins.push({
             //    // 'label:vi': '',
             //    // 'label:id': '',
             //    'label:es': 'actual',
-            //    'label:pt': 'atual',
-            //    'label:fr': 'courant',
+            //    // 'label:pt': 'atual',
+            //    // 'label:fr': 'courant',
             //    // 'label:it': '',
             //    // ''label:tr': 'akım',
-            //    'label:de': 'strom',
+            //    // 'label:de': 'strom',
             //    'label:pl': 'pozostało',
-            //    'label:ua': 'поточний',
+            //    // 'label:ua': 'поточний',
             // },
             {
                label: 'left', value: 'left', selected: true,
@@ -159,13 +159,13 @@ window.nova_plugins.push({
                // 'label:vi': '',
                // 'label:id': 'tetap',
                // 'label:es': 'izquierda',
-               'label:pt': 'deixou',
-               'label:fr': 'à gauche',
+               // 'label:pt': 'deixou',
+               // 'label:fr': 'à gauche',
                // 'label:it': 'è rimasta',
                // 'label:tr': 'o ayrıldı',
-               'label:de': 'links',
+               // 'label:de': 'links',
                'label:pl': 'pozostało',
-               'label:ua': 'лишилось',
+               // 'label:ua': 'лишилось',
             },
             {
                label: 'current/duration', value: 'current-duration',
@@ -175,13 +175,13 @@ window.nova_plugins.push({
                // 'label:vi': '',
                // 'label:id': 'saat ini/durasi',
                // 'label:es': 'actual/duración',
-               'label:pt': 'atual/duração',
-               'label:fr': 'courant/durée',
+               // 'label:pt': 'atual/duração',
+               // 'label:fr': 'courant/durée',
                // 'label:it': 'corrente/durata',
                // 'label:tr': 'akım/süre',
-               'label:de': 'strom/dauer',
+               // 'label:de': 'strom/dauer',
                'label:pl': 'bieżący czas',
-               'label:ua': 'поточний/тривалість',
+               // 'label:ua': 'поточний/тривалість',
             },
          ],
       },

@@ -7,13 +7,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Tombol pintas pemain selalu aktif',
    // 'title:es': 'Teclas de acceso rápido del jugador siempre activas',
-   'title:pt': 'Teclas de atalho do jogador sempre ativas',
-   'title:fr': 'Les raccourcis clavier du joueur sont toujours actifs',
+   // 'title:pt': 'Teclas de atalho do jogador sempre ativas',
+   // 'title:fr': 'Les raccourcis clavier du joueur sont toujours actifs',
    // 'title:it': 'Tasti di scelta rapida del giocatore sempre attivi',
    // 'title:tr': 'Oyuncu kısayol tuşları her zaman etkin',
-   'title:de': 'Player-Hotkeys immer aktiv',
+   // 'title:de': 'Player-Hotkeys immer aktiv',
    'title:pl': 'Klawisze skrótów dla graczy zawsze aktywne',
-   'title:ua': 'Гарячі клавіші відтворювача завжди активні',
+   // 'title:ua': 'Гарячі клавіші відтворювача завжди активні',
    run_on_pages: 'watch, embed, -mobile',
    section: 'control-panel',
    // desc: 'Player hotkeys always active【SPACE/F】etc.',
@@ -33,6 +33,7 @@ window.nova_plugins.push({
 
          setPlayerFocus(evt.target);
 
+         // alt - https://greasyfork.org/en/scripts/491283-youtube-usability
          if (user_settings.hotkeys_disable_numpad && evt.code.startsWith('Numpad')) {
             // console.debug('evt.code', evt.code);
             evt.preventDefault();

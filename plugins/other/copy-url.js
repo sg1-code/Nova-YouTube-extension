@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'copy-url',
    title: 'Copy URL to clipboard',
-   // 'title:zh': '',
-   // 'title:ja': '',
+   'title:zh': '将 URL 复制到剪贴板',
+   'title:ja': 'URLをクリップボードにコピー',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -19,7 +19,7 @@ window.nova_plugins.push({
    // desc: 'use「Ctrl+C」',
    _runtime: user_settings => {
 
-      const SELECTOR_ID = 'nova-copy-notify';
+      const SELECTOR_ID = 'nova-copy-notification';
 
       document.addEventListener('keydown', evt => {
          const hotkeyMod = user_settings.copy_url_hotkey || 'ctrlKey';
@@ -59,14 +59,18 @@ window.nova_plugins.push({
             }
             if (url) {
                navigator.clipboard.writeText(url);
-               // shownotify('Shortened URL copied to clipboard\n' + url);
-               shownotify('URL copied');
+               // showNotification('Shortened URL copied to clipboard\n' + url);
+               showNotification('URL copied');
             }
          }
       });
 
-      function shownotify(msg) {
-         if (typeof shownotify.fade === 'number') clearTimeout(shownotify.fade); // reset timeout
+      function showNotification(msg) {
+         // reset timeout
+         if (typeof showNotification.fade === 'number') {
+            clearTimeout(showNotification.fade);
+            clearTimeout(showNotification.hideСompletely);
+         }
 
          const notify = (document.getElementById(SELECTOR_ID) || (function () {
             const el = document.createElement('div');
@@ -82,7 +86,7 @@ window.nova_plugins.push({
                'box-shadow': 'rgb(0 0 0 / 50%) 0px 0px 3px',
                'border-radius': user_settings['square-avatars'] ? 'inherit' : '12px',
                'font-size': `${+user_settings.copy_url_font_size || 1.7}em`,
-               color: 'var(--yt-spec-text-primary, #fff)',
+               color: 'var(--yt-spec-text-primary, white)',
                padding: '.5em .8em',
                cursor: 'pointer',
             };
@@ -122,10 +126,10 @@ window.nova_plugins.push({
          // notify.addEventListener('click', notify.remove);
          // setTimeout(notify.remove, 3000);
 
-         shownotify.fade = setTimeout(() => {
-            notify.style.transition = 'opacity 200ms ease-in';
+         showNotification.fade = setTimeout(() => {
+            notify.style.transition = 'opacity 200ms ease-out';
             notify.style.opacity = 0;
-            setTimeout(() => notify.style.visibility = 'hidden', 1000); // completely hide after 1s
+            showNotification.hideСompletely = setTimeout(() => notify.style.visibility = 'hidden', 5000); // completely hide after 5s
          }, 600); // 600ms
       }
 
@@ -140,13 +144,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Tombol pintas',
          // 'label:es': 'Tecla de acceso rápido',
-         'label:pt': 'Tecla de atalho',
-         'label:fr': 'Raccourci',
+         // 'label:pt': 'Tecla de atalho',
+         // 'label:fr': 'Raccourci',
          // 'label:it': 'Tasto di scelta rapida',
          // 'label:tr': 'Kısayol tuşu',
-         'label:de': 'Schnelltaste',
+         // 'label:de': 'Schnelltaste',
          'label:pl': 'Klawisz skrótu',
-         'label:ua': 'Гаряча клавіша',
+         // 'label:ua': 'Гаряча клавіша',
          options: [
             { label: 'shift+c', value: 'shiftKey', selected: true },
             { label: 'ctrl+c', value: 'ctrlKey' },
@@ -156,7 +160,7 @@ window.nova_plugins.push({
       copy_url_position: {
          _tagName: 'select',
          // label: 'Position in the corner',
-         label: 'notify position',
+         label: 'Notification position',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',
@@ -306,7 +310,8 @@ window.nova_plugins.push({
       copy_url_color: {
          _tagName: 'input',
          type: 'color',
-         value: '#DC143C',
+         // value: '#DC143C',
+         value: '#e85717',
          label: 'Color',
          'label:zh': '颜色',
          'label:ja': '色',
@@ -314,14 +319,14 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Warna',
          // 'label:es': 'Color',
-         'label:pt': 'Cor',
-         'label:fr': 'Couleur',
+         // 'label:pt': 'Cor',
+         // 'label:fr': 'Couleur',
          // 'label:it': 'Colore',
          // 'label:tr': 'Renk',
-         'label:de': 'Farbe',
+         // 'label:de': 'Farbe',
          'label:pl': 'Kolor',
-         'label:ua': 'Колір',
-         title: 'default - #DC143C',
+         // 'label:ua': 'Колір',
+         title: 'default - #e85717',
          // 'title:zh': '',
          // 'title:ja': '',
          // 'title:ko': '',

@@ -3,9 +3,9 @@
 
 window.nova_plugins.push({
    id: 'thumbs-title-lang',
-   title: "Show title's original language",
-   // 'title:zh': '',
-   // 'title:ja': '',
+   title: "Show titles original language",
+   'title:zh': '显示缩略图标题原始语言',
+   'title:ja': 'サムネイルのタイトルを元の言語で表示する',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -22,7 +22,7 @@ window.nova_plugins.push({
    section: 'thumbs',
    opt_api_key_warn: true,
    // desc: '',
-   'plugins-conflict': 'thumbnails-title-normalize',
+   'plugins-conflict': 'thumbs-title-normalize',
    _runtime: user_settings => {
 
       // if (!user_settings['user-api-key']) return;
@@ -32,9 +32,11 @@ window.nova_plugins.push({
          SELECTOR_THUMBS_PATCHED_ATTR = 'nova-thumbs-title-lang',
          thumbsSelectors = [
             'ytd-rich-item-renderer', // home, channel, feed
-            'ytd-video-renderer', // results
+            // 'ytd-video-renderer', // results
+            // 'ytd-playlist-renderer', // results
             // 'ytd-grid-video-renderer', // feed (old)
             'ytd-compact-video-renderer', // sidepanel in watch
+            'yt-append-continuation-items-action', // sidepanel append in watch
             'ytm-compact-video-renderer', // mobile /results page (ytm-rich-item-renderer)
             'ytm-item-section-renderer' // mobile /subscriptions page
          ]
@@ -116,7 +118,7 @@ window.nova_plugins.push({
             refreshCache(newCacheItem);
             patchThumbs(idsToProcess); // comment for test
             // requestTitle(idsToProcess); // uncomment for test (ignore cache)
-         }, 1000 * sec); // 1 sec
+         }, 1000 * sec); // 1s
       }
 
       // filter by cache

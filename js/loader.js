@@ -57,6 +57,9 @@ const App = {
       // window.addEventListener('transitionend', ({ target }) => target.id == 'progress' && console.debug('transitionend'));
       // window.addEventListener('load', () => console.debug('window load')); // once on page init
       // window.addEventListener('urlchange', () => console.debug('urlchange')); // once on page init (only working in userscript space)
+      // window.addEventListener('hashchange', () => console.debug('hashchange'));
+      window.addEventListener('hashchange', this.isURLChanged);
+      // checkbox.addEventListener('DOMAttrModified', );
 
       this.storage.load.apply(this);
       // load all Plugins
@@ -132,7 +135,7 @@ const App = {
                'background-color': typeof NOVA === 'object' ? '#e85717' : 'crimson',
                'box-shadow': 'rgb(0 0 0 / 50%) 0px 0px 3px',
                'font-size': '12px',
-               color: '#fff',
+               color: 'white',
                padding: '10px',
                cursor: 'pointer',
             });
@@ -193,7 +196,7 @@ const App = {
          window.addEventListener('unhandledrejection', err => {
             if (!err.reason.stack?.toString().includes(${JSON.stringify(browser.runtime.id)})) return;
 
-            console.error(\`[PLUGIN ERROR]\n\`, err.reason, \`\nPlease report the bug: https://github.com/raingart/Nova-YouTube-extension/issues/new?body=${encodeURIComponent([browser.runtime.getManifest().version, navigator.userAgent].join(' | '))}\`);
+            console.error(\`[PLUGIN ERROR]\n\`, err.reason, \`\nPlease report the bug: https://github.com/raingart/Nova-YouTube-extension/issues/new?body=${encodeURIComponent([browser.runtime.getManifest().version, navigator.userAgent].join(' | '))}&labels=bug&template=bug_report.md&title=unhandledrejection\`);
 
             _pluginsCaptureException({
                'trace_name': 'unhandledRejection',
@@ -284,6 +287,7 @@ App.init();
 
 // Fundraiser badge
 // https://www.youtube.com/watch?v=Rz1Xn1vzOM4
+// https://www.youtube.com/watch?v=nc46m8UDotk
 
 // example url new embed page
 // https://www.youtube-nocookie.com/embed/hXTqP_o_Ylw?autoplay=1&autohide=1&fs=1&rel=0&hd=1&wmode=transparent&enablejsapi=1&html5=1

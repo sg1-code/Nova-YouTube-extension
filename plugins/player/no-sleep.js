@@ -9,13 +9,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Pemain tetap aktif selamanya',
    // 'title:es': 'El jugador permanece activo para siempre',
-   'title:pt': 'Jogador permanece ativo para sempre',
-   'title:fr': 'Le joueur reste actif pour toujours',
+   // 'title:pt': 'Jogador permanece ativo para sempre',
+   // 'title:fr': 'Le joueur reste actif pour toujours',
    // 'title:it': 'Il giocatore resta attivo per sempre',
    // 'title:tr': 'Sayfa uykusunu devre dışı bırak',
-   'title:de': 'Spieler bleiben für immer aktiv',
+   // 'title:de': 'Spieler bleiben für immer aktiv',
    'title:pl': 'Wyłącz tryb uśpienia odtwarzacza',
-   'title:ua': 'Вимкнути режим сну відтворювача',
+   // 'title:ua': 'Вимкнути режим сну відтворювача',
    run_on_pages: 'watch, -mobile',
    section: 'player',
    // desc: 'popup appears when listening for a long time in the background ',
@@ -43,6 +43,7 @@ window.nova_plugins.push({
       // alt4 - https://greasyfork.org/en/scripts/458173-youtube-don-t-stop
       // alt5 - https://greasyfork.org/en/scripts/444298-youtube-don-t-stop
       // alt6 - https://greasyfork.org/en/scripts/458929-youtube-background-nonstop
+      // alt7 - https://greasyfork.org/en/scripts/489717-nonstop-youtube
 
       setInterval(() => {
          // if (document.visibilityState == 'hidden') {

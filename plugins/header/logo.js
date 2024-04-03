@@ -14,7 +14,7 @@ window.nova_plugins.push({
    // 'title:tr': '',
    // 'title:de': '',
    // 'title:pl': '',
-   'title:ua': 'YouTube лого',
+   // 'title:ua': 'YouTube лого',
    run_on_pages: '*, -embed, -mobile, -live_chat',
    section: 'header',
    // desc: '',

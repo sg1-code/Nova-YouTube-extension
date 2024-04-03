@@ -11,13 +11,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Pemfilteran gambar mini',
    // 'title:es': 'Filtrado de miniaturas',
-   'title:pt': 'Filtragem de miniaturas',
-   'title:fr': 'Filtrage des vignettes',
+   // 'title:pt': 'Filtragem de miniaturas',
+   // 'title:fr': 'Filtrage des vignettes',
    // 'title:it': 'Filtraggio miniature',
    // 'title:tr': 'Küçük resim filtreleme',
-   'title:de': 'Filtrowanie miniatur',
+   // 'title:de': 'Filtrowanie miniatur',
    'title:pl': 'Ukryj kilka miniatur',
-   'title:ua': 'Фільтрування мініатюр',
+   // 'title:ua': 'Фільтрування мініатюр',
    run_on_pages: 'home, results, feed, channel, watch, -mobile',
    section: 'thumbs',
    _runtime: user_settings => {
@@ -30,9 +30,11 @@ window.nova_plugins.push({
          SELECTOR_THUMBS_HIDE_CLASS_NAME = 'nova-thumbs-hide',
          thumbsSelectors = [
             'ytd-rich-item-renderer', // home, channel, feed
-            'ytd-video-renderer', // results
+            'ytd-video-renderer', // results, feed (list)
+            'ytd-playlist-renderer', // results
             // 'ytd-grid-video-renderer', // feed (old)
             'ytd-compact-video-renderer', // sidepanel in watch
+            'yt-append-continuation-items-action', // sidepanel append in watch
             'ytm-compact-video-renderer', // mobile /results page (ytm-rich-item-renderer)
             'ytm-item-section-renderer' // mobile /subscriptions page
          ]
@@ -107,34 +109,39 @@ window.nova_plugins.push({
       });
       // }, { capture: true }); // before all events. Possible loading slowdown
 
-      // inset filter-switch button
+      // switch grid/list mode
+      document.addEventListener('yt-navigate-finish', () => NOVA.queryURL.has('flow') && insertButton());
+
+      insertButton();
       // alt - https://greasyfork.org/en/scripts/446507-youtube-sub-feed-filter-2
       // NOVA.waitSelector('#voice-search-button', { destroy_after_page_leaving: true })
-      NOVA.waitSelector('#filter-button, ytd-shelf-renderer #title-container a[href="/feed/channels"]', { destroy_after_page_leaving: true })
-         .then(container => {
-            const filterBtn = document.createElement('button');
-            filterBtn.className = 'style-scope yt-formatted-string bold yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m yt-spec-button-shape-next--text';
-            // filterBtn.textContent = 'Filter Switch';
-            filterBtn.innerHTML =
-               `<span class="yt-spec-button-shape-next__icon" style="height:100%">
+      function insertButton() {
+         NOVA.waitSelector('#filter-button, ytd-shelf-renderer #title-container a[href="/feed/channels"]', { destroy_after_page_leaving: true })
+            .then(container => {
+               const filterBtn = document.createElement('button');
+               filterBtn.className = 'style-scope yt-formatted-string bold yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m yt-spec-button-shape-next--text';
+               // filterBtn.textContent = 'Filter Switch';
+               filterBtn.innerHTML =
+                  `<span class="yt-spec-button-shape-next__icon" style="height:100%">
                   <svg viewBox="-50 -50 400 400" height="100%" width="100%">
                      <g fill="currentColor">
                         <path d="M128.25,175.6c1.7,1.8,2.7,4.1,2.7,6.6v139.7l60-51.3v-88.4c0-2.5,1-4.8,2.7-6.6L295.15,65H26.75L128.25,175.6z" />
                      </g>
                   </svg>
                </span>`;
-            filterBtn.title = 'Toggle NOVA plugin [thumbs-hide]';
-            // filterBtn.style.cssText = '';
-            Object.assign(filterBtn.style, {
-               border: 0,
-               cursor: 'pointer',
-               scale: .7,
+               filterBtn.title = 'Toggle NOVA plugin [thumbs-hide]';
+               // filterBtn.style.cssText = '';
+               Object.assign(filterBtn.style, {
+                  border: 0,
+                  cursor: 'pointer',
+                  scale: .7,
+               });
+               filterBtn.addEventListener('click', () => {
+                  document.body.classList.toggle('nova-thumbs-unhide');
+               });
+               container.after(filterBtn);
             });
-            filterBtn.addEventListener('click', () => {
-               document.body.classList.toggle('nova-thumbs-unhide');
-            });
-            container.after(filterBtn);
-         });
+      }
 
       // button css-switch
       NOVA.css.push(
@@ -307,6 +314,7 @@ window.nova_plugins.push({
                });
          },
 
+         // alt -   https://openuserjs.org/scripts/nascent/Remove_Streamed_YouTube_Videos
          streamed() {
             if (!user_settings.thumbs_hide_streamed) return;
             // exclude "LIVE" tab in channel
@@ -440,13 +448,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan Celana Pendek',
          // 'label:es': 'Ocultar pantalones cortos',
-         'label:pt': 'Ocultar shorts',
-         'label:fr': 'Masquer les shorts',
+         // 'label:pt': 'Ocultar shorts',
+         // 'label:fr': 'Masquer les shorts',
          // 'label:it': 'Nascondi pantaloncini',
          // 'label:tr': 'Şort Gizle',
-         'label:de': 'Shorts verstecken',
+         // 'label:de': 'Shorts verstecken',
          'label:pl': 'Ukryj YouTube Shorts',
-         'label:ua': 'Приховати прев`ю',
+         // 'label:ua': 'Приховати прев`ю',
          type: 'checkbox',
          // title: '',
          // 'data-dependent': { 'thumbs-shorts-duration': '!true' },
@@ -460,13 +468,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Durasi lebih sedikit dalam detik',
          // 'label:es': 'Duración mínima en segundos',
-         'label:pt': 'Duração mínima em segundos',
-         'label:fr': 'Durée minimale en secondes',
+         // 'label:pt': 'Duração mínima em segundos',
+         // 'label:fr': 'Durée minimale en secondes',
          // 'label:it': 'Meno durata in sec',
          // 'label:tr': 'Saniye cinsinden minimum süre',
-         'label:de': 'Mindestdauer in Sekunden',
+         // 'label:de': 'Mindestdauer in Sekunden',
          'label:pl': 'Poniżej czasu trwania w sekundach',
-         'label:ua': 'Мінімальна триваліcть в cекундах',
+         // 'label:ua': 'Мінімальна триваліcть в cекундах',
          type: 'number',
          // title: '60 - default',
          // title: 'Minimum duration in seconds',
@@ -508,13 +516,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan Tayang Perdana/Mendatang',
          // 'label:es': 'Ocultar estrenos/próximos',
-         'label:pt': 'Ocultar Estreias/Próximas',
-         'label:fr': 'Masquer les premières/à venir',
+         // 'label:pt': 'Ocultar Estreias/Próximas',
+         // 'label:fr': 'Masquer les premières/à venir',
          // 'label:it': 'Nascondi anteprime/in arrivo',
          // 'label:tr': '',
-         'label:de': 'Premieren/Kommende ausblenden',
+         // 'label:de': 'Premieren/Kommende ausblenden',
          'label:pl': 'Ukrywaj premiery',
-         'label:ua': 'Приховати прем`єри',
+         // 'label:ua': 'Приховати прем`єри',
          type: 'checkbox',
          title: 'Premiere Announcements',
          // 'title:zh': '',
@@ -533,20 +541,20 @@ window.nova_plugins.push({
       },
       thumbs_hide_live: {
          _tagName: 'input',
-         label: 'Hide Live streams',
+         label: 'Hide Live now streams',
          'label:zh': '隐藏直播',
          'label:ja': 'ライブ ストリームを非表示にする',
          // 'label:ko': '라이브 스트림 숨기기',
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan streaming langsung',
          // 'label:es': 'Ocultar transmisiones en vivo',
-         'label:pt': 'Ocultar transmissões ao vivo',
-         'label:fr': 'Masquer les flux en direct',
+         // 'label:pt': 'Ocultar transmissões ao vivo',
+         // 'label:fr': 'Masquer les flux en direct',
          // 'label:it': 'Nascondi live streaming',
          // 'label:tr': '',
-         'label:de': 'Live-Streams ausblenden',
+         // 'label:de': 'Live-Streams ausblenden',
          'label:pl': 'Ukryj strumień (na żywo)',
-         'label:ua': 'Приховати живі транcляції',
+         // 'label:ua': 'Приховати живі транcляції',
          type: 'checkbox',
          title: 'Now airing',
          'title:zh': '正在播出',
@@ -555,13 +563,13 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': 'Sekarang ditayangkan',
          // 'title:es': 'Ahora al aire',
-         'title:pt': 'Agora no ar',
-         'title:fr': 'Diffusion en cours',
+         // 'title:pt': 'Agora no ar',
+         // 'title:fr': 'Diffusion en cours',
          // 'title:it': 'Ora in onda',
          // 'title:tr': 'Şimdi yayınlanıyor',
-         'title:de': 'Jetzt Lüften',
+         // 'title:de': 'Jetzt Lüften',
          'title:pl': 'Teraz wietrzenie',
-         'title:ua': 'Зараз в ефірі',
+         // 'title:ua': 'Зараз в ефірі',
       },
       thumbs_hide_live_channels_exception: {
          _tagName: 'textarea',
@@ -586,13 +594,13 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': 'pemisah: "," atau ";" atau "baris baru"',
          // 'title:es': 'separador: "," o ";" o "new line"',
-         'title:pt': 'separador: "," ou ";" ou "new line"',
-         'title:fr': 'séparateur : "," ou ";" ou "nouvelle ligne"',
+         // 'title:pt': 'separador: "," ou ";" ou "new line"',
+         // 'title:fr': 'séparateur : "," ou ";" ou "nouvelle ligne"',
          // 'title:it': 'separatore: "," o ";" o "nuova linea"',
          // 'title:tr': 'ayırıcı: "," veya ";" veya "new line"',
-         'title:de': 'separator: "," oder ";" oder "new line"',
+         // 'title:de': 'separator: "," oder ";" oder "new line"',
          'title:pl': 'separator: "," lub ";" lub "now linia"',
-         'title:ua': 'розділювач: "," або ";" або "новий рядок"',
+         // 'title:ua': 'розділювач: "," або ";" або "новий рядок"',
          placeholder: 'channel1\nchannel2',
          'data-dependent': { 'thumbs_hide_live': true },
       },
@@ -605,13 +613,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan aliran yang sudah selesai',
          // 'label:es': 'Ocultar flujos terminados',
-         'label:pt': 'Ocultar streams concluídos',
-         'label:fr': 'Masquer les flux terminés',
+         // 'label:pt': 'Ocultar streams concluídos',
+         // 'label:fr': 'Masquer les flux terminés',
          // 'label:it': 'Nascondi i flussi finiti',
          // 'label:tr': 'Bitmiş akışları gizle',
-         'label:de': 'Fertige Streams ausblenden',
+         // 'label:de': 'Fertige Streams ausblenden',
          'label:pl': 'Ukryj po streamie',
-         'label:ua': 'cховати завершені транcляції',
+         // 'label:ua': 'cховати завершені транcляції',
          type: 'checkbox',
          // title: '',
          'data-dependent': { 'thumbs_hide_live': true },
@@ -625,13 +633,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan gambar mini "Mix"',
          // 'label:es': "Ocultar miniaturas de 'Mix'",
-         'label:pt': "Ocultar miniaturas de 'Mix'",
-         'label:fr': 'Masquer les vignettes "Mix"',
+         // 'label:pt': "Ocultar miniaturas de 'Mix'",
+         // 'label:fr': 'Masquer les vignettes "Mix"',
          // 'label:it': 'Nascondi le miniature "Mix".',
          // 'label:tr': "'Karıştır' küçük resimlerini gizle",
-         'label:de': '„Mix“-Thumbnails ausblenden',
+         // 'label:de': '„Mix“-Thumbnails ausblenden',
          'label:pl': 'Ukryj miniaturki "Mix"',
-         'label:ua': 'Приховати мікc мініатюр',
+         // 'label:ua': 'Приховати мікc мініатюр',
          type: 'checkbox',
          title: '[Mix] offers to rewatch what has already saw',
          'title:zh': '[混合]提供重新观看已经看过的内容',
@@ -640,12 +648,12 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': '[Mix] menawarkan untuk menonton ulang apa yang telah dilihat',
          // 'title:es': '[Mix] ofrece volver a ver lo que ya vio',
-         'title:pt': '[Mix] se oferece para rever o que já viu',
+         // 'title:pt': '[Mix] se oferece para rever o que já viu',
          // 'title:it': '[Mix] si offre di rivedere ciò che ha già visto',
          // 'title:tr': '[Mix], daha önce görmüş olanı yeniden izlemeyi teklif ediyor',
-         'title:de': '[Mix] bietet an, bereits Gesehenes noch einmal anzuschauen',
+         // 'title:de': '[Mix] bietet an, bereits Gesehenes noch einmal anzuschauen',
          'title:pl': '[Mix] proponuje ponowne obejrzenie już obejrzanych filmów',
-         'title:ua': '[Mix] пропонує передивитиcя вже побачене',
+         // 'title:ua': '[Mix] пропонує передивитиcя вже побачене',
       },
       thumbs_hide_watched: {
          _tagName: 'input',
@@ -656,13 +664,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan ditonton',
          // 'label:es': 'Ocultar visto',
-         'label:pt': 'Ocultar assistidos',
-         'label:fr': 'Masquer surveillé',
+         // 'label:pt': 'Ocultar assistidos',
+         // 'label:fr': 'Masquer surveillé',
          // 'label:it': 'Nascondi guardato',
          // 'label:tr': '',
-         'label:de': 'Ausblenden beobachtet',
+         // 'label:de': 'Ausblenden beobachtet',
          'label:pl': 'Ukryj oglądane',
-         'label:ua': 'cховати переглянуті відео',
+         // 'label:ua': 'cховати переглянуті відео',
          type: 'checkbox',
          // https://myactivity.google.com/activitycontrols?settings=youtube
          title: 'Need to Turn on [YouTube History]',

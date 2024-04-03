@@ -2,6 +2,7 @@
 // https://www.youtube.com/watch?v=dQw4w9WgXcQ - too many comments
 // https://www.youtube.com/watch?v=kXYiU_JCYtU - too many comments
 // https://www.youtube.com/watch?v=hWozHt9wbO4 - many comments
+// https://www.youtube.com/watch?v=jQNeYbBiCKw - many comments
 // https://www.youtube.com/watch?v=FNez9XBzTQI - [403] The video identified by the \u003ccode\u003e\u003ca href=\"/youtube/v3/docs/commentThreads/list#videoId\"\u003evideoId\u003c/a\u003e\u003c/code\u003e parameter has disabled comments.
 
 // https://www.youtube.com/watch?v=lP4djyHSzzg - min test
@@ -15,13 +16,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Mengurutkan komentar',
    // 'title:es': 'Clasificación de comentarios',
-   'title:pt': 'classificação de comentários',
-   'title:fr': 'Tri des commentaires',
+   // 'title:pt': 'classificação de comentários',
+   // 'title:fr': 'Tri des commentaires',
    // 'title:it': 'Ordinamento dei commenti',
    // 'title:tr': '',
-   'title:de': 'Kommentare sortieren',
+   // 'title:de': 'Kommentare sortieren',
    'title:pl': 'Sortowanie komentarzy',
-   'title:ua': 'Сортування коментарів',
+   // 'title:ua': 'Сортування коментарів',
    run_on_pages: 'watch, -mobile',
    // restart_on_location_change: true,
    section: 'comments',
@@ -39,7 +40,7 @@ window.nova_plugins.push({
    // 'desc:tr': '',
    // 'desc:de': '',
    // 'desc:pl': '',
-   'desc:ua': 'Додати спосіб подання',
+   // 'desc:ua': 'Додати спосіб подання',
    _runtime: user_settings => {
 
       // alt1 - https://github.com/sonigy/YCS
@@ -50,14 +51,14 @@ window.nova_plugins.push({
       // #comments #contents #submessage[is-empty] - "Comments are turned off."
 
       const
-         MAX_COMMENTS = 250, // no API key limit comments
+         MAX_COMMENTS = (user_settings['user-api-key'] && +user_settings.comments_sort_max) || 250, // no API key limit comments
          // CACHE_PREFIX = 'nova-channel-videos-count:',
          MODAL_NAME_SELECTOR_ID = 'nova-modal-comments',
          MODAL_CONTENT_SELECTOR_ID = 'modal-content',
          NOVA_REPLYS_SELECTOR_ID = 'nova-replys',
          NOVA_REPLYS_SWITCH_CLASS_NAME = NOVA_REPLYS_SELECTOR_ID + '-switch',
          // textarea to array
-         BLOCK_KEYWORDS = NOVA.strToArray(user_settings.comments_sort_words_blocklist?.toLowerCase());
+         BLOCK_KEYWORDS = NOVA.strToArray(user_settings.comments_sort_blocklist?.toLowerCase());
       // getCacheName = () => CACHE_PREFIX + ':' + (NOVA.queryURL.get('v') || movie_player.getVideoData().video_id);
 
       // try fix disappear button
@@ -166,7 +167,7 @@ window.nova_plugins.push({
          const params = {
             'videoId': NOVA.queryURL.get('v') || movie_player.getVideoData().video_id,
             'part': 'snippet,replies',
-            'maxResults': 100, // API max limit 100
+            'maxResults': Math.min(+user_settings.comments_sort_max || 100, 100), // API max limit 100
             'order': 'relevance', // 'time',
          };
 
@@ -274,23 +275,33 @@ window.nova_plugins.push({
             .sort((a, b) => b.likeCount - a.likeCount) // default sorting by number of likes
             .forEach(comment => {
                try {
-                  if (!(comment.textDisplay = filterStr(comment.textDisplay))) return; // continue
+                  if (!(comment.textDisplay = filterStr(comment.textDisplay, comment.authorDisplayName))) return; // continue
+
+                  // the word is too long
+                  if (comment.textOriginal.length > 100 && comment.textOriginal.split(' ')?.some(word => word.length > 100)) {
+                     console.debug('comment istoo long:\n', comment.textOriginal);
+                     return;
+                  }
 
                   const
                      replyInputName = `${NOVA_REPLYS_SELECTOR_ID}-${comment.id}`,
                      li = document.createElement('tr');
 
+                  let replyCount = 0;
+
                   li.className = 'item';
                   // isAuthor
                   if (channelName && comment.authorChannelUrl.includes(channelName)) li.classList.add('author');
+
+                  // invalid time "updatedAt" - https://www.youtube.com/watch?v=1RjnI64Rwqs&lc=Uggcg-Z0w-cmRXgCoAEC
 
                   li.innerHTML =
                      `<td>${comment.likeCount}</td>
                      <td sorttable_customkey="${comment.totalReplyCount}" class="${NOVA_REPLYS_SWITCH_CLASS_NAME}">
                      ${comment.comments?.length
-                        ? `<a href="https://www.youtube.com/watch?v=${comment.videoId}&lc=${comment.id}" target="_blank" title="Open comment link">${comment.comments.length}</a> <label for="${replyInputName}"></label>`
+                        ? `<a href="https://www.youtube.com/watch?v=${comment.videoId}&lc=${comment.id}" target="_blank" title="Open comment link">${comment.totalReplyCount}</a> <label for="${replyInputName}"></label>`
                         : ''}</td>
-                     <td sorttable_customkey="${new Date(comment.updatedAt).getTime()}">${NOVA.formatTimeOut.ago(new Date(comment.updatedAt))}</td>
+                     <td sorttable_customkey="${new Date(comment.publishedAt).getTime()}">${NOVA.formatTimeOut.ago(new Date(comment.publishedAt))}</td>
                      <td>
                         <a href="${comment.authorChannelUrl}" target="_blank" title="${comment.authorDisplayName}">
                            <img src="${comment.authorProfileImageUrl}" alt="${comment.authorDisplayName}" />
@@ -304,7 +315,8 @@ window.nova_plugins.push({
                   ul.append(li); // append
 
                   // checkbox reply show
-                  if (+comment.totalReplyCount) {
+                  // if (+comment.totalReplyCount) {
+                  if (replyCount) {
                      const checkbox = document.createElement('input');
                      checkbox.type = 'checkbox';
                      checkbox.id = checkbox.name = replyInputName;
@@ -327,7 +339,9 @@ window.nova_plugins.push({
                      comment.comments
                         // ?.reverse() // order by
                         ?.forEach(reply => {
-                           if (!(reply.snippet.textDisplay = filterStr(reply.snippet.textDisplay))) return; // continue
+                           if (!(reply.snippet.textDisplay = filterStr(reply.snippet.textDisplay, reply.snippet.authorDisplayName))) return; // continue
+
+                           replyCount++;
 
                            const li = document.createElement('tr');
                            // li.className = 'item';
@@ -357,9 +371,11 @@ window.nova_plugins.push({
                }
             });
 
-         function filterStr(str) {
+         function filterStr(str, user) {
             // alt - https://greasyfork.org/en/scripts/481131-youtube-comment-sponsor-blocker
-            if (keyword = BLOCK_KEYWORDS?.find(keyword => str.toLowerCase().includes(keyword))) {
+            if (keyword = BLOCK_KEYWORDS?.find(keyword => ((user && keyword?.startsWith('@')) ? user : str)
+               .toLowerCase().includes(keyword))
+            ) {
                console.log('comment filter:', `"${keyword}\n"`, str.replace(keyword, `[${keyword}]`));
                return;
             }
@@ -680,12 +696,13 @@ window.nova_plugins.push({
                opacity: 0;
 
                /*transition:
-                  visibility 0.1s linear,
-                  opacity 0.1s ease-out;*/
+                  visibility 100ms linear,
+                  opacity 100ms ease-out;*/
             }
 
             .modal.modal-visible {
                animation: microModalFadeIn var(--animation-time) cubic-bezier(0, 0, .2, 1);
+               backdrop-filter: blur(1em);
                visibility: visible;
                opacity: 1;
             }
@@ -724,8 +741,7 @@ window.nova_plugins.push({
                transition: background-color var(--animation-time) ease-out;
             }
 
-            .modal-close:before { content: "\\2715"; }
-            /* .modal-close:before { content: "❌"; } */
+            /* .modal-close { content: "\\2715"; } */
 
             .modal-close:hover {
                background-color: #ea3c3c;
@@ -760,11 +776,14 @@ window.nova_plugins.push({
             .insertAdjacentHTML('beforeend',
                `<div id="${MODAL_NAME_SELECTOR_ID}" class="modal" data-modal>
                   <div class="modal-container">
-                     <div class="modal-close" data-close-modal></div>
+                     <div class="modal-close" data-close-modal>✕</div>
 
                      <div class="modal-content" id="${MODAL_CONTENT_SELECTOR_ID}"></div>
                   </div>
                </div>`);
+
+         // closeButton.innerHTML =
+         //    '<svg xmlns="http://www.w3.org/2000/svg" height="1.5rem" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>';
 
          // js
          // demo - https://www.cssscript.com/demo/lite-modal-javascript-library-modalite/
@@ -859,6 +878,7 @@ window.nova_plugins.push({
                background-color: #555;
                /* background-color: var(--yt-spec-text-secondary); */
                background-color: var(--yt-spec-outline);
+               z-index: 1;
             }
 
             #${MODAL_CONTENT_SELECTOR_ID} th {
@@ -883,8 +903,9 @@ window.nova_plugins.push({
                font-size: 1.2em;
                line-height: 1.4;
                padding: 10px 5px;
-               max-width: 1200px;
-               /*min-width: 450px;*/
+
+               text-overflow: ellipsis;
+               word-wrap: break-word;
             }
 
             #${MODAL_CONTENT_SELECTOR_ID} tr.author {
@@ -939,13 +960,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': '',
          'label:es': 'Recuento mínimo de palabras',
-         'label:pt': 'Contagem mínima de palavras',
-         'label:fr': 'Nombre minimum de mots',
+         // 'label:pt': 'Contagem mínima de palavras',
+         // 'label:fr': 'Nombre minimum de mots',
          // 'label:it': '',
          // 'label:tr': '',
-         'label:de': 'Mindestanzahl an Wörtern',
+         // 'label:de': 'Mindestanzahl an Wörtern',
          'label:pl': 'Minimalna liczba słów',
-         'label:ua': 'Мінімальна кількість слів',
+         // 'label:ua': 'Мінімальна кількість слів',
          type: 'number',
          title: '0 - disable',
          // 'title:zh': '',
@@ -967,22 +988,59 @@ window.nova_plugins.push({
          value: 2,
          'data-dependent': { 'comments_sort_clear_emoji': true },
       },
-      comments_sort_words_blocklist: {
+      comments_sort_max: {
+         _tagName: 'input',
+         label: 'Max comments',
+         // 'label:zh': '',
+         // 'label:ja': '',
+         // 'label:ko': '',
+         // 'label:vi': '',
+         // 'label:id': '',
+         // 'label:es': '',
+         // 'label:pt': '',
+         // 'label:fr': '',
+         // 'label:it': '',
+         // 'label:tr': '',
+         // 'label:de': '',
+         // 'label:pl': '',
+         // 'label:ua': '',
+         type: 'number',
+         title: '0 - disable',
+         // 'title:zh': '',
+         // 'title:ja': '',
+         // 'title:ko': '',
+         // 'title:vi': '',
+         // 'title:id': '',
+         // 'title:es': '',
+         // 'title:pt': '',
+         // 'title:fr': '',
+         // 'title:it': '',
+         // 'title:tr': '',
+         // 'title:de': '',
+         // 'title:pl': '',
+         // 'title:ua': '',
+         placeholder: '0-1200',
+         min: 0,
+         max: 1200,
+         value: 100,
+         // 'data-dependent': { 'user-api-key': true },
+      },
+      comments_sort_blocklist: {
          _tagName: 'textarea',
-         label: 'Words block list',
+         label: 'Words/users blocklist',
          'label:zh': '被阻止的单词列表',
          'label:ja': 'ブロックされた単語のリスト',
          // 'label:ko': '단어 목록',
          // 'label:vi': '',
          // 'label:id': 'Daftar kata',
          // 'label:es': 'lista de palabras',
-         'label:pt': 'Lista de bloqueio de palavras',
-         'label:fr': 'Liste de blocage de mots',
+         // 'label:pt': 'Lista de bloqueio de palavras',
+         // 'label:fr': 'Liste de blocage de mots',
          // 'label:it': 'Elenco di parole',
          // // 'label:tr': 'Kelime listesi',
-         'label:de': 'Liste blockierter Wörter',
+         // 'label:de': 'Liste blockierter Wörter',
          'label:pl': 'Lista blokowanych słów',
-         'label:ua': 'Список заблокованих слів',
+         // 'label:ua': 'Список заблокованих слів',
          title: 'separator: "," or ";" or "new line"',
          'title:zh': '分隔器： "," 或 ";" 或 "新队"',
          'title:ja': 'セパレータ： "," または ";" または "改行"',
@@ -990,14 +1048,14 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': 'pemisah: "," atau ";" atau "baris baru"',
          // 'title:es': 'separador: "," o ";" o "new line"',
-         'title:pt': 'separador: "," ou ";" ou "new line"',
-         'title:fr': 'séparateur : "," ou ";" ou "nouvelle ligne"',
+         // 'title:pt': 'separador: "," ou ";" ou "new line"',
+         // 'title:fr': 'séparateur : "," ou ";" ou "nouvelle ligne"',
          // 'title:it': 'separatore: "," o ";" o "nuova linea"',
          // 'title:tr': 'ayırıcı: "," veya ";" veya "new line"',
-         'title:de': 'separator: "," oder ";" oder "new line"',
+         // 'title:de': 'separator: "," oder ";" oder "new line"',
          'title:pl': 'separator: "," lub ";" lub "now linia"',
-         'title:ua': 'розділювач: "," або ";" або "новий рядок"',
-         placeholder: 'text1\ntext2',
+         // 'title:ua': 'розділювач: "," або ";" або "новий рядок"',
+         placeholder: 'text1\n@userA',
          // required: true,
       },
    },

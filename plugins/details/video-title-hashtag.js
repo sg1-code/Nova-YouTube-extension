@@ -50,13 +50,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Mode',
          // 'label:es': 'Modo',
-         'label:pt': 'Modo',
+         // 'label:pt': 'Modo',
          // 'label:fr': 'Mode',
          // 'label:it': 'Mode',
          // 'label:tr': 'Mod',
-         'label:de': 'Modus',
+         // 'label:de': 'Modus',
          'label:pl': 'Tryb',
-         'label:ua': 'Режим',
+         // 'label:ua': 'Режим',
          options: [
             {
                label: 'hide', /* value: 'hide', */ selected: true, // fill value if no "selected" mark another option

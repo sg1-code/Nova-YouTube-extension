@@ -13,7 +13,7 @@ window.nova_plugins.push({
    // 'title:tr': '',
    // 'title:de': '',
    // 'title:pl': '',
-   'title:ua': 'Приховати смугу прокрутки на сторінці перегляду',
+   // 'title:ua': 'Приховати смугу прокрутки на сторінці перегляду',
    run_on_pages: 'watch, -mobile',
    // run_on_pages: '*, live_chat, -embed, -mobile',
    section: 'other',
@@ -113,7 +113,7 @@ window.nova_plugins.push({
       //    // 'label:tr': '',
       //    // 'label:de': '',
       //    // 'label:pl': '',
-      //    'label:ua': 'У живому чаті',
+      //    // 'label:ua': 'У живому чаті',
       //    type: 'checkbox',
       //    // title: '',
       //    'data-dependent': { 'livechat_visibility_mode': ['!disable'] }, // conflict with plugin [livechat-visibility]

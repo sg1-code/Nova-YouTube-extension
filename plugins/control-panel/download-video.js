@@ -4,8 +4,8 @@
 window.nova_plugins.push({
    id: 'download-video',
    title: 'Download video',
-   // 'title:zh': '',
-   // 'title:ja': '',
+   'title:zh': '下载视频',
+   'title:ja': 'ビデオをダウンロードする',
    // 'title:ko': '',
    // 'title:id': '',
    // 'title:es': '',
@@ -57,7 +57,7 @@ window.nova_plugins.push({
             //       background-color: rgba(28,28,28,.9);
             //       border-radius: 2px;
             //       padding: 5px 9px;
-            //       color: #fff;
+            //       color: white;
             //       font-weight: bold;
             //       white-space: nowrap;
 
@@ -84,7 +84,7 @@ window.nova_plugins.push({
                   background-color: rgba(28,28,28,.9);
                   border-radius: .3em;
                   padding: 5px 9px;
-                  color: #fff;
+                  color: white;
                   font-weight: bold;
                   white-space: nowrap;
                }
@@ -101,6 +101,9 @@ window.nova_plugins.push({
                vertical-align: top;
                font-weight: bold;
             }
+
+            ${SELECTOR_BTN}:hover { color: #66afe9 !important; }
+            ${SELECTOR_BTN}:active { color: #2196f3 !important; }
 
             ${SELECTOR_BTN_LIST} {
                position: absolute;
@@ -127,11 +130,11 @@ window.nova_plugins.push({
                cursor: pointer;
                white-space: nowrap;
                line-height: 1.4;
-               background-color: rgba(28, 28, 28, 0.9);
+               background-color: rgba(28, 28, 28, .9);
                margin: .1em 0;
                padding: .5em 2em;
                border-radius: .3em;
-               color: #fff;
+               color: white;
             }
 
             /* ${SELECTOR_BTN_LIST} li .menu-item-label-badge {
@@ -146,7 +149,8 @@ window.nova_plugins.push({
             // btn <span>
             dropdownSpan.id = SELECTOR_BTN_TITLE_ID;
             // dropdownSpan.title = 'Nova video download';
-            dropdownSpan.setAttribute('tooltip', 'Nova video download');
+            dropdownSpan.setAttribute('tooltip', 'Nova video download 🡇');
+            // dropdownSpan.textContent = '🡇';
             // dropdownSpan.textContent = '🖫';
             dropdownSpan.innerHTML =
                `<svg viewBox="0 0 120 120" width="100%" height="100%" style="scale: .6;">
@@ -401,7 +405,7 @@ window.nova_plugins.push({
             //          'Accept': 'application/json',
             //       },
             //    });
-            //    // document.body.style.cursor = null;
+            //    // document.body.style.removeProperty('cursor');
 
             //    console.debug('response.status', response);
 
@@ -432,11 +436,13 @@ window.nova_plugins.push({
                },
                // alt1 - https://greasyfork.org/en/scripts/459232-y2mate-tools
                // alt2 - https://greasyfork.org/en/scripts/22108-bajar-mp3-youtube
+               // alt3 - https://greasyfork.org/en/scripts/483485-youtube-css-downloader-reload-page
                {
                   quality: 'mp3,mp4',
                   codec: 'Y2Mate.tools',
                   link_new_tab: 'https://www.y2mate.com/youtube/' + APIs.videoId,
                   // link_new_tab: 'https://www.y2mate.com/youtube-mp3/' + APIs.videoId,
+                  // https://www.youtubepp.com/watch?v=
                },
                // alt1 - https://greasyfork.org/en/scripts/455314-youtube-to-mp3-converter-video-downloader-tubemp3-to
                // alt2 - https://greasyfork.org/en/scripts/34613
@@ -690,6 +696,27 @@ window.nova_plugins.push({
          }
       }
 
+      function convertSizeToBytes(size) {
+         const units = {
+            B: 1,
+            KB: 1024,
+            MB: 1024 * 1024,
+            GB: 1024 * 1024 * 1024,
+         };
+
+         const regex = /^(\d+(?:\.\d+)?)\s*([A-Z]+)$/i;
+         const match = size.match(regex);
+
+         if (!match) return 0;
+
+         const value = parseFloat(match[1]);
+         const unit = match[2].toUpperCase();
+
+         if (!units.hasOwnProperty(unit)) return 0;
+
+         return value * units[unit];
+      }
+
       // function bytesToSize(bytes, sizes = ['Bytes', 'kB', 'MB', 'GB', 'TB'], divisor = 1024) {
       //    bytes = Math.abs(+bytes);
       //    if (bytes === 0 || isNaN(num)) return 'n/a';
@@ -714,13 +741,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Mode',
          // 'label:es': 'Modo',
-         'label:pt': 'Modo',
+         // 'label:pt': 'Modo',
          // 'label:fr': 'Mode',
          // 'label:it': 'Modalità',
          // 'label:tr': 'Mod',
-         'label:de': 'Modus',
+         // 'label:de': 'Modus',
          'label:pl': 'Tryb',
-         'label:ua': 'Режим',
+         // 'label:ua': 'Режим',
          // title: '',
          options: [
             // https://savetube.io/

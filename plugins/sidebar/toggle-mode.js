@@ -20,6 +20,8 @@ window.nova_plugins.push({
    // desc: '',
    _runtime: user_settings => {
 
+      // alt - https://greasyfork.org/en/scripts/490213-youtube-enable-live-chat-by-default
+
       // document.querySelector('#chat-messages #view-selector #trigger').click() // expand dropdown
       // NOVA.waitSelector('#chat-messages #menu a:last-child[aria-selected="false"]')
       NOVA.waitSelector('#chat-messages #menu a[aria-selected="false"]')

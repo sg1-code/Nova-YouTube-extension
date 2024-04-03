@@ -6,7 +6,7 @@
    --off-hover-bg: var(--input-border);
    --checked-bg: var(--checkbox-bg);
    --checked-bg-active: var(--off-hover-bg);
-   --checked-color: #fff;
+   --checked-color: white;
 
    --text-on: 'ON';
    --text-on-press: '>';

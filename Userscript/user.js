@@ -63,7 +63,7 @@ else {
       delete exportedSettings['thumbs_filter_title_blocklist'];
       delete exportedSettings['search_filter_channels_blocklist'];
       delete exportedSettings['thumbs_hide_live_channels_exception'];
-      delete exportedSettings['comments_sort_words_blocklist'];
+      delete exportedSettings['comments_sort_blocklist'];
       delete exportedSettings['download_video_mode'];
       delete exportedSettings['video_unblock_region_domain'];
       unsafeWindow.window.nova_settings = exportedSettings;
@@ -117,7 +117,7 @@ function setupConfigPage() {
 
       document.body.querySelector('a[href$="issues/new"]')
          .addEventListener('click', ({ target }) => {
-            target.href += '?body=' + encodeURIComponent(GM_info.script.version + ' | ' + navigator.userAgent);
+            target.href += '?body=' + encodeURIComponent(GM_info.script.version + ' | ' + navigator.userAgent) + '&labels=bug&template=bug_report.md';
          });
    });
 }
@@ -296,6 +296,10 @@ function registerMenuCommand() {
             'thumbnails_watched_frame_color': 'thumbs_watched_frame_color',
             'thumbnails_watched_title': 'thumbs_watched_title',
             'thumbnails_watched_title_color': 'thumbs_watched_title_color',
+            'details-buttons': 'details-buttons-visibility',
+            'comments_sort_words_blocklist': 'comments_sort_blocklist',
+            'thumbnails-title-normalize': 'thumbs-title-normalize',
+            'time_remaining_mode': 'time_remaining_format',
          });
          // alert('Settings imported successfully!');
          alert('Settings imported!');
@@ -389,17 +393,17 @@ function insertSettingButton() {
                overflow: hidden;
                text-overflow: ellipsis;
                padding: 1.8ch 1.2ch;
-               border-radius: 0.6ch;
+               border-radius: .6ch;
                background-color: #616161;
                box-shadow: 0 1em 2em -0.5em rgb(0 0 0 / 35%);
-               color: #fff;
+               color: white;
                z-index: 1000;
             }
 
             #${SETTING_BTN_ID} {
                position: relative;
                opacity: .3;
-               transition: opacity .3s ease-out;
+               transition: opacity 300ms ease-out;
             }
 
             #${SETTING_BTN_ID}:hover {
@@ -413,7 +417,7 @@ function insertSettingButton() {
 
             #${SETTING_BTN_ID} .nova-gradient-start,
             #${SETTING_BTN_ID} .nova-gradient-stop {
-               transition: .6s;
+               transition: 600ms;
                stop-color: #7a7cbd;
             }
 
@@ -480,8 +484,10 @@ function _pluginsCaptureException({ trace_name, err_stack, confirm_msg, app_ver 
 // Disabled for minified version
 user_settings.report_issues && window.addEventListener('unhandledrejection', err => {
    // if (user_settings.report_issues && err.reason.stack.includes('/Nova%20YouTube.user.js'))
-   if ((err.reason?.stack || err.stack)?.includes('Nova')) {
-      console.error('[ERROR PROMISE]\n', err.reason, '\nPlease report the bug: https://github.com/raingart/Nova-YouTube-extension/issues/new?body=' + encodeURIComponent(GM_info.script.version + ' | ' + navigator.userAgent));
+   if ((err.reason?.stack || err.stack)?.includes('Nova')
+      && !((err.reason?.stack || err.stack)?.includes('movie_player is not defined'))
+   ) {
+      console.error('[ERROR PROMISE]\n', err.reason, '\nPlease report the bug: https://github.com/raingart/Nova-YouTube-extension/issues/new?body=' + encodeURIComponent(GM_info.script.version + ' | ' + navigator.userAgent)) + '&labels=bug&template=bug_report.md&title=unhandledrejection';
 
       _pluginsCaptureException({
          'trace_name': 'unhandledRejection',

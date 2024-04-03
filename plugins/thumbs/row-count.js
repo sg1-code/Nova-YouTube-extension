@@ -127,7 +127,7 @@ window.nova_plugins.push({
 
          //    #dismissible.ytd-rich-shelf-renderer:not([page-subtype="subscriptions"] #dismissible.ytd-rich-shelf-renderer),
          //      #dismissed.ytd-rich-shelf-renderer {
-         //        width: calc(100% - 0.2 * 1vw) !important;
+         //        width: calc(100% - .2 * 1vw) !important;
          //    }
 
          //    ytd-rich-item-renderer:nth-child(5):has(#video-title.ytd-rich-grid-media)[hidden] {
@@ -181,6 +181,7 @@ window.nova_plugins.push({
       //       display: none !important;
       //    }
 
+      /* ytd-playlist-renderer */
       //    ytd-video-renderer[use-prominent-thumbs] ytd-thumbnail.ytd-video-renderer {
       //       min-width: 120px !important;
       //       max-width: 240px !important;

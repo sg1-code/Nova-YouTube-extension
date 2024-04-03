@@ -62,46 +62,64 @@ window.nova_plugins.push({
 
                // render marks for [player-float-progress-bar] plugin
                if (user_settings['player-float-progress-bar'] && segmentsList.length) {
-                  const SELECTOR = 'nova-player-float-progress-bar-chapters';
+                  const SELECTOR = '#nova-player-float-progress-bar-chapters > span[time]';
                   const deflectionSec = 5;
-                  let chaptersEls;
+
                   // wait chapters
-                  await NOVA.waitUntil(() =>
-                     (chaptersEls = document.body.querySelectorAll(`#${SELECTOR} > span[time]`)) && chaptersEls.length
-                     , 1000); // 1sec
-                  // await NOVA.waitSelector(`#${SELECTOR} > span[time]`, { destroy_after_page_leaving: true }); // err
+                  await NOVA.waitSelector(SELECTOR, { destroy_after_page_leaving: true });
 
-                  chaptersEls.forEach((chapterEl, idx) => {
-                     if (idx === chaptersEls.length - 1) return; // if last chapter
+                  document.body.querySelectorAll(SELECTOR)
+                     .forEach((chapterEl, idx, chaptersEls) => {
+                        if (idx === chaptersEls.length - 1) return; // if last chapter
 
-                     const
-                        chapterStart = Math.trunc(NOVA.formatTimeOut.hmsToSec(chapterEl.getAttribute('time'))),
-                        chapterNextStart = Math.trunc(NOVA.formatTimeOut.hmsToSec(chaptersEls[idx + 1].getAttribute('time')));
+                        const
+                           chapterStart = Math.trunc(NOVA.formatTimeOut.hmsToSec(chapterEl.getAttribute('time'))),
+                           chapterNextStart = Math.trunc(NOVA.formatTimeOut.hmsToSec(chaptersEls[idx + 1].getAttribute('time')));
 
-                     for (const [i, value] of segmentsList.entries()) {
-                        const [segmentStart, segmentEnd, category] = value;
+                        for (const [i, value] of segmentsList.entries()) {
+                           const [segmentStart, segmentEnd, category] = value;
 
-                        // console.debug('chapter', segmentStart, segmentEnd);
-                        // console.debug('chapterStart', chapterStart);
-                        // console.debug('chapterNextStart', chapterNextStart);
+                           // console.debug('chapter', segmentStart, segmentEnd);
+                           // console.debug('chapterStart', chapterStart);
+                           // console.debug('chapterNextStart', chapterNextStart);
 
-                        // if ((Math.trunc(segmentStart) <= chapterNextStart) && (Math.trunc(segmentEnd) >= chapterStart)) {
-                        if (((Math.trunc(segmentStart) + deflectionSec) <= chapterNextStart)
-                           && ((Math.trunc(segmentEnd) - deflectionSec) >= chapterStart)
-                        ) {
-                           chapterEl.title = [chapterEl.title, categoryNameLabel[category]].join(', ');
-                           let color;
-                           switch (category) {
-                              case 'sponsor': color = '255, 231, 0'; break;
-                              case 'interaction': color = '255, 127, 80'; break;
-                              case 'selfpromo': color = '255, 99, 71'; break;
-                              case 'intro': color = '255, 165, 0'; break;
-                              case 'outro': color = '255, 165, 0'; break;
+                           // if ((Math.trunc(segmentStart) <= chapterNextStart) && (Math.trunc(segmentEnd) >= chapterStart)) {
+                           if (((Math.trunc(segmentStart) + deflectionSec) <= chapterNextStart)
+                              && ((Math.trunc(segmentEnd) - deflectionSec) >= chapterStart)
+                           ) {
+                              let color;
+                              switch (category) {
+                                 case 'sponsor': color = '255, 231, 0'; break;
+                                 case 'interaction': color = '255, 127, 80'; break;
+                                 case 'selfpromo': color = '255, 99, 71'; break;
+                                 case 'intro': color = '255, 165, 0'; break;
+                                 case 'outro': color = '255, 165, 0'; break;
+                                 default: color = '0, 255, 107'; break;
+                              }
+                              // simple chapter coloring
+                              // chapterEl.style.background = `rgb(${color}, .4`;
+                              // chapterEl.title = [chapterEl.title, categoryNameLabel[category]].join(', ');
+
+                              const
+                                 newChapter = document.createElement('span'),
+                                 startPoint = Math.max(segmentStart, chapterStart),
+                                 sizeChapter = chapterNextStart - chapterStart,
+                                 getPt = d => (d * 100 / sizeChapter) + '%';
+
+                              newChapter.title = category;
+                              // el.style.cssText = '';
+                              Object.assign(newChapter.style, {
+                                 // position: 'absolute',
+                                 // display: 'block',
+                                 width: getPt(Math.min(segmentEnd, chapterNextStart) - startPoint),
+                                 left: getPt(startPoint - chapterStart),
+                                 'background-color': `rgb(${color}, .4`,
+                              });
+                              // chapterEl.style.position = 'relative';
+                              chapterEl.append(newChapter);
                            }
-                           chapterEl.style.background = `rgb(${color},.4`;
                         }
-                     }
-                  });
+                     });
                }
             }
             // apply a skip method
@@ -323,13 +341,13 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': '[Ctrl+Klik] untuk memilih beberapa',
          // 'title:es': '[Ctrl+Click] para seleccionar varias',
-         'title:pt': '[Ctrl+Click] para selecionar vários',
-         'title:fr': '[Ctrl+Click] pour sélectionner plusieurs',
+         // 'title:pt': '[Ctrl+Click] para selecionar vários',
+         // 'title:fr': '[Ctrl+Click] pour sélectionner plusieurs',
          // 'title:it': '[Ctrl+Clic] per selezionarne diversi',
          // 'title:tr': 'Birkaç tane seçmek için [Ctrl+Tıkla]',
-         'title:de': '[Ctrl+Click] um mehrere auszuwählen',
+         // 'title:de': '[Ctrl+Click] um mehrere auszuwählen',
          'title:pl': 'Ctrl+kliknięcie, aby zaznaczyć kilka',
-         'title:ua': '[Ctrl+Click] щоб обрати декілька',
+         // 'title:ua': '[Ctrl+Click] щоб обрати декілька',
          multiple: null, // don't use - selected: true
          required: true, // don't use - selected: true
          size: 7, // = options.length
@@ -505,14 +523,14 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Mode',
          // 'label:es': 'Modo',
-         'label:pt': 'Modo',
+         // 'label:pt': 'Modo',
          // 'label:fr': 'Mode',
          // 'label:it': 'Modalità',
          // 'label:tr': 'Mod',
-         'label:de': 'Modus',
+         // 'label:de': 'Modus',
          'label:pl': 'Tryb',
          // title: '',
-         'label:ua': 'Режим',
+         // 'label:ua': 'Режим',
          options: [
             {
                label: 'skip', value: 'skip', selected: true,
@@ -592,7 +610,7 @@ window.nova_plugins.push({
       },
       sponsor_block_notification: {
          _tagName: 'input',
-         label: 'Showing OSD notification',
+         label: 'Show OSD notification',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',

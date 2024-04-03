@@ -42,7 +42,11 @@ window.nova_plugins.push({
             // video.addEventListener('loadeddata', Timer.reset.bind(Timer));
             video.addEventListener('loadeddata', () => {
                // init
-               if (user_settings.auto_likes_for_subscribed) {
+               if (user_settings.auto_likes_for_subscribed
+                  // disable for live
+                  || movie_player.getVideoData().isLive
+               ) {
+                  // Timer.disable();
                   Timer.disable = true;
                   // NOVA.showOSD('Auto-like is disable');
                }
@@ -63,13 +67,6 @@ window.nova_plugins.push({
                   NOVA.showOSD('Auto-like is activation');
                }
                // console.debug('Auto-like timeupdate');
-            });
-            // disable for live
-            video.addEventListener('canplay', () => {
-               if (movie_player.getVideoData().isLive) {
-                  // Timer.disable();
-                  Timer.disable = true;
-               }
             });
          });
 
@@ -167,13 +164,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Ambang batas tontonan dalam %',
          // 'label:es': 'Umbral de vigilancia en %',
-         'label:pt': 'Limite de observação em %',
-         'label:fr': 'Seuil de surveillance en %',
+         // 'label:pt': 'Limite de observação em %',
+         // 'label:fr': 'Seuil de surveillance en %',
          // 'label:it': '',
          // 'label:tr': '',
-         'label:de': 'Beobachtungsschwelle in %',
+         // 'label:de': 'Beobachtungsschwelle in %',
          'label:pl': 'Próg oglądania w%',
-         'label:ua': 'Поріг перегляду в %',
+         // 'label:ua': 'Поріг перегляду в %',
          type: 'number',
          title: '10-90%',
          title: 'Percentage of views at which a video is liked',

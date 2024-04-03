@@ -13,12 +13,12 @@ window.nova_plugins.push({
    // 'title:id': 'Volume',
    // 'title:es': 'Volumen',
    // 'title:pt': 'Volume',
-   'title:fr': 'Le volume',
+   // 'title:fr': 'Le volume',
    // 'title:it': 'Volume',
    // 'title:tr': 'Hacim',
-   'title:de': 'Volumen',
+   // 'title:de': 'Volumen',
    'title:pl': 'Głośność',
-   'title:ua': 'Гучність',
+   // 'title:ua': 'Гучність',
    run_on_pages: 'watch, embed, -mobile',
    section: 'player',
    // desc: 'Use mouse wheel to change volume of video',
@@ -29,13 +29,13 @@ window.nova_plugins.push({
    // 'desc:vi': '',
    // 'desc:id': 'Dengan roda mouse',
    // 'desc:es': 'Con rueda de ratón',
-   'desc:pt': 'Com roda do mouse',
-   'desc:fr': 'Avec molette de la souris',
+   // 'desc:pt': 'Com roda do mouse',
+   // 'desc:fr': 'Avec molette de la souris',
    // 'desc:it': 'Con rotellina del mouse',
    // 'desc:tr': 'Fare tekerleği ile',
-   'desc:de': 'Mit mausrad',
+   // 'desc:de': 'Mit mausrad',
    'desc:pl': 'Za pomocą kółka myszy',
-   'desc:ua': 'З допомогою колеса мишки',
+   // 'desc:ua': 'З допомогою колеса мишки',
    _runtime: user_settings => {
 
       // wheel
@@ -147,7 +147,7 @@ window.nova_plugins.push({
             // init volume_default
             if (defaultLevel = +user_settings.volume_default) {
                // console.debug('defaultLevel:', defaultLevel);
-               video.addEventListener('canplay', () => {
+               video.addEventListener('playing', () => {
                   (defaultLevel > 100 /*&& user_settings.volume_unlimit*/)
                      ? playerVolume.unlimit(defaultLevel)
                      : playerVolume.set(defaultLevel);
@@ -160,7 +160,7 @@ window.nova_plugins.push({
                   if ((NOVA.currentPage == 'watch' || NOVA.currentPage == 'embed')
                      && (userVolume = await NOVA.storage_obj_manager.getParam('volume'))
                   ) {
-                     video.addEventListener('canplay', () => playerVolume.set(userVolume), { capture: true, once: true });
+                     video.addEventListener('playing', () => playerVolume.set(userVolume), { capture: true, once: true });
                   }
                });
             }
@@ -219,7 +219,7 @@ window.nova_plugins.push({
          },
 
          unlimit(level = 300) {
-            // console.debug('unlimit:', level);
+            console.debug('unlimit:', level);
             if (level > 100) {
                if (!this.audioCtx) {
                   this.audioCtx = new AudioContext();
@@ -230,7 +230,8 @@ window.nova_plugins.push({
                   this.node.connect(this.audioCtx.destination);
                }
 
-               if (this.node.gain.value <= 6) this.node.gain.value += 1; // max 600%
+               // if (this.node.gain.value < 6) this.node.gain.value += .5; // max 600%
+               if (this.node.gain.value < 6) this.node.gain.value += 1; // max 600%
 
                NOVA.showOSD(movie_player.getVolume() * this.node.gain.value + '%');
                // this.buildVolumeSlider();
@@ -273,7 +274,7 @@ window.nova_plugins.push({
                         display: none;
                         text-indent: 2px;
                         font-size: 110%;
-                        text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+                        text-shadow: 0 0 2px rgba(0, 0, 0, .5);
                         cursor: default;
                      }
                      ${SELECTOR}:after { content: '%'; }
@@ -310,13 +311,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Tingkat default',
          // 'label:es': 'Volumen predeterminado',
-         'label:pt': 'Volume padrão',
-         'label:fr': 'Volume par défaut',
+         // 'label:pt': 'Volume padrão',
+         // 'label:fr': 'Volume par défaut',
          // 'label:it': 'Livello predefinito',
          // 'label:tr': 'Varsayılan ses',
-         'label:de': 'Standardlautstärke',
+         // 'label:de': 'Standardlautstärke',
          'label:pl': 'Poziom domyślny',
-         'label:ua': 'Базовий рівень',
+         // 'label:ua': 'Базовий рівень',
          type: 'number',
          title: '0 - auto',
          placeholder: '%',
@@ -335,13 +336,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Tombol pintas',
          // 'label:es': 'Tecla de acceso rápido',
-         'label:pt': 'Tecla de atalho',
-         'label:fr': 'Raccourci',
+         // 'label:pt': 'Tecla de atalho',
+         // 'label:fr': 'Raccourci',
          // 'label:it': 'Tasto di scelta rapida',
          // 'label:tr': 'Kısayol tuşu',
-         'label:de': 'Schnelltaste',
+         // 'label:de': 'Schnelltaste',
          'label:pl': 'Klawisz skrótu',
-         'label:ua': 'Гаряча клавіша',
+         // 'label:ua': 'Гаряча клавіша',
          options: [
             { label: 'none', value: false },
             { label: 'wheel', value: 'none', selected: true },
@@ -360,13 +361,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Melangkah',
          // 'label:es': 'Paso',
-         'label:pt': 'Degrau',
-         'label:fr': 'Étape',
+         // 'label:pt': 'Degrau',
+         // 'label:fr': 'Étape',
          // 'label:it': 'Fare un passo',
          // 'label:tr': 'Adım',
-         'label:de': 'Schritt',
+         // 'label:de': 'Schritt',
          'label:pl': 'Krok',
-         'label:ua': 'Крок',
+         // 'label:ua': 'Крок',
          type: 'number',
          title: 'in %',
          // 'title:zh': '',
@@ -522,13 +523,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Jangan simpan mode senyap',
          // 'label:es': 'No guarde el modo silencioso',
-         'label:pt': 'Não salve o modo silencioso',
-         'label:fr': 'Ne pas enregistrer le mode silencieux',
+         // 'label:pt': 'Não salve o modo silencioso',
+         // 'label:fr': 'Ne pas enregistrer le mode silencieux',
          // 'label:it': 'Non salvare la modalità silenziosa',
          // 'label:tr': 'Ne pas enregistrer le mode silencieux',
-         'label:de': 'Silent-Modus nicht speichern',
+         // 'label:de': 'Silent-Modus nicht speichern',
          'label:pl': 'Nie zachowuj wyciszonego stanu',
-         'label:ua': 'Не зберігати беззвучний режим',
+         // 'label:ua': 'Не зберігати беззвучний режим',
          type: 'checkbox',
          title: 'Only affects new tabs',
          'title:zh': '只影响新标签',
@@ -537,13 +538,13 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': 'Hanya memengaruhi tab baru',
          // 'title:es': 'Solo afecta a las pestañas nuevas',
-         'title:pt': 'Afeta apenas novas guias',
-         'title:fr': "N'affecte que les nouveaux onglets",
+         // 'title:pt': 'Afeta apenas novas guias',
+         // 'title:fr': "N'affecte que les nouveaux onglets",
          // 'title:it': 'Riguarda solo le nuove schede',
          // 'title:tr': 'Yalnızca yeni sekmeleri etkiler',
-         'title:de': 'Wirkt sich nur auf neue Registerkarten aus',
+         // 'title:de': 'Wirkt sich nur auf neue Registerkarten aus',
          'title:pl': 'Dotyczy tylko nowych kart',
-         'title:ua': 'Діє лише на нові вкладки',
+         // 'title:ua': 'Діє лише на нові вкладки',
       },
       volume_loudness_normalization: {
          _tagName: 'input',
@@ -587,13 +588,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Izinkan di atas 100%',
          // 'label:es': 'Permitir por encima del 100%',
-         'label:pt': 'Permitir acima de 100%',
-         'label:fr': 'Autoriser au-dessus de 100 %',
+         // 'label:pt': 'Permitir acima de 100%',
+         // 'label:fr': 'Autoriser au-dessus de 100 %',
          // 'label:it': 'Consenti oltre il 100%',
          // 'label:tr': "%100'ün üzerinde izin ver",
-         'label:de': 'Über 100 % zulassen',
+         // 'label:de': 'Über 100 % zulassen',
          'label:pl': 'Zezwól powyżej 100%',
-         'label:ua': 'Дозволити більше 100%',
+         // 'label:ua': 'Дозволити більше 100%',
          type: 'checkbox',
          title: 'With sound distortion',
          // title: 'allow set volume above 100%',

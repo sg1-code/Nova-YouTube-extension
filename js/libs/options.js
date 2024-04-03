@@ -197,7 +197,7 @@ const PopulateForm = {
       }, { capture: true });
       // hotkey ctrl+s
       document.addEventListener('keydown', evt => {
-         if (evt.ctrlKey && evt.keyCode === 83) {
+         if (evt.ctrlKey && evt.code == 'KeyS') {
             // Prevent the Save dialog to open
             evt.preventDefault();
             // send form

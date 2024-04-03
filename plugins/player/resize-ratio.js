@@ -7,6 +7,7 @@
 // https://www.youtube.com/watch?v=aznxojO15M0 - (ultra-wide)
 // https://www.youtube.com/watch?v=U9mUwZ47z3E - (ultra-ultra-wide)
 // https://www.youtube.com/watch?v=nk43m_R9IVc - 21:9
+// https://www.youtube.com/watch?v=UtQzLVS54Go - (313:240)
 
 window.nova_plugins.push({
    id: 'player-resize-ratio',
@@ -23,7 +24,7 @@ window.nova_plugins.push({
    // 'title:tr': '',
    // 'title:de': '',
    // 'title:pl': '',
-   'title:ua': 'Примусова зміна розміру програвача 16:9',
+   // 'title:ua': 'Примусова зміна розміру програвача 16:9',
    run_on_pages: 'watch',
    section: 'player',
    desc: 'only for 4:3 video',
@@ -39,7 +40,7 @@ window.nova_plugins.push({
    // 'desc:tr': '',
    // 'desc:de': '',
    // 'desc:pl': '',
-   'desc:ua': 'Лише для відео розміром 4:3',
+   // 'desc:ua': 'Лише для відео розміром 4:3',
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/421396-youtube-sizerd

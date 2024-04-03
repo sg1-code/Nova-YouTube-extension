@@ -12,13 +12,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Tombol kontrol putar otomatis daftar putar',
    // 'title:es': 'Control de reproducción automática de listas de reproducción',
-   'title:pt': 'Controle de reprodução automática da lista de reprodução',
-   'title:fr': 'Contrôle de lecture automatique de la liste de lecture',
+   // 'title:pt': 'Controle de reprodução automática da lista de reprodução',
+   // 'title:fr': 'Contrôle de lecture automatique de la liste de lecture',
    // 'title:it': 'Pulsante di controllo della riproduzione automatica della playlist',
    // 'title:tr': 'Oynatma listesi otomatik oynatma kontrolü',
-   'title:de': 'Steuerung der automatischen Wiedergabe von Wiedergabelisten',
+   // 'title:de': 'Steuerung der automatischen Wiedergabe von Wiedergabelisten',
    'title:pl': 'Kontrola autoodtwarzania listy odtwarzania',
-   'title:ua': 'Кнопка керування автовідтворенням',
+   // 'title:ua': 'Кнопка керування автовідтворенням',
    run_on_pages: 'watch, -mobile',
    // restart_on_location_change: true,
    section: 'playlist',
@@ -28,6 +28,7 @@ window.nova_plugins.push({
       // alt1 - https://greasyfork.org/en/scripts/415542-youtube-prevent-playlist-autoplay
       // alt2 - https://greasyfork.org/en/scripts/375429-youtube-disable-playlist-autoplay
       // alt3 - https://greasyfork.org/en/scripts/481929-youtube-playlist-autoplay-button
+      // alt4 - https://greasyfork.org/en/scripts/480708-youtube-playlist-autoplay
 
       // if (window.nova_playlistReversed) return; // conflict with plugin [playlist-reverse]
 
@@ -51,11 +52,11 @@ window.nova_plugins.push({
          }
          ${SELECTOR}[type=checkbox] {
             --opacity: .7;
-            --color: #fff;
+            --color: white;
             height: var(--height);
             line-height: 1.6em;
             border-radius: 3em;
-            background-color: var(--paper-toggle-button-unchecked-bar-color, #000);
+            background-color: var(--paper-toggle-button-unchecked-bar-color, black);
             appearance: none;
             -webkit-appearance: none;
             position: relative;
@@ -179,13 +180,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Status default',
          // 'label:es': 'Estado predeterminado',
-         'label:pt': 'Estado padrão',
-         'label:fr': 'État par défaut',
+         // 'label:pt': 'Estado padrão',
+         // 'label:fr': 'État par défaut',
          // 'label:it': 'Stato predefinito',
          // 'label:tr': 'Varsayılan',
-         'label:de': 'Standardzustand',
+         // 'label:de': 'Standardzustand',
          'label:pl': 'Stan domyślny',
-         'label:ua': 'Cтан за замовчуваням',
+         // 'label:ua': 'Cтан за замовчуваням',
          options: [
             {
                label: 'play', value: true, selected: true,
@@ -201,7 +202,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'грати',
+               // 'label:ua': 'грати',
             },
             {
                label: 'stop', value: false,
@@ -217,7 +218,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'зупинити',
+               // 'label:ua': 'зупинити',
             },
          ],
       },

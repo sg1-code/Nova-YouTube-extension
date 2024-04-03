@@ -15,8 +15,8 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': '',
    // 'title:es': '',
-   'title:pt': 'Ocultar alguns botões/elementos do player',
-   'title:fr': 'Masquer certains boutons/éléments du lecteur',
+   // 'title:pt': 'Ocultar alguns botões/elementos do player',
+   // 'title:fr': 'Masquer certains boutons/éléments du lecteur',
    // 'title:it': '',
    // 'title:tr': '',
    // 'title:de': '',
@@ -121,13 +121,13 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': '[Ctrl+Klik] untuk memilih beberapa',
          // 'title:es': '[Ctrl+Click] para seleccionar varias',
-         'title:pt': '[Ctrl+Click] para selecionar vários',
-         'title:fr': '[Ctrl+Click] pour sélectionner plusieurs',
+         // 'title:pt': '[Ctrl+Click] para selecionar vários',
+         // 'title:fr': '[Ctrl+Click] pour sélectionner plusieurs',
          // 'title:it': '[Ctrl+Clic] per selezionarne diversi',
          // 'title:tr': 'Birkaç tane seçmek için [Ctrl+Tıkla]',
-         'title:de': '[Ctrl+Click] um mehrere auszuwählen',
+         // 'title:de': '[Ctrl+Click] um mehrere auszuwählen',
          'title:pl': 'Ctrl+kliknięcie, aby zaznaczyć kilka',
-         'title:ua': '[Ctrl+Click] щоб обрати декілька',
+         // 'title:ua': '[Ctrl+Click] щоб обрати декілька',
          multiple: null, // don't use - selected: true
          required: true, // don't use - selected: true
          size: 10, // = options.length

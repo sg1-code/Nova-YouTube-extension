@@ -8,13 +8,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Saluran yang diblokir',
    // 'title:es': 'Lista de canales bloqueados',
-   'title:pt': 'Lista de canais bloqueados',
-   'title:fr': 'Liste des chaînes bloquées',
+   // 'title:pt': 'Lista de canais bloqueados',
+   // 'title:fr': 'Liste des chaînes bloquées',
    // 'title:it': 'Canali bloccati',
    // 'title:tr': 'Engellenen kanalların listesi',
-   'title:de': 'Liste der gesperrten Kanäle',
+   // 'title:de': 'Liste der gesperrten Kanäle',
    'title:pl': 'Zablokowane kanały',
-   'title:ua': 'Заблоковані канали',
+   // 'title:ua': 'Заблоковані канали',
    run_on_pages: 'results, feed, -mobile',
    section: 'thumbs',
    desc: 'Hide channels on the search page',
@@ -24,13 +24,13 @@ window.nova_plugins.push({
    // 'desc:vi': '',
    // 'desc:id': 'Sembunyikan saluran di halaman pencarian',
    // 'desc:es': 'Ocultar canales en la página de búsqueda',
-   'desc:pt': 'Ocultar canais na página de pesquisa',
-   'desc:fr': 'Masquer les chaînes sur la page de recherche',
+   // 'desc:pt': 'Ocultar canais na página de pesquisa',
+   // 'desc:fr': 'Masquer les chaînes sur la page de recherche',
    // 'desc:it': 'Nascondi i canali nella pagina di ricerca',
    // 'desc:tr': 'Arama sayfasında kanalları gizle',
-   'desc:de': 'Kanäle auf der Suchseite ausblenden',
+   // 'desc:de': 'Kanäle auf der Suchseite ausblenden',
    'desc:pl': 'Ukryj kanały na stronie wyszukiwania',
-   'desc:ua': 'Приховує канали на сторінці пошуку',
+   // 'desc:ua': 'Приховує канали на сторінці пошуку',
    _runtime: user_settings => {
 
       // alt1 - https://github.com/amitbl/blocktube
@@ -47,8 +47,10 @@ window.nova_plugins.push({
       const thumbsSelectors = [
          'ytd-rich-item-renderer', // home, channel, feed
          'ytd-video-renderer', // results
+         'ytd-playlist-renderer', // results
          // 'ytd-grid-video-renderer', // feed (old)
          // 'ytd-compact-video-renderer', // sidepanel in watch
+            // 'yt-append-continuation-items-action', // sidepanel append in watch
          'ytm-compact-video-renderer', // mobile /results page (ytm-rich-item-renderer)
          // 'ytm-item-section-renderer' // mobile /subscriptions page
       ]
@@ -99,12 +101,12 @@ window.nova_plugins.push({
                   // console.debug(evt.detail?.actionName); // flltered
                   document.body.querySelectorAll(
                      // '#channel-name' // without @url_name
-                     '#channel-name a[href]'
+                     '#channel-name a[href]:first-child' // exclude "Playlist" link
                      // '.subhead > [class*="media-item-byline"]' // mobile /subscriptions page
                   )
                      .forEach(channel_name => {
                         BLOCK_KEYWORDS.forEach(keyword => {
-                           // @url_name
+                           // url
                            if (keyword.startsWith('@')
                               && channel_name.href.includes(keyword)
                               // && channel_name.querySelector(`a[href$="${keyword}"]`)
@@ -194,13 +196,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Daftar',
          // 'label:es': 'Lista',
-         'label:pt': 'Lista',
-         'label:fr': 'Liste',
+         // 'label:pt': 'Lista',
+         // 'label:fr': 'Liste',
          // 'label:it': 'Elenco',
          // 'label:tr': 'Listesi',
-         'label:de': 'Liste',
+         // 'label:de': 'Liste',
          'label:pl': 'Lista',
-         'label:ua': 'Список',
+         // 'label:ua': 'Список',
          title: 'separator: "," or ";" or "new line"',
          'title:zh': '分隔器： "," 或 ";" 或 "新队"',
          'title:ja': 'セパレータ： "," または ";" または "改行"',
@@ -208,13 +210,13 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': 'pemisah: "," atau ";" atau "baris baru"',
          // 'title:es': 'separador: "," o ";" o "new line"',
-         'title:pt': 'separador: "," ou ";" ou "new line"',
-         'title:fr': 'séparateur : "," ou ";" ou "nouvelle ligne"',
+         // 'title:pt': 'separador: "," ou ";" ou "new line"',
+         // 'title:fr': 'séparateur : "," ou ";" ou "nouvelle ligne"',
          // 'title:it': 'separatore: "," o ";" o "nuova linea"',
          // 'title:tr': 'ayırıcı: "," veya ";" veya "new line"',
-         'title:de': 'separator: "," oder ";" oder "new line"',
+         // 'title:de': 'separator: "," oder ";" oder "new line"',
          'title:pl': 'separator: "," lub ";" lub "now linia"',
-         'title:ua': 'розділювач: "," або ";" або "новий рядок"',
+         // 'title:ua': 'розділювач: "," або ";" або "новий рядок"',
          placeholder: 'channel1\nchannel2',
          required: true,
       },

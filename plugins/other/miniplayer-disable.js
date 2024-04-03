@@ -17,7 +17,7 @@ window.nova_plugins.push({
    // 'title:tr': '',
    // 'title:de': '',
    // 'title:pl': '',
-   'title:ua': 'Вимкнути мінівідтворювач',
+   // 'title:ua': 'Вимкнути мінівідтворювач',
    // run_on_pages: 'watch, -mobile',
    run_on_pages: 'results, feed, channel, watch, -mobile',
    section: 'other',
@@ -34,7 +34,7 @@ window.nova_plugins.push({
    // 'desc:tr': '',
    // 'desc:de': '',
    // 'desc:pl': '',
-   'desc:ua': 'Відображається на іншій сторінці під час відтворення плейлиста',
+   // 'desc:ua': 'Відображається на іншій сторінці під час відтворення плейлиста',
    _runtime: user_settings => {
 
       // alt - https://greasyfork.org/en/scripts/489096-remove-miniplayer-on-youtube
@@ -93,7 +93,6 @@ window.nova_plugins.push({
          if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
 
          if (NOVA.currentPage == 'watch' && evt.code === 'KeyI') {
-            // if (NOVA.currentPage == 'watch' && (evt.key === 'i' || evt.keyCode === 73)) {
             evt.preventDefault();
             // evt.stopImmediatePropagation();
             // evt.stopPropagation();

@@ -7,13 +7,15 @@
 // MANUAL CHAPTER
 
 // timestamp in (description + comment):
-// https://www.youtube.com/watch?v=IvZOmE36PLc&lc=UgznihSt34vx093bT9p4AaABAg
-// https://www.youtube.com/watch?v=Xt2sbtvBuk8&lc=UgzAWQZfFFq2nzZ4gtp4AaABAg - have 3-digit timestamps
+// https://www.youtube.com/watch?v=IvZOmE36PLc
+// https://www.youtube.com/watch?v=Xt2sbtvBuk8 - have 3-digit timestamps
+// https://www.youtube.com/watch?v=Mo1bfeYGorA - many chapters (in desc only two)
+// https://www.youtube.com/watch?v=ouV-6Ogxe64 - huge chapters (broken desc)
 
 // timestamp in pinned comment:
 // https://www.youtube.com/watch?v=SgQ_Jk49FRQ
 // https://www.youtube.com/watch?v=tlICDvcCkog
-// https://www.youtube.com/watch?v=_-5cYbk-QYI&lc=UgxgHkAhtabuiFsFHAp4AaABAg
+// https://www.youtube.com/watch?v=_-5cYbk-QYI
 
 // timestamp in description
 // https://www.youtube.com/watch?v=hLXIK9DBxAo - title of chapters before timestamp. very long text line of timestamp
@@ -22,7 +24,7 @@
 // https://www.youtube.com/watch?v=egAB2qtVWFQ - title of chapters before timestamp.
 // https://www.youtube.com/watch?v=t_fbcgzmxHs - title of chapters before timestamp.
 // https://www.youtube.com/watch?v=IR0TBQV147I - lots 3-digit timestamp
-// https://www.youtube.com/watch?v=fgMdiwECQSE - brackets
+// https://www.youtube.com/watch?v=5Do_0aWpYeo - brackets
 // https://www.youtube.com/embed/JxTyMVPaOXY?autoplay=1 - embed
 
 // false detect:
@@ -38,13 +40,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Lompatan waktu',
    // 'title:es': 'Salto de tiempo',
-   'title:pt': 'Salto no tempo',
-   'title:fr': 'Saut dans le temps',
+   // 'title:pt': 'Salto no tempo',
+   // 'title:fr': 'Saut dans le temps',
    // 'title:it': 'Salto nel tempo',
    // 'title:tr': 'Zaman atlama',
-   'title:de': 'Zeitsprung',
+   // 'title:de': 'Zeitsprung',
    'title:pl': 'Skok czasowy',
-   'title:ua': 'Стрибок часу',
+   // 'title:ua': 'Стрибок часу',
    run_on_pages: 'watch, embed, -mobile',
    section: 'control-panel',
    desc: 'Use to skip the intro or ad inserts',
@@ -54,13 +56,13 @@ window.nova_plugins.push({
    // 'desc:vi': '',
    // 'desc:id': 'Gunakan untuk melewati intro atau sisipan iklan',
    // 'desc:es': 'Úselo para omitir la introducción o las inserciones de anuncios.',
-   'desc:pt': 'Use para pular a introdução ou inserções de anúncios',
-   'desc:fr': "Utiliser pour ignorer l'intro ou les encarts publicitaires",
+   // 'desc:pt': 'Use para pular a introdução ou inserções de anúncios',
+   // 'desc:fr': "Utiliser pour ignorer l'intro ou les encarts publicitaires",
    // 'desc:it': "Utilizzare per saltare l'introduzione o gli inserti pubblicitari",
    // 'desc:tr': 'Girişi veya reklam eklerini atlamak için kullanın',
    // 'desc:de': 'Verwenden Sie diese Option, um das Intro oder Werbeeinblendungen zu überspringen',
    'desc:pl': 'Służy do pomijania wstępu lub wstawek reklamowych',
-   'desc:ua': 'Використовуйте щоб пропустити інтро',
+   // 'desc:ua': 'Використовуйте щоб пропустити інтро',
    _runtime: user_settings => {
 
       // https://github.com/raingart/Nova-YouTube-extension/issues/147
@@ -311,20 +313,20 @@ window.nova_plugins.push({
 
                   if ((NOVA.currentPage == 'watch' || NOVA.currentPage == 'embed')
                      && !+sessionStorage.getItem(getCacheName())  // conflict with [player-resume-playback] plugin
-                     && !NOVA.queryURL.has('t') // fix conflict
+                     && (!NOVA.queryURL.has('t') && !NOVA.queryURL.getHashParam('t')) // fix conflict
                      && (userSeek = await NOVA.storage_obj_manager.getParam('skip-into')) // check param name in [save-channel-state] plugin
                   ) {
-                     video.addEventListener('canplay', timeLeapInto.apply(video, [userSeek]), { capture: true, once: true });
+                     video.addEventListener('playing', timeLeapInto.apply(video, [userSeek]), { capture: true, once: true });
                   }
                });
             });
       }
-      else if (+user_settings.skip_into_sec && !NOVA.queryURL.has('t')) {
+      else if (+user_settings.skip_into_sec && (!NOVA.queryURL.has('t') && !NOVA.queryURL.getHashParam('t'))) {
          NOVA.waitSelector('#movie_player video')
             .then(video => {
                NOVA.runOnPageLoad(() => {
                   if (NOVA.currentPage == 'watch') {
-                     video.addEventListener('canplay', timeLeapInto.bind(video, user_settings.skip_into_sec), { capture: true, once: true });
+                     video.addEventListener('playing', timeLeapInto.bind(video, user_settings.skip_into_sec), { capture: true, once: true });
                   }
                });
             });
@@ -357,19 +359,19 @@ window.nova_plugins.push({
       time_jump_step: {
          _tagName: 'input',
          label: 'Step time',
-         // 'label:ja': 'ステップ時間',
+         'label:ja': 'ステップ時間',
          'label:zh': '步骤时间',
          // 'label:ko': '단계 시간',
          // 'label:vi': '',
          // 'label:id': 'Langkah waktu',
          // 'label:es': 'Tiempo de paso',
-         'label:pt': 'Tempo da etapa',
-         'label:fr': 'Temps de pas',
+         // 'label:pt': 'Tempo da etapa',
+         // 'label:fr': 'Temps de pas',
          // 'label:it': 'Tempo di passaggio',
          // 'label:tr': 'Adım süresi',
-         'label:de': 'Schrittzeit',
+         // 'label:de': 'Schrittzeit',
          'label:pl': 'Krok czasowy',
-         'label:ua': 'Крок часу',
+         // 'label:ua': 'Крок часу',
          type: 'number',
          title: 'In seconds',
          placeholder: 'sec',
@@ -386,13 +388,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Tombol pintas (klik dua kali)',
          // 'label:es': 'Tecla de acceso rápido (doble clic)',
-         'label:pt': 'Atalho (duplo clique)',
-         'label:fr': 'Raccourci clavier (double clic)',
+         // 'label:pt': 'Atalho (duplo clique)',
+         // 'label:fr': 'Raccourci clavier (double clic)',
          // 'label:it': 'Tasto di scelta rapida (doppio clic)',
          // 'label:tr': 'Kısayol tuşu (çift tıklama)',
-         'label:de': 'Hotkey (Doppelklick)',
+         // 'label:de': 'Hotkey (Doppelklick)',
          'label:pl': 'Klawisz skrótu (podwójne kliknięcie)',
-         'label:ua': 'Гаряча клавіша (двічі натиснути)',
+         // 'label:ua': 'Гаряча клавіша (двічі натиснути)',
          // title: 'by default【Ctrl + ← →】',
          title: 'by default【Ctrl + Arrows】',
          // 'title:zh': '',
@@ -462,13 +464,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Tampilkan offset waktu di bilah kemajuan',
          // 'label:es': 'Mostrar compensación de tiempo en la barra de progreso',
-         'label:pt': 'Mostrar a diferença de tempo na barra de progresso',
-         'label:fr': 'Afficher le décalage horaire sur la barre de progression',
+         // 'label:pt': 'Mostrar a diferença de tempo na barra de progresso',
+         // 'label:fr': 'Afficher le décalage horaire sur la barre de progression',
          // 'label:it': "Mostra l'offset di tempo sulla barra di avanzamento",
          // 'label:tr': 'İlerleme çubuğunda zaman ofsetini göster',
-         'label:de': 'Zeitverschiebung im Fortschrittsbalken anzeigen',
+         // 'label:de': 'Zeitverschiebung im Fortschrittsbalken anzeigen',
          'label:pl': 'Pokaż przesunięcie czasu na pasku postępu',
-         'label:ua': 'Показувати часовий зсув на панелі прогресу',
+         // 'label:ua': 'Показувати часовий зсув на панелі прогресу',
          type: 'checkbox',
          // title: 'When you hover offset current playback time',
          title: 'Time offset from current playback time',
@@ -478,13 +480,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Waktu offset dari waktu pemutaran saat ini',
          // 'title:es': 'Desfase de tiempo del tiempo de reproducción actual',
-         'title:pt': 'Deslocamento de tempo do tempo de reprodução atual',
-         'title:fr': "Décalage temporel par rapport à l'heure de lecture actuelle",
+         // 'title:pt': 'Deslocamento de tempo do tempo de reprodução atual',
+         // 'title:fr': "Décalage temporel par rapport à l'heure de lecture actuelle",
          // 'title:it': 'Spostamento temporale dal tempo di riproduzione corrente',
          // 'title:tr': 'Geçerli oynatma süresinden zaman farkı',
-         'title:de': 'Zeitverschiebung zur aktuellen Wiedergabezeit',
+         // 'title:de': 'Zeitverschiebung zur aktuellen Wiedergabezeit',
          'title:pl': 'Przesunięcie czasu względem bieżącego czasu odtwarzania',
-         'title:ua': 'Часовий зсув відносно поточного часу відтворення',
+         // 'title:ua': 'Часовий зсув відносно поточного часу відтворення',
       },
       // time_jump_chapters_list_show: {
       //    _tagName: 'input',
@@ -495,13 +497,13 @@ window.nova_plugins.push({
       //    'label:vi': '',
       //    'label:id': 'Tampilkan bagian daftar bab',
       //    'label:es': 'Mostrar bloque de lista de capítulos',
-      //    'label:pt': 'Mostrar bloco de lista de capítulos',
-      //    'label:fr': 'Afficher la section de la liste des chapitres',
+      //    // 'label:pt': 'Mostrar bloco de lista de capítulos',
+      //    // 'label:fr': 'Afficher la section de la liste des chapitres',
       //    'label:it': "Mostra la sezione dell'elenco dei capitoli",
       //    'label:tr': 'Bölüm listesi bölümünü göster',
-      //    'label:de': 'Kapitellistenblock anzeigen',
+      //    // 'label:de': 'Kapitellistenblock anzeigen',
       //    'label:pl': 'Pokaż sekcję listy rozdziałów',
-      //    'label:ua': 'Показати розділ списку розділів',
+      //    // 'label:ua': 'Показати розділ списку розділів',
       //    type: 'checkbox',
       // },
       skip_into_sec: {
@@ -515,13 +517,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Tetapkan waktu mulai',
          // 'label:es': 'Establecer hora de inicio',
-         'label:pt': 'Definir horário de início',
-         'label:fr': "Définir l'heure de début",
+         // 'label:pt': 'Definir horário de início',
+         // 'label:fr': "Définir l'heure de début",
          // 'label:it': "Imposta l'ora di inizio",
          // 'label:tr': '',
-         'label:de': 'Startzeit festlegen',
+         // 'label:de': 'Startzeit festlegen',
          'label:pl': 'Ustaw czas rozpoczęcia',
-         'label:ua': 'Встановіть час початку',
+         // 'label:ua': 'Встановіть час початку',
          type: 'number',
          title: 'in sec / 0 - disable',
          // 'title:zh': '',

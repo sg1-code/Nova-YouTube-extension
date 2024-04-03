@@ -16,7 +16,7 @@ window.nova_plugins.push({
    // 'title:tr': 'Oyuncu tam mod',
    // 'title:de': 'Player full-with-modus',
    'title:pl': 'Tryb kinowy',
-   'title:ua': 'Режим кінотеарту',
+   // 'title:ua': 'Режим кінотеарту',
    run_on_pages: 'watch, -mobile',
    section: 'player',
    // desc: '',
@@ -101,7 +101,7 @@ window.nova_plugins.push({
       // Strategy 2. Doesn't work
       // NOVA.waitSelector('video')
       //    .then(video => {
-      //       video.addEventListener('play', setTheater, { capture: true, once: true });
+      //       video.addEventListener('playing', setTheater, { capture: true, once: true });
 
       //       function setTheater() {
       //          // document.cookie = 'wide=1;';
@@ -150,6 +150,9 @@ window.nova_plugins.push({
                      ytd-watch-flexy[theater]:not([fullscreen]) #columns {
                         position: absolute;
                         top: 100vh;
+                     }
+                     ${PLAYER_SELECTOR} {
+                        background-color: black;
                      }`);
                   break;
 
@@ -159,8 +162,7 @@ window.nova_plugins.push({
                   // alt3 - https://greasyfork.org/en/scripts/454092-youtube-theater-fill-up-window
                   // alt4 - https://greasyfork.org/en/scripts/33243-maximizer-for-youtube
                   // alt5 - https://greasyfork.org/en/scripts/442089-pkga-youtube-theater-mode
-                  // alt6 - https://greasyfork.org/en/scripts/480701-youtube-fullpage-theater
-                  // alt7 - https://greasyfork.org/en/scripts/487233-youtube-true-theater-mode
+                  // alt6 - https://greasyfork.org/en/scripts/487233-youtube-true-theater-mode
 
                   setPlayerFullViewport(user_settings.player_full_viewport_mode_exit);
                   break;
@@ -209,7 +211,7 @@ window.nova_plugins.push({
                         height: 100%;
                         background-color: rgba(0, 0, 0, ${+user_settings.cinema_mode_opacity});
                         opacity: 0;
-                        transition: opacity .4s ease-in-out;
+                        transition: opacity 400ms ease-in-out;
                         pointer-events: none;
                      }
 
@@ -270,7 +272,7 @@ window.nova_plugins.push({
 
                // Strategy 2
                // const CLASS_NAME = '';
-               // video.addEventListener('play', () => {
+               // video.addEventListener('playing', () => {
                //    movie_player.classList.add(CLASS_NAME)
                // });
                // if (user_settings.player_full_viewport_mode_exit) {
@@ -278,7 +280,8 @@ window.nova_plugins.push({
                // }
 
                // for fix
-               // alt - https://greasyfork.org/en/scripts/436168-youtube-exit-fullscreen-on-video-end
+               // alt1 - https://greasyfork.org/en/scripts/436168-youtube-exit-fullscreen-on-video-end
+               // alt2 - https://greasyfork.org/en/scripts/469750-youtube-exit-fullscreen-on-video-end-modified
                if (user_settings.player_full_viewport_mode_exit) {
 
                   NOVA.waitSelector('video')
@@ -354,13 +357,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Mode',
          // 'label:es': 'Modo',
-         'label:pt': 'Modo',
+         // 'label:pt': 'Modo',
          // 'label:fr': 'Mode',
          // 'label:it': 'Modalità',
          // 'label:tr': 'Mod',
-         'label:de': 'Modus',
+         // 'label:de': 'Modus',
          'label:pl': 'Tryb',
-         'label:ua': 'Режим',
+         // 'label:ua': 'Режим',
          options: [
             {
                label: 'default', /* value: '', */ selected: true, // fill value if no "selected" mark another option
@@ -376,7 +379,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'за замовчуванням',
+               // 'label:ua': 'за замовчуванням',
             },
             {
                label: 'cinema', value: 'cinema_mode',
@@ -392,7 +395,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'кінотеатр',
+               // 'label:ua': 'кінотеатр',
             },
             {
                label: 'full-viewport', value: 'force',
@@ -408,7 +411,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'повноекранний',
+               // 'label:ua': 'повноекранний',
             },
             {
                label: 'full-viewport (auto)', value: 'smart',
@@ -424,7 +427,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'повноекранний (авто)',
+               // 'label:ua': 'повноекранний (авто)',
             },
             {
                label: 'full-viewport (offset)', value: 'offset',
@@ -456,7 +459,7 @@ window.nova_plugins.push({
                // 'label:tr': '',
                // 'label:de': '',
                // 'label:pl': '',
-               'label:ua': 'передавати на вбудований',
+               // 'label:ua': 'передавати на вбудований',
             },
          ],
       },
@@ -471,13 +474,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Keluar dari viewport penuh jika video berakhir/jeda',
          // 'label:es': 'Salir si el video termina/pausa',
-         'label:pt': 'Sair se o vídeo terminar/pausar',
-         'label:fr': 'Quitter si la vidéo se termine/pause',
+         // 'label:pt': 'Sair se o vídeo terminar/pausar',
+         // 'label:fr': 'Quitter si la vidéo se termine/pause',
          // 'label:it': 'Uscita dalla visualizzazione completa se il video termina/mette in pausa',
          // 'label:tr': 'Video biterse/duraklatılırsa çıkın',
-         'label:de': 'Beenden, wenn das Video endet/pausiert',
+         // 'label:de': 'Beenden, wenn das Video endet/pausiert',
          'label:pl': 'Wyjdź, gdy film się kończy/pauzuje',
-         'label:ua': 'Вихід із повного вікна перегляду, якщо відео закінчується/призупиняється',
+         // 'label:ua': 'Вихід із повного вікна перегляду, якщо відео закінчується/призупиняється',
          type: 'checkbox',
          // title: '',
          'data-dependent': { 'player_full_viewport_mode': ['force', 'smart'] },
@@ -491,13 +494,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Area pandang penuh tidak termasuk celana pendek',
          // 'label:es': 'Vista completa excluir pantalones cortos',
-         'label:pt': 'Shorts de exclusão da janela de visualização completa',
-         'label:fr': 'La fenêtre complète exclut les shorts',
+         // 'label:pt': 'Shorts de exclusão da janela de visualização completa',
+         // 'label:fr': 'La fenêtre complète exclut les shorts',
          // 'label:it': 'La visualizzazione completa esclude i cortometraggi',
          // 'label:tr': 'Tam görünüm alanı şortları hariç tutar',
-         'label:de': 'Vollbildansicht schließt Shorts aus',
+         // 'label:de': 'Vollbildansicht schließt Shorts aus',
          'label:pl': 'Pełny ekran wyklucza krótkie filmy',
-         'label:ua': 'Повне вікно перегляду без прев`ю',
+         // 'label:ua': 'Повне вікно перегляду без прев`ю',
          type: 'checkbox',
          // title: '',
          'data-dependent': { 'player_full_viewport_mode': 'smart' },
@@ -511,13 +514,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Kegelapan',
          // 'label:es': 'Opacidad',
-         'label:pt': 'Opacidade',
-         'label:fr': 'Opacité',
+         // 'label:pt': 'Opacidade',
+         // 'label:fr': 'Opacité',
          // 'label:it': 'Opacità',
          // 'label:tr': 'Opaklık',
-         'label:de': 'Opazität',
+         // 'label:de': 'Opazität',
          'label:pl': 'Przezroczystość',
-         'label:ua': 'Прозорість',
+         // 'label:ua': 'Прозорість',
          type: 'number',
          title: '0-1',
          placeholder: '0-1',
@@ -536,13 +539,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Abaikan daftar putar',
          // 'label:es': 'Ignorar lista de reproducción',
-         'label:pt': 'Ignorar lista de reprodução',
-         'label:fr': 'Ignorer la liste de lecture',
+         // 'label:pt': 'Ignorar lista de reprodução',
+         // 'label:fr': 'Ignorer la liste de lecture',
          // 'label:it': 'Ignora playlist',
          // 'label:tr': 'Oynatma listesini yoksay',
-         'label:de': 'Wiedergabeliste ignorieren',
+         // 'label:de': 'Wiedergabeliste ignorieren',
          'label:pl': 'Zignoruj listę odtwarzania',
-         'label:ua': 'Ігнорувати список відтворення',
+         // 'label:ua': 'Ігнорувати список відтворення',
          type: 'checkbox',
          // title: '',
       },

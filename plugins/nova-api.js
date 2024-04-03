@@ -47,6 +47,7 @@
    - queryURL.get
    - queryURL.set
    - queryURL.remove
+   - queryURL.getHashParam
    - request.API (async)
    - getPlayerState
    //- videoId
@@ -177,6 +178,9 @@ const NOVA = {
     * @param  {string} selector
     * @param  {Node*} container
     * @return {Promise<Element>}
+    * @param {destroy_timeout} sec How long to wait before throwing an error (seconds)
+    * @returns {Promise<void>}
+    *
    */
    // untilDOM
    // waitSelector(selector = required(), { container, destroy_after_page_leaving, destroy_timeout }) {
@@ -271,8 +275,11 @@ const NOVA = {
             });
 
          // destructure self
-         if (ms = +limit_data?.destroy_timeout) {
-            setTimeout(observerFactory.disconnect, ms);
+         if (sec = +limit_data?.destroy_timeout) {
+            setTimeout(() => {
+               observerFactory.disconnect();
+               return reject(`"${selector}" timed out after ${sec} seconds`);
+            }, sec * 1000);
          }
 
          // destructure self
@@ -280,11 +287,7 @@ const NOVA = {
             // url save init
             isURLChange();
             // on page update
-            window.addEventListener('transitionend', ({ target }) => {
-               if (isURLChange()) {
-                  observerFactory.disconnect();
-               }
-            });
+            window.addEventListener('transitionend', ({ target }) => isURLChange() && observerFactory.disconnect());
 
             function isURLChange() {
                return (this.prevURL === document.URL) ? false : this.prevURL = document.URL;
@@ -366,7 +369,7 @@ const NOVA = {
             process(); // launch without waiting
             // if (attr_mark) {
             this.watchElements_list[attr_mark] = setInterval(() =>
-               document.visibilityState == 'visible' && process(), 1500); // 1.5 sec
+               document.visibilityState == 'visible' && process(), 1500); // 1.5s
             // }
 
             function process() {
@@ -852,7 +855,7 @@ const NOVA = {
       bezelContainer.classList.add(CLASS_VALUE);
 
       let ms = 1200;
-      if ((text = String(text)) && (text.endsWith('%') || text.endsWith('x'))) {
+      if ((text = String(text)) && (text.endsWith('%') || text.endsWith('x') || text.startsWith('+'))) {
          ms = 600
       }
 
@@ -897,44 +900,47 @@ const NOVA = {
          const selectorTimestampLink = 'a[href*="&t="]';
          let
             timestampsCollect = [],
-            unreliableSorting,
-            prevSec = -1;
+            unreliableSorting;
 
          [
-            // description
-            // https://www.youtube.com/watch?v=4_m3HsaNwOE - bold chapater "Screenshot moment" show markdown "*Screenshot moment*"
-            (
-               document.body.querySelector('ytd-watch-flexy')?.playerData?.videoDetails?.shortDescription
+            // description text
+            // https://www.youtube.com/watch?v=4_m3HsaNwOE - bold chapater "Screenshot moment" show markdown "*Screenshot moment*"(
+            (document.body.querySelector('ytd-watch-flexy')?.playerData?.videoDetails?.shortDescription
                || document.body.querySelector('ytd-watch-metadata #description.ytd-watch-metadata')?.textContent
-            ),
+            )
+               ?.split('\n') || [],
 
             // first comment (pinned)
             // '#comments ytd-comment-thread-renderer:first-child #content',
-            // comment have max timestamp count
             // Strategy 1. To above v105 https://developer.mozilla.org/en-US/docs/Web/CSS/:has
-            ...([...document.body.querySelectorAll(`#comments #comment #comment-content:has(${selectorTimestampLink})`)]
+            // all comments
+            [...document.body.querySelectorAll(`#comments #comment #comment-content:has(${selectorTimestampLink})`)]
                .map(el => [...el.querySelectorAll(selectorTimestampLink)]
                   .map(a => ({
                      'source': 'comment',
-                     'text': `${a.textContent} ${a.nextSibling.textContent}`, // nextElementSibling
-                     // 'text': a.previousSibling.textContent, // previousElementSibling
+                     // for test https://www.youtube.com/watch?v=4SDlcydjk9A&lc=UgxJk_OAS9GHKhL2zT14AaABAg
+                     'text': `${a.textContent} ${(a.nextSibling || a.previousSibling)?.textContent}`, // a.nextElementSibling || a.previousElementSibling
                   }))
                )
                ?.sort((a, b) => b.length - a.length) // sort by length
-               ?.shift() // get first (max)
-               // ?.flat() // Doesn't work
-               || [])
-         ]
-            .forEach(data => {
-               // console.debug('data', data);
-               // if (timestampsCollect.length > 1) return; // skip if exist in priority selector (#1 description, #2 comments)
-               // needed for check, applying sorting by timestamps
-               unreliableSorting = Boolean(data?.source);
+               ?.shift() // get first (max timestamp)
+            // ?.flat() // Doesn't work
+            || []
 
-               (data?.text || data)
-                  ?.split('\n')
+         ]
+            ?.sort((a, b) => b.length - a.length) // sort by maximum number of chapters. Comment this line for preset (#1 description, #2 comments) (test - https://www.youtube.com/watch?v=Wy11aSF-HXs)
+            .forEach(chaptersList => {
+               // console.debug('chaptersList:', chaptersList);
+               if (timestampsCollect.length > 1) return; // skip if exist in priority selector (sort by maximum number of chapters) OR (#1 description, #2 comments)
+
+               let prevSec = -1;
+
+               chaptersList
                   .forEach(line => {
-                     line = line?.toString().trim(); // clear spaces
+                     // console.debug('line', line);
+                     // needed for check, applying sorting by timestamps
+                     unreliableSorting = Boolean(line?.source);
+                     line = (line?.text || line).toString().trim(); // clear spaces
                      if (line.length > 5
                         && (timestamp = /((\d?\d:){1,2}\d{2})/g.exec(line))
                         && (line.length - timestamp.length) < 200 // 200 max line length (https://www.youtube.com/watch?v=kSfPHLVFBQk&t=763s)
@@ -996,19 +1002,19 @@ const NOVA = {
          let prevSec = -1;
          document.body.querySelectorAll(`#structured-description ${selectorTimestampLink}`)
             // document.body.querySelectorAll(`#description.ytd-watch-metadata ${selectorTimestampLink}`)
-            .forEach(chaperLink => {
-               // console.debug('>', chaperLink);
+            .forEach(chapterLink => {
+               // console.debug('chapterLink:', chapterLink);
                // filter duplicate
-               const sec = parseInt(NOVA.queryURL.get('t', chaperLink.href));
+               const sec = parseInt(NOVA.queryURL.get('t', chapterLink.href));
                if (sec > prevSec) {
                   prevSec = sec;
                   timestampsCollect.push({
                      'time': NOVA.formatTimeOut.HMS.digit(sec),
                      'sec': sec,
-                     'title': chaperLink.textContent.trim().split('\n')[0].trim(),
+                     'title': chapterLink.textContent.trim().split('\n')[0].trim(),
                      // in #structured-description
-                     // 'time': chaperLink.querySelector('#time')?.textContent,
-                     // 'title': chaperLink.querySelector('h4')?.textContent,
+                     // 'time': chapterLink.querySelector('#time')?.textContent,
+                     // 'title': chapterLink.querySelector('h4')?.textContent,
                   });
                }
             });
@@ -1203,7 +1209,7 @@ const NOVA = {
          //    // 【MAD】,『MAD』,「MAD」
          //    // warn false finding ex: "AUDIO visualizer" 'underCOVER','VOCALoid','write THEME','UI THEME','photo ALBUM', 'lolyPOP', 'ascENDING', speeED, 'LapOP' 'Ambient AMBILIGHT lighting', 'CD Projekt RED', 'Remix OS, TEASER
          //    if (titleStr.split(' - ').length === 2  // search for a hyphen. Ex.:"Artist - Song", "Sound Test" (https://www.youtube.com/watch?v=gLSTUhRY2-s)
-         //       || ['【', '『', '「', 'SOUND', 'REMIX', 'CD', 'PV', 'AUDIO', 'EXTENDED', 'FULL', 'TOP', 'TRACK', 'TRAP', 'THEME', 'PIANO', 'POP', '8-BIT', 'BEAT'].some(i => titleWordsList?.map(w => w.toUpperCase()).includes(i))
+         //       || ['【', '『', '「', 'SOUND', 'REMIX', 'CD', 'PV', 'AUDIO', 'EXTENDED', 'FULL', 'TOP', 'TRACK', 'TRAP', 'THEME', 'PIANO', 'POP', '8-BIT', 'HITS'].some(i => titleWordsList?.map(w => w.toUpperCase()).includes(i))
          //    ) {
          //       return true;
          //    }
@@ -1237,7 +1243,7 @@ const NOVA = {
             || (channelName && /(MUSIC|ROCK|SOUNDS|SONGS)/.test(channelName.toUpperCase())) // https://www.youtube.com/channel/UCj-Wwx1PbCUX3BUwZ2QQ57A https://www.youtube.com/@RelaxingSoundsOfNature
 
             // word - https://www.youtube.com/watch?v=N67yRMOVk1s
-            || titleWordsList?.length && ['🎵', '♫', 'SONG', 'SONGS', 'SOUNDTRACK', 'LYRIC', 'LYRICS', 'AMBIENT', 'MIX', 'VEVO', 'CLIP', 'KARAOKE', 'OPENING', 'COVER', 'COVERED', 'VOCAL', 'INSTRUMENTAL', 'ORCHESTRAL', 'DJ', 'DNB', 'BASS', 'BEAT', 'HITS', 'ALBUM', 'PLAYLIST', 'DUBSTEP', 'CHILL', 'RELAX', 'CLASSIC', 'CINEMATIC']
+            || titleWordsList?.length && ['🎵', '♫', 'SONG', 'SONGS', 'SOUNDTRACK', 'LYRIC', 'LYRICS', 'AMBIENT', 'MIX', 'VEVO', 'CLIP', 'KARAOKE', 'OPENING', 'COVER', 'COVERED', 'VOCAL', 'INSTRUMENTAL', 'ORCHESTRAL', 'DUBSTEP', 'DJ', 'DNB', 'BASS', 'BEAT', 'ALBUM', 'PLAYLIST', 'DUBSTEP', 'CHILL', 'RELAX', 'CLASSIC', 'CINEMATIC']
                .some(i => titleWordsList.includes(i))
 
             // words ("feat." miss - https://www.youtube.com/watch?v=7ubvobYxgBk)
@@ -1493,14 +1499,14 @@ const NOVA = {
        * @param  {integer/string} num
        * @return {string}
       */
-      // conver number "2111" > "2K"
+      // conver number "200111" > "200.1K"
       // abbr: num => new Intl.NumberFormat('en-US', { maximumFractionDigits: 1, notation: 'compact', compactDisplay: 'short' }).format(num),
       abbr(num) {
          num = Math.abs(+num);
          if (num === 0 || isNaN(num)) return '';
          else if (num < 1000) return Math.trunc(num);
-         else if (num < 1e4) return round(num / 1000) + 'K'; // 9.9K (up to 10k)
-         else if (num < 990000) return Math.round(num / 1000) + 'K';
+         else if (num < 1e4) return round(num / 1000) + 'K';
+         else if (num < 990000) return Math.round(num / 1000) + 'K'; // no fractions
          else if (num < 990000000) return Math.round(num / 1e5) / 10 + 'M';
          else return Math.round(num / 1e8) / 10 + 'B';
 
@@ -1566,6 +1572,8 @@ const NOVA = {
          url.searchParams.delete(query.toString());
          return url.toString();
       },
+
+      getHashParam: (query = required(), url_string) => location.hash && new URLSearchParams(new URL(url_string || location).hash.substring(1)).get(query.toString()),
    },
 
    request: (() => {
@@ -1933,6 +1941,7 @@ const NOVA = {
                }
                // in deeper (recursive)
                else {
+                  // switch (obj[prop].constructor) {
                   switch (obj[prop].constructor.name) {
                      case 'Object':
                         if (result = this.key({

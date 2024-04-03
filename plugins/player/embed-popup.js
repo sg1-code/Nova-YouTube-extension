@@ -12,13 +12,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': '포함된 비디오를 팝업으로 리디렉션',
    // 'title:es': 'Redirigir video incrustado a ventana emergente',
-   'title:pt': 'Redirecionar vídeo incorporado para pop-up',
-   'title:fr': 'Rediriger la vidéo intégrée vers une fenêtre contextuelle',
+   // 'title:pt': 'Redirecionar vídeo incorporado para pop-up',
+   // 'title:fr': 'Rediriger la vidéo intégrée vers une fenêtre contextuelle',
    // 'title:it': 'Reindirizza il video incorporato al popup',
    // 'title:tr': '',
-   'title:de': 'Leiten Sie eingebettete Videos zum Popup um',
+   // 'title:de': 'Leiten Sie eingebettete Videos zum Popup um',
    'title:pl': 'Przekieruj osadzone wideo do wyskakującego okienka',
-   'title:ua': 'Переспрямувати вбудоване відео у спливаюче вікно',
+   // 'title:ua': 'Переспрямувати вбудоване відео у спливаюче вікно',
    run_on_pages: 'embed, -mobile',
    section: 'player',
    desc: 'if iframe width is less than 720p',
@@ -63,8 +63,9 @@ window.nova_plugins.push({
       NOVA.waitSelector('#movie_player video')
          .then(video => {
             // video.addEventListener('loadedmetadata', createPopup.bind(video), { capture: true, once: true });
-            video.addEventListener('loadeddata', createPopup.bind(video), { capture: true, once: true });
-            // video.addEventListener('canplay', createPopup.bind(video), { capture: true, once: true });
+            // video.addEventListener('loadeddata', createPopup.bind(video), { capture: true, once: true });
+            video.addEventListener('playing', createPopup.bind(video), { capture: true, once: true });
+            // document.addEventListener('playing', createPopup.bind(video), { capture: true, once: true });
          });
 
       function createPopup() {
@@ -80,8 +81,8 @@ window.nova_plugins.push({
          });
 
          // stop playing in parent tab
-         location.assign(NOVA.queryURL.set({ 'autoplay': false }));
-         // movie_player.stopVideo();
+         // location.assign(NOVA.queryURL.set({ 'autoplay': false }));
+         movie_player.stopVideo();
 
          const url = new URL(
             document.head.querySelector('link[itemprop="embedUrl"][href]')?.href

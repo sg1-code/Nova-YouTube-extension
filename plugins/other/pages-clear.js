@@ -9,13 +9,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': '',
    // 'title:es': '',
-   'title:pt': 'Limpar páginas de lixo',
-   'title:fr': 'Effacer les pages indésirables',
+   // 'title:pt': 'Limpar páginas de lixo',
+   // 'title:fr': 'Effacer les pages indésirables',
    // 'title:it': '',
    // 'title:tr': '',
-   'title:de': 'Befreien Sie die Seiten von Müll',
+   // 'title:de': 'Befreien Sie die Seiten von Müll',
    'title:pl': 'Wyczyść strony ze śmieci',
-   'title:ua': 'Приховайте сміття: анотації, кінцеві заставки тощо',
+   // 'title:ua': 'Приховайте сміття: анотації, кінцеві заставки тощо',
    run_on_pages: 'results, feed, watch, embed, -mobile',
    section: 'other',
    // desc: "Turn off 'card' in https://www.youtube.com/account_playback",
@@ -27,13 +27,13 @@ window.nova_plugins.push({
    // 'desc:vi': '',
    // 'desc:id': '',
    // 'desc:es': '',
-   'desc:pt': 'Remova as coisas irritantes',
-   'desc:fr': 'Supprimez les trucs ennuyeux',
+   // 'desc:pt': 'Remova as coisas irritantes',
+   // 'desc:fr': 'Supprimez les trucs ennuyeux',
    // 'desc:it': '',
    // 'desc:tr': '',
-   'desc:de': 'Entfernen Sie das lästige Zeug',
+   // 'desc:de': 'Entfernen Sie das lästige Zeug',
    'desc:pl': 'Usuń irytujące rzeczy',
-   'desc:ua': 'Приховайте набридливий контент',
+   // 'desc:ua': 'Приховайте набридливий контент',
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/451446-youtube-embed-remove-branding
@@ -59,7 +59,7 @@ window.nova_plugins.push({
       let selectorsList = [
          // '.annotation',
          '.ytp-paid-content-overlay', // message in the bottom-left corner "Includes paid promotion"
-         // channel icon in the bottom-right corner
+         // channel icon in the bottom-right corner (https://www.youtube.com/watch?v=1RjnI64Rwqs)
          '.iv-branding',
          // '.iv-promo',
 
@@ -93,10 +93,13 @@ window.nova_plugins.push({
                // '.ytd-promoted-sparkles-text-search-renderer', // suggest something (I do not remember)
                // 'ytd-search-pyv-renderer ytd-promoted-video-renderer', // suggest ad-video
 
+               'ytd-search-pyv-renderer ~ ytd-shelf-renderer', // Latest from channel / Latest posts from channel - https://www.youtube.com/results?search_query=Kiwami+game
                'ytd-video-renderer + ytd-shelf-renderer', // "People also watched" block - https://greasyfork.org/en/scripts/454513-youtube-search-results-cleaner
                // 'ytd-video-renderer + ytd-horizontal-card-list-renderer', // "People also search for" block
 
                // 'ytd-video-renderer + ytd-reel-shelf-renderer', // Shorts - https://www.youtube.com/results?search_query=+WE+DON%27T+HAVE+TO+TAKE+OUR+CLOTHES+OFF
+
+               // 'ytd-promoted-sparkles-web-renderer', // Sponsored thumbs
 
 
                // watch page
@@ -120,6 +123,8 @@ window.nova_plugins.push({
                '[class^="ytp-cultural-moment"]', // '.ytp-cultural-moment-player-content' link for "https://www.youtube.com/youtubemusic" - https://www.youtube.com/watch?v=9aofoBrFNdg
 
                // 'tp-yt-paper-dialog.ytd-popup-container.style-scope > .ytd-popup-container.style-scope', // message "YouTube Premium - Get YouTube without the ads". Error block unsabsrcibe popup
+
+               'ytd-donation-unavailable-renderer, .ytd-donation-unavailable-renderer', // message "Sorry, you can't donate in this country or region yet." (https://www.youtube.com/watch?v=idx3GSL2KWs)
 
 
                // results, sidebar page

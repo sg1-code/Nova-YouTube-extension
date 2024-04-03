@@ -8,13 +8,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Lanjutkan posisi waktu pemutaran',
    // 'title:es': 'Reanudar posición de tiempo de reproducción',
-   'title:pt': 'Retomar a posição do tempo de reprodução',
-   'title:fr': 'Reprendre la position de temps de lecture',
+   // 'title:pt': 'Retomar a posição do tempo de reprodução',
+   // 'title:fr': 'Reprendre la position de temps de lecture',
    // 'title:it': 'Riprende la posizione del tempo di riproduzione',
    // 'title:tr': 'Oynatma süresi konumunu devam ettir',
-   'title:de': 'Wiedergabezeitposition fortsetzen',
+   // 'title:de': 'Wiedergabezeitposition fortsetzen',
    'title:pl': 'Powrót do pozycji czasowej odtwarzania',
-   'title:ua': 'Запам`ятати час відтворення',
+   // 'title:ua': 'Запам`ятати час відтворення',
    run_on_pages: 'watch, embed',
    section: 'player',
    desc: 'On page reload - resume playback',
@@ -24,13 +24,13 @@ window.nova_plugins.push({
    // 'desc:vi': '',
    // 'desc:id': 'Muat ulang halaman - lanjutkan pemutaran',
    // 'desc:es': 'En la recarga de la página - reanudar la reproducción',
-   'desc:pt': 'Recarregar na página - retomar a reprodução',
-   'desc:fr': 'Lors du rechargement de la page - reprendre la lecture',
+   // 'desc:pt': 'Recarregar na página - retomar a reprodução',
+   // 'desc:fr': 'Lors du rechargement de la page - reprendre la lecture',
    // 'desc:it': 'Ricarica alla pagina: riprende la riproduzione',
    // 'desc:tr': 'Sayfayı yeniden yükle - oynatmaya devam et',
-   'desc:de': 'Auf Seite neu laden - Wiedergabe fortsetzen',
+   // 'desc:de': 'Auf Seite neu laden - Wiedergabe fortsetzen',
    'desc:pl': 'Przy ponownym załadowaniu strony - wznawiaj odtwarzanie',
-   'desc:ua': 'Після завантаження - продовжити відтворення',
+   // 'desc:ua': 'Після завантаження - продовжити відтворення',
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/455475-youtube-resumer
@@ -66,7 +66,7 @@ window.nova_plugins.push({
             // embed don't support "t=" parameter
             if (user_settings.player_resume_playback_url_mark && NOVA.currentPage != 'embed') {
                // ignore if initialized with a "t=" parameter
-               if (NOVA.queryURL.has('t')) {
+               if (NOVA.queryURL.has('t') || NOVA.queryURL.getHashParam('t')) {
                   // for next video
                   document.addEventListener('yt-navigate-finish', connectSaveStateInURL.bind(video)
                      , { capture: true, once: true });
@@ -87,7 +87,7 @@ window.nova_plugins.push({
       }
 
       async function resumePlayback() {
-         if (NOVA.queryURL.has('t')
+         if (NOVA.queryURL.has('t') || NOVA.queryURL.getHashParam('t')
             // || NOVA.queryURL.has('time_continue') // ex - https://www.youtube.com/watch?time_continue=68&v=yWUMMg3dmFY
 
             // Due to the inability to implement the correct work of player_resume_playback_skip_music, the [save-channel-state] plugin was used
@@ -113,7 +113,7 @@ window.nova_plugins.push({
 
       // function resumePlayback() {
       //    if (!isNaN(this.duration) && this.currentTime < this.duration) {
-      //       window.location.hash = "t=" + this.currentTime;
+      //       window.location.hash = "t=" + this.currentTime; // old yt-concept
       //    }
       // }
 
@@ -129,7 +129,7 @@ window.nova_plugins.push({
             }
          });
          // clear
-         this.addEventListener('play', () => {
+         this.addEventListener('playing', () => {
             if (typeof delaySaveOnPauseURL === 'number') clearTimeout(delaySaveOnPauseURL); // reset timeout
 
             if (NOVA.queryURL.has('t')) NOVA.updateUrl(NOVA.queryURL.remove('t'));
@@ -147,13 +147,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': 'Tandai waktu di URL saat dijeda',
          // 'label:es': 'Marcar tiempo en URL cuando está en pausa',
-         'label:pt': 'Marcar tempo no URL quando pausado',
-         'label:fr': "Marquer l'heure dans l'URL en pause",
+         // 'label:pt': 'Marcar tempo no URL quando pausado',
+         // 'label:fr': "Marquer l'heure dans l'URL en pause",
          // 'label:it': "Segna il tempo nell'URL quando è in pausa",
          // 'label:tr': "Duraklatıldığında zamanı URL'de işaretleyin",
-         'label:de': 'Zeit in URL markieren, wenn pausiert',
+         // 'label:de': 'Zeit in URL markieren, wenn pausiert',
          'label:pl': 'Zaznacz czas w adresie URL po wstrzymaniu',
-         'label:ua': 'Маркувати час в URL-посиланні під час паузи',
+         // 'label:ua': 'Маркувати час в URL-посиланні під час паузи',
          type: 'checkbox',
          // title: 'update ?t=',
          title: 'Makes sense when saving bookmarks',
@@ -163,13 +163,13 @@ window.nova_plugins.push({
          // 'title:vi': '',
          // 'title:id': 'Masuk akal saat menyimpan bookmark',
          // 'title:es': 'Tiene sentido al guardar marcadores',
-         'title:pt': 'Faz sentido ao salvar favoritos',
-         'title:fr': "Cela a du sens lors de l'enregistrement de signets",
+         // 'title:pt': 'Faz sentido ao salvar favoritos',
+         // 'title:fr': "Cela a du sens lors de l'enregistrement de signets",
          // 'title:it': 'Ha senso quando si salvano i segnalibri',
          // 'title:tr': '',
-         'title:de': 'Sinnvoll beim Speichern von Lesezeichen',
+         // 'title:de': 'Sinnvoll beim Speichern von Lesezeichen',
          'title:pl': 'Ma sens podczas zapisywania zakładek',
-         'title:ua': 'Має сенс при збереженні закладок',
+         // 'title:ua': 'Має сенс при збереженні закладок',
       },
       // player_resume_playback_skip_music: {
       //    _tagName: 'input',

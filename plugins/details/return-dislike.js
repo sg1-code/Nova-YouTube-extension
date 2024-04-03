@@ -4,8 +4,8 @@ https://www.youtube.com/watch?v=eB6txyhHFG4 - many dislike count
 window.nova_plugins.push({
    id: 'return-dislike',
    title: 'Show dislike count',
-   // 'title:zh': '',
-   // 'title:ja': '',
+   'title:zh': '显示不喜欢计数',
+   'title:ja': '嫌いな数を表示',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',

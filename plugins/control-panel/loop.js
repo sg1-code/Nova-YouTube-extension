@@ -11,14 +11,14 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Tambahkan tombol pemutaran ulangi (loop)',
    // 'title:es': 'Agregar un botón de reproducción en bucle',
-   'title:pt': 'Adicionar um botão de reprodução em loop',
-   'title:fr': 'Ajouter un bouton de lecture en boucle',
+   // 'title:pt': 'Adicionar um botão de reprodução em loop',
+   // 'title:fr': 'Ajouter un bouton de lecture en boucle',
    // 'title:it': 'Aggiungi il pulsante di riproduzione ripetuta (loop).',
    // 'title:tr': 'Döngü oynatma düğmesi ekle',
-   'title:de': 'Füge einen Loop-Play-Button hinzu',
+   // 'title:de': 'Füge einen Loop-Play-Button hinzu',
    'title:pl': 'Dodaj przycisk odtwarzania pętli',
-   'title:ua': 'Додати кнопку повтор',
-   run_on_pages: 'watch',
+   // 'title:ua': 'Додати кнопку повтор',
+   run_on_pages: 'watch, embed, -mobile',
    section: 'control-panel',
    // desc: 'Loop video playback',
    // 'desc:zh': '循环播放视频',
@@ -50,6 +50,12 @@ window.nova_plugins.push({
             btn.className = `ytp-button ${SELECTOR_CLASS}`;
             btn.style.opacity = .5;
             btn.style.minWidth = getComputedStyle(container).width || '48px'; // fix if has chapters
+            // el.style.cssText = '';
+            // Object.assign(btn.style, {
+            //    padding: '0 10px',
+            //    opacity: .5,
+            //    'min-width': getComputedStyle(container).width || '48px', // fix if has chapters
+            // });
             btn.title = 'Repeat';
             // btnPopup.setAttribute('aria-label','');
             btn.innerHTML =
@@ -72,7 +78,7 @@ window.nova_plugins.push({
                .then(video => {
                   // video.loop = true;
                   video.addEventListener('loadeddata', ({ target }) => {
-                     if (movie_player.classList.contains('ad-showing')) return;
+                     if (movie_player.classList.contains('ad-showing')) return; // skip ads
                      // upd loop state
                      if (btn.style.opacity == 1 && !target.loop) target.loop = true;
                      // if (btn.style.opacity == 1 && !movie_player.getLoopVideo()) movie_player.setLoopVideo();
@@ -236,13 +242,13 @@ window.nova_plugins.push({
       //    // 'title:vi': '',
       //    // 'title:id': 'Mempengaruhi video berikutnya',
       //    // 'title:es': 'Afecta a los siguientes videos',
-      //    'title:pt': 'Afeta para os próximos vídeos',
-      //    'title:fr': 'Affecte aux prochaines vidéos',
+      //    // 'title:pt': 'Afeta para os próximos vídeos',
+      //    // 'title:fr': 'Affecte aux prochaines vidéos',
       //    // 'title:it': 'Influisce sui prossimi video',
       //    // 'title:tr': 'Sonraki videoları etkiler',
-      //    'title:de': 'Beeinflusst die nächsten Videos',
+      //    // 'title:de': 'Beeinflusst die nächsten Videos',
       //    'title:pl': 'Zmiany w następnych filmach',
-      //    'title:ua': 'Впливає на наступні відео',
+      //    // 'title:ua': 'Впливає на наступні відео',
       // },
       // player_loop_in_music_auto_enabled: {
       //    _tagName: 'input',

@@ -7,6 +7,7 @@ const Plugins = {
       'player/osd.js',
       'player/quality.js',
       'player/autostop.js',
+      'player/autopause.js',
       'player/theater-mode.js',
       'player/background-pause.js',
       'player/resize-ratio.js',
@@ -22,7 +23,6 @@ const Plugins = {
       'player/sponsor-block.js',
       'player/zoom.js',
       // 'player/ad-skip-button.js',
-      // 'player/autopause.js',
       // 'player/fullscreen-on-playback.js',
       // 'player/-thumb-pause.js',
       // 'player/subtitle-lang.js',
@@ -78,6 +78,7 @@ const Plugins = {
 
       'details/show-date.js',
       'details/videos-count.js',
+      'details/description-expand.js',
       'details/buttons-hide.js',
       'details/ad-state.js',
       'details/auto-likes.js',
@@ -89,7 +90,6 @@ const Plugins = {
       'details/timestamps-scroll.js',
       'details/redirect-clear.js',
       'details/save-to-playlist.js',
-      // 'details/description-expand.js',
 
       'comments/visibility.js',
       'comments/square-avatars.js',
@@ -272,14 +272,14 @@ const Plugins = {
 
             } catch (err) {
                console.groupEnd('plugins status'); // out-of-group display
-               console.error(`[ERROR PLUGIN] ${plugin.id}\n${err.stack}\n\nPlease report the bug: https://github.com/raingart/Nova-YouTube-extension/issues/new?body=` + encodeURIComponent(app_ver + ' | ' + navigator.userAgent));
+               console.error(`[ERROR PLUGIN] ${plugin.id}\n${err.stack}\n\nPlease report the bug: https://github.com/raingart/Nova-YouTube-extension/issues/new?body=` + encodeURIComponent(app_ver + ' | ' + navigator.userAgent)) + '&labels=bug&template=bug_report.md&title=pluginRunErr';
 
                if (user_settings.report_issues) {
                   _pluginsCaptureException({
                      'trace_name': plugin.id,
                      'err_stack': err.stack,
                      'app_ver': app_ver,
-                     'confirm_msg': `ERROR in Nova YouTube™\n\nCrash plugin: "${plugin.title || plugin.id}"\nPlease report the bug or disable the plugin\n\nSend the bug raport to developer?`,
+                     'confirm_msg': `ERROR in Nova YouTube™\n\nCrash plugin: "${plugin.title || plugin.id}"\nPlease report the bug or disable the plugin\n\nSend the bug report to developer?`,
                   });
                }
 

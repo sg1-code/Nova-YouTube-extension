@@ -7,13 +7,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Bagian komentar di popup',
    // 'title:es': 'Sección de comentarios en ventana emergente',
-   'title:pt': 'Seção de comentários no pop-up',
-   'title:fr': 'Section des commentaires dans la fenêtre contextuelle',
+   // 'title:pt': 'Seção de comentários no pop-up',
+   // 'title:fr': 'Section des commentaires dans la fenêtre contextuelle',
    // 'title:it': 'Sezione commenti nel popup',
    // 'title:tr': 'Açılır pencerede yorumlar bölümü',
-   'title:de': 'Kommentarbereich im Popup',
+   // 'title:de': 'Kommentarbereich im Popup',
    'title:pl': 'Sekcja komentarzy w osobnym oknie',
-   'title:ua': 'Розділ коментарів у спливаючому вікні',
+   // 'title:ua': 'Розділ коментарів у спливаючому вікні',
    run_on_pages: 'watch, -mobile',
    section: 'comments',
    // desc: '',
@@ -69,7 +69,7 @@ window.nova_plugins.push({
                   font-family: Roboto, Arial, sans-serif;
                   font-size: 11px;
                   color: #eee;
-                  background-color: rgba(0,0,0,0.3);
+                  background-color: rgba(0, 0, 0, .3);
                }
 
                /* comments section */
@@ -176,13 +176,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': '',
          // 'label:es': '',
-         'label:pt': 'Largura',
-         'label:fr': 'Largeur',
+         // 'label:pt': 'Largura',
+         // 'label:fr': 'Largeur',
          // 'label:it': '',
          // 'label:tr': '',
-         'label:de': 'Breite',
+         // 'label:de': 'Breite',
          'label:pl': 'Szerokość',
-         'label:ua': 'Ширина',
+         // 'label:ua': 'Ширина',
          type: 'number',
          // title: 'in %',
          title: '% of the screen width',
@@ -214,13 +214,13 @@ window.nova_plugins.push({
          // 'label:vi': '',
          // 'label:id': '',
          // 'label:es': '',
-         'label:pt': 'Ocultar área de texto',
-         'label:fr': 'Masquer la zone de texte',
+         // 'label:pt': 'Ocultar área de texto',
+         // 'label:fr': 'Masquer la zone de texte',
          // 'label:it': '',
          // 'label:tr': '',
-         'label:de': 'Textbereich ausblenden',
+         // 'label:de': 'Textbereich ausblenden',
          'label:pl': 'Ukryj obszar tekstowy',
-         'label:ua': 'Приховати поле вводу',
+         // 'label:ua': 'Приховати поле вводу',
          type: 'checkbox',
          // title: '',
       },

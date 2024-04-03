@@ -19,7 +19,7 @@
 
 .appearance>* {
    /* border: 1px solid #ddd;
-   background-color: #fff;     */
+   background-color: white;     */
    outline: 1px solid var(--hr);
    min-height: 30px;
    cursor: pointer;
@@ -51,7 +51,7 @@
    color: #efefef;
    /* background: url(/images/appearance_player.png) no-repeat center bottom;
    background-size: 100% auto; */
-   background-color: #000;
+   background-color: black;
 }
 
 .appearance>.details>span,
@@ -65,7 +65,7 @@
    color: #efefef;
    /* background: url(/images/appearance_player.png) no-repeat center bottom; */
    background-size: 100% auto;
-   background-color: #000;
+   background-color: black;
    white-space: nowrap;
 }
 

@@ -14,13 +14,13 @@ window.nova_plugins.push({
    // 'title:vi': '',
    // 'title:id': 'Bagian deskripsi dalam popup',
    // 'title:es': 'Sección de descripción en ventana emergente',
-   'title:pt': 'Seção de descrição no pop-up',
-   'title:fr': 'Section de description dans la fenêtre contextuelle',
+   // 'title:pt': 'Seção de descrição no pop-up',
+   // 'title:fr': 'Section de description dans la fenêtre contextuelle',
    // 'title:it': 'Sezione Descrizione nel popup',
    // 'title:tr': 'Açılır pencerede açıklama bölümü',
-   'title:de': 'Beschreibungsabschnitt im Popup',
+   // 'title:de': 'Beschreibungsabschnitt im Popup',
    'title:pl': 'Opis w osobnym oknie',
-   'title:ua': 'Розділ опису у спливаючому вікні',
+   // 'title:ua': 'Розділ опису у спливаючому вікні',
    run_on_pages: 'watch, -mobile',
    section: 'details',
    // desc: '',
@@ -67,7 +67,7 @@ window.nova_plugins.push({
                   font-family: Roboto, Arial, sans-serif;
                   font-size: 11px;
                   color: #eee;
-                  background-color: rgba(0,0,0,0.3);
+                  background-color: rgba(0, 0, 0, .3);
                }
 
                /* description section */

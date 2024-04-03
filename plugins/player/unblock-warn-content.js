@@ -9,6 +9,7 @@
 // https://www.youtube.com/watch?v=LIVQbQfke1E
 // https://www.youtube.com/watch?v=knTCepRTS7E
 // https://www.youtube.com/watch?v=D4KROpdUkrM - The following content may contain graphic or violent imagery
+// https://www.youtube.com/watch?v=oiuyhxp4w9I
 
 window.nova_plugins.push({
    id: 'video-unblock-warn-content',
@@ -25,7 +26,7 @@ window.nova_plugins.push({
    // 'title:tr': '',
    // 'title:de': '',
    // 'title:pl': '',
-   'title:ua': 'Пропустити попередження про неприйнятний або образливий вміст',
+   // 'title:ua': 'Пропустити попередження про неприйнятний або образливий вміст',
    run_on_pages: 'watch, embed, -mobile',
    section: 'player',
    desc: "skip 'The following content may contain suicide or self-harm topics.'",
@@ -41,7 +42,7 @@ window.nova_plugins.push({
    // 'desc:tr': '',
    // 'desc:de': '',
    // 'desc:pl': '',
-   'desc:ua': 'пропустити "Наступний контент може містити теми суїциду або самоушкодження".',
+   // 'desc:ua': 'пропустити "Наступний контент може містити теми суїциду або самоушкодження".',
    _runtime: user_settings => {
 
       // alt - https://greasyfork.org/en/scripts/445870-remove-overlay-messages-on-youtube

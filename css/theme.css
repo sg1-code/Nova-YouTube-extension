@@ -1,14 +1,17 @@
+/* const getPreferredTheme = () => window?.matchMedia?.('(prefers-color-scheme:dark)')?.matches ? 'dark' : 'light';
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyPreferredTheme); */
+
 :root {
    /* --bg: #1c1c1c;
    --bg: oldlace;
    --fg: slategrey; */
-   /* --scrollbar-bg: #fff; */
-   /* --input-bg: #fff; */
+   /* --scrollbar-bg: white; */
+   /* --input-bg: white; */
    --input-bg: #fdfdfd;
    --input-border: #ccc;
    --checkbox-bg: #27a6e5;
    --btn-bg: rgb(153, 140, 140);
-   --btn-fg: #fff;
+   --btn-fg: white;
    --li-item: #e0e0e0;
    /* --li-item: #ffffff14; */
    --hr: #B7B7B7;
