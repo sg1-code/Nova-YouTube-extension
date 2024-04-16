@@ -8,6 +8,7 @@
 // https://www.youtube.com/channel/UCG6TrwqzkWwvWiY2eUny8TA - does not have a "video" tab
 // https://www.youtube.com/channel/UCPJ_rWazdbheOzQuqNQpKwg - does not have a "video" tab
 // https://www.youtube.com/channel/UCqEfdEvLG5oQWNYlDQrGlKw - "releases" tab
+// https://www.youtube.com/channel/UCjKO6we36tPNC9hCeXUNvgQ- "releases" tab
 
 window.nova_plugins.push({
    id: 'channel-default-tab',

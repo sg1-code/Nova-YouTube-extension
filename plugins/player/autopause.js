@@ -97,7 +97,7 @@ window.nova_plugins.push({
                      break;
                }
             });
-            navigator.mediaSession.setActionHandler('playing', restorePlayFn); // add Media hotkeys support
+            navigator.mediaSession.setActionHandler('play', restorePlayFn); // add Media hotkeys support
             document.addEventListener('click', evt => {
                if (evt.isTrusted
                   // Strategy 1. Universal, click is inside the player

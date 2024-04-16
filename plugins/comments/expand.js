@@ -29,7 +29,7 @@ window.nova_plugins.push({
       // dirty fix bug with not updating comments addEventListener: reset comments block
       // document.addEventListener('yt-page-data-updated', () => location.reload());
 
-      // fixs
+      // fix
       NOVA.css.push(
          `#expander.ytd-comment-renderer {
             overflow-x: hidden;

@@ -81,8 +81,7 @@ window.nova_plugins.push({
          // alt2 - https://greasyfork.org/en/scripts/402598-fixed-youtube-captions
 
          NOVA.css.push(
-            // `.ytp-larger-tap-buttons .caption-window.ytp-caption-window-bottom {
-            `.caption-window {
+            `${CSS.supports('selector(:has(*))') ? '#ytp-caption-window-container:has(~ .ytp-chrome-bottom:not(:hover))' : ''} .caption-window:not(:hover) {
                margin-bottom: 1px !important;
                bottom: 1% !important;
             }`);
@@ -92,14 +91,10 @@ window.nova_plugins.push({
          // alt1 - https://greasyfork.org/en/scripts/451626-make-youtube-caption-selectable
          // alt2 - https://greasyfork.org/en/scripts/456140-youtube-caption-selector
          // alt3 - https://greasyfork.org/en/scripts/435955
-         // alt4 - https://greasyfork.org/en/scripts/472979-hover-on-youtube-subtitles-for-translating-words/code
+         // alt4 - https://greasyfork.org/en/scripts/472979-hover-on-youtube-subtitles-for-translating-words
 
          NOVA.watchElements({
-            selectors: [
-               SELECTOR,
-               '[id^="caption-window-"]',
-            ]
-               .map(i => i + ':not(:empty)'),
+            selectors: [SELECTOR],
             // attr_mark: ATTR_MARK,
             callback: el => {
                el.addEventListener('mousedown', evt => evt.stopPropagation(), { capture: true });
@@ -116,19 +111,13 @@ window.nova_plugins.push({
          // color: rgba(255, 255, 255, .8) !important;
          // color: ${user_settings.subtitle_color}cc !important;
          NOVA.css.push(
-            `.ytp-caption-segment {
-               color: ${user_settings.subtitle_color} !important;
-            }`);
+            `${SELECTOR} { color: ${user_settings.subtitle_color} !important;  }`);
       }
 
-      // api method
       if (+user_settings.subtitle_font_size) {
-         // Strategy 1
+         // Strategy 1. CSS
          NOVA.css.push(
-            // `.ytp-larger-tap-buttons .caption-window.ytp-caption-window-bottom {
-            `.ytp-caption-segment {
-               font-size: calc(32px * ${+user_settings.subtitle_font_size || 1}) !important;
-            }`);
+            `${SELECTOR} { font-size: calc(32px * ${+user_settings.subtitle_font_size || 1}) !important; }`);
          // Strategy 2. API
          // NOVA.waitUntil(() => typeof movie_player === 'object' && typeof movie_player.getSubtitlesUserSettings === 'function', 1000) // 1sec
          //    .then(() => {
@@ -160,7 +149,7 @@ window.nova_plugins.push({
       subtitle: {
          _tagName: 'input',
          // label: 'Default enabled',
-         label: 'Subtitles enable by default',
+         label: 'Subtitles show by default',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',
@@ -174,45 +163,6 @@ window.nova_plugins.push({
          // 'label:de': '',
          // 'label:pl': '',
          // 'label:ua': '',
-         type: 'checkbox',
-         // title: '',
-      },
-      subtitle_transparent: {
-         _tagName: 'input',
-         label: 'Transparent',
-         'label:zh': '透明的',
-         'label:ja': '透明',
-         // 'label:ko': '투명한',
-         // 'label:vi': '',
-         // 'label:id': 'Transparan',
-         // 'label:es': 'Transparentes',
-         // 'label:pt': 'Transparentes',
-         // 'label:fr': 'Transparents',
-         // 'label:it': 'Trasparenti',
-         // 'label:tr': 'Şeffaf',
-         // 'label:de': 'Transparente',
-         // 'label:pl': 'Przezroczysty',
-         'label:pl': 'Przezroczyste',
-         // 'label:ua': 'Прозорі',
-         type: 'checkbox',
-         // title: '',
-      },
-      subtitle_bold: {
-         _tagName: 'input',
-         label: 'Bold text',
-         'label:zh': '粗体',
-         'label:ja': '太字',
-         // 'label:ko': '굵은 텍스트',
-         // 'label:vi': '',
-         // 'label:id': 'Teks tebal',
-         // 'label:es': 'Texto en negrita',
-         // 'label:pt': 'Texto em negrito',
-         // 'label:fr': 'Texte en gras',
-         // 'label:it': 'Testo grassetto',
-         // 'label:tr': 'Kalın yazı',
-         // 'label:de': 'Fetter Text',
-         'label:pl': 'Tekst pogrubiony',
-         // 'label:ua': 'Жирний текст',
          type: 'checkbox',
          // title: '',
       },
@@ -303,6 +253,45 @@ window.nova_plugins.push({
          min: 0,
          max: 5,
          value: 0,
+      },
+      subtitle_transparent: {
+         _tagName: 'input',
+         label: 'Transparent',
+         'label:zh': '透明的',
+         'label:ja': '透明',
+         // 'label:ko': '투명한',
+         // 'label:vi': '',
+         // 'label:id': 'Transparan',
+         // 'label:es': 'Transparentes',
+         // 'label:pt': 'Transparentes',
+         // 'label:fr': 'Transparents',
+         // 'label:it': 'Trasparenti',
+         // 'label:tr': 'Şeffaf',
+         // 'label:de': 'Transparente',
+         // 'label:pl': 'Przezroczysty',
+         'label:pl': 'Przezroczyste',
+         // 'label:ua': 'Прозорі',
+         type: 'checkbox',
+         // title: '',
+      },
+      subtitle_bold: {
+         _tagName: 'input',
+         label: 'Bold text',
+         'label:zh': '粗体',
+         'label:ja': '太字',
+         // 'label:ko': '굵은 텍스트',
+         // 'label:vi': '',
+         // 'label:id': 'Teks tebal',
+         // 'label:es': 'Texto en negrita',
+         // 'label:pt': 'Texto em negrito',
+         // 'label:fr': 'Texte en gras',
+         // 'label:it': 'Testo grassetto',
+         // 'label:tr': 'Kalın yazı',
+         // 'label:de': 'Fetter Text',
+         'label:pl': 'Tekst pogrubiony',
+         // 'label:ua': 'Жирний текст',
+         type: 'checkbox',
+         // title: '',
       },
       subtitle_color: {
          _tagName: 'input',

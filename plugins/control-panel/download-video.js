@@ -511,10 +511,12 @@ window.nova_plugins.push({
             ];
          },
 
-         // alt1 - https://greasyfork.org/en/scripts/484735-local-youtube-downloader
-         // alt2 - https://greasyfork.org/en/scripts/452979-youtube-links
-         // alt3 - https://greasyfork.org/en/scripts/406994
-         // alt4 - https://greasyfork.org/en/scripts/483626-youtube-pro
+         // alt1 - https://greasyfork.org/en/scripts/452979-youtube-links
+         // alt2 - https://greasyfork.org/en/scripts/471103-youtubedl
+         // alt3 - https://greasyfork.org/en/scripts/484735-local-youtube-downloader
+
+         // alt4 - https://greasyfork.org/en/scripts/406994
+         // alt5 - https://greasyfork.org/en/scripts/483626-youtube-pro
          /**
           * @param  {void}
           * @return {@object array} {codec, quality, url}
@@ -723,9 +725,8 @@ window.nova_plugins.push({
       //    const i = Math.floor(Math.log(bytes) / Math.log(divisor));
       //    return (i === 0 ? bytes : round(bytes / Math.pow(divisor, i))) + sizes[i];
 
-      //    function round(n, precision = 2) {
-      //       // const prec = Math.pow(10, precision);
-      //       const prec = 10 ** precision;
+      //    function round(n, sig = 2) {
+      //       const prec = Math.pow(10, sig);
       //       return Math.round(n * prec) / prec;
       //    }
       // }

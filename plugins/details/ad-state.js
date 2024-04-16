@@ -41,7 +41,7 @@ window.nova_plugins.push({
 
       NOVA.waitSelector('#title h1', { destroy_after_page_leaving: true })
          .then(el => {
-            if (playerResponse = document.body.querySelector('ytd-page-manager')?.getCurrentData?.()?.playerResponse) {
+            if (playerResponse = document.getElementById('page-manager')?.getCurrentData()?.playerResponse) {
                let text = [];
                if (playerResponse?.paidContentOverlay) text.push('Sponsored');
                // if (adSlots = playerResponse?.adSlots?.length) text.push('adSlots: ' + adSlots);

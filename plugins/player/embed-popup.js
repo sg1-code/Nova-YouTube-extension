@@ -1,6 +1,7 @@
 // for test
 // https://www.youtube.com/embed/u3JP5UzZbiI?enablejsapi=1&playerapiid=pljs_yt_YouTube10069&html5=1&start=0&disablekb=1&autohide=1&playsinline=1&iv_load_policy=3&controls=0&showinfo=0&modestbranding=1&rel=0&autoplay=0&loop=0&origin=https%3A%2F%2Fsmall-games.info&widgetid=1
 // https://lsgamedev.itch.io/ouija-rumours
+// https://www.youtube.com/embed/QQr3XlJQEgE - https://paymoneytomypain.com/
 
 window.nova_plugins.push({
    // id: 'embed-redirect-watch',
@@ -39,7 +40,7 @@ window.nova_plugins.push({
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/466414-youtube-embed-to-watch-redirector
-      // alt2 - https://greasyfork.org/en/scripts/467070-youtube-popup-window/code
+      // alt2 - https://greasyfork.org/en/scripts/467070-youtube-popup-window
 
       // enable only in iframe
       if (window.top === window.self // not iframe

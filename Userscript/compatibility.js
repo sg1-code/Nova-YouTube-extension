@@ -22,13 +22,10 @@ try {
    errorAlert('Your browser does not support chaining operator');
 }
 
-// don't use this shit
-if (navigator.userAgentData?.brands?.some(i => i.brand?.toLocaleLowerCase()?.includes('yandex'))) returnж
-
 // css ":has()" test
 // if (!CSS.supports('selector(:has(*))')
 //    && !localStorage.hasOwnProperty('nova_css_has_skipped')
-//    && location.pathname.split('/')?.filter(Boolean)[0] != 'embed'
+//    && location.pathname.endsWith('/embed')
 // ) {
 //    if (confirm('Your browser does not support css ":has()" operator.\nApproximately 5% of opportunities will be unavailable')) {
 //       localStorage.setItem('nova_css_has_skipped', true);

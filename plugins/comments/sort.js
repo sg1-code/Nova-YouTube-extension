@@ -46,7 +46,12 @@ window.nova_plugins.push({
       // alt1 - https://github.com/sonigy/YCS
       // alt2 - https://github.com/pancevac/ytsc-extension
       // alt3 - https://github.com/FreeTubeApp/yt-comment-scraper
-      // alt4 - https://github.com/yakisova41/return-youtube-comment-username
+
+      // return comment username
+      // alt1 - https://github.com/yakisova41/return-youtube-comment-username
+      // alt2 - https://greasyfork.org/en/scripts/492172-youtube-comment-username-reveals
+
+      // alt - https://greasyfork.org/en/scripts/11057-block-youtube-users
 
       // #comments #contents #submessage[is-empty] - "Comments are turned off."
 
@@ -236,7 +241,7 @@ window.nova_plugins.push({
                });
 
                // no API key limit comments
-               if (!user_settings['user-api-key'] && commentList.length >= MAX_COMMENTS) {
+               if (commentList.length >= MAX_COMMENTS) {
                   // const msgMaxComments = `Use your personal API key to overcome the ${MAX_COMMENTS} comments limit`;
                   // // NOVA.uiAlert(msgMaxComments);
                   // alert(msgMaxComments);
@@ -877,7 +882,7 @@ window.nova_plugins.push({
             #${MODAL_CONTENT_SELECTOR_ID} thead {
                background-color: #555;
                /* background-color: var(--yt-spec-text-secondary); */
-               background-color: var(--yt-spec-outline);
+               /* background-color: var(--yt-spec-outline); */
                z-index: 1;
             }
 

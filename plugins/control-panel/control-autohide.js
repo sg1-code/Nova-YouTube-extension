@@ -16,7 +16,7 @@ window.nova_plugins.push({
    // 'title:de': 'Blendet das Player-Bedienfeld aus',
    'title:pl': 'Ukrywaj elementy w odtwarzaczu',
    // 'title:ua': 'Приховати панель керування у відтворювачі',
-   run_on_pages: 'watch, -mobile',
+   run_on_pages: 'watch, embed, -mobile',
    section: 'control-panel',
    desc: 'Hover controls to display it',
    'desc:zh': '将鼠标悬停在它上面以显示它',
@@ -137,7 +137,7 @@ window.nova_plugins.push({
          // const moveMouse = new Event('mousemove');
          // fixControlFreeze.mouseMoveIntervalId = setInterval(() => {
          return setInterval(() => {
-            if (NOVA.currentPage === 'watch'
+            if ((NOVA.currentPage === 'watch' || NOVA.currentPage === 'embed')
                && document.visibilityState == 'visible'
                && movie_player.classList.contains('playing-mode')
                && !document.fullscreenElement // Doesn't work in fullscreen mode

@@ -59,6 +59,11 @@ window.nova_plugins.push({
       // alt2 - https://chrome.google.com/webstore/detail/oggiagogblgafoilijjdhcmflgekfmja
       // alt3 - https://greasyfork.org/en/scripts/427173-maximum-audio-output-for-youtube
 
+      // volume normalization
+      // alt1 - https://gist.github.com/WouterG/acf1e901324aed77f466626fb5d6611f
+      // alt2 - https://gist.github.com/abec2304/2782f4fc47f9d010dfaab00f25e69c8a
+      // alt3 - https://gist.github.com/fa7ad/fa995474f5cb9fe91fb209686881373d
+
       NOVA.waitSelector('#movie_player video')
          .then(video => {
             // trigger default indicator
@@ -549,7 +554,8 @@ window.nova_plugins.push({
       volume_loudness_normalization: {
          _tagName: 'input',
          // label: 'Disable YouTube's audio loudness normalization',
-         label: 'Disable audio loudness normalization',
+         // label: 'Disable audio loudness normalization',
+         label: 'Stable volume level',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',

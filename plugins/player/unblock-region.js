@@ -14,6 +14,9 @@
 // https://www.youtube.com/watch?v=TDmidrIDB4o - https://watannetwork.com/tools/blocked/#url=TDmidrIDB4o
 // https://www.youtube.com/watch?v=ZouuqRfQZ1g - https://watannetwork.com/tools/blocked/#url=ZouuqRfQZ1g
 
+// unavailable
+// https://www.youtube.com/embed/QQr3XlJQEgE - This video contains content from VAP inc., who has blocked it from display on this website or application
+
 window.nova_plugins.push({
    id: 'video-unblock-region',
    title: 'Redirect video not available in your country',
@@ -128,11 +131,11 @@ window.nova_plugins.push({
 
                const liAtention = document.createElement('li');
                liAtention.className = 'bold style-scope yt-formatted-string';
-               liAtention.textContent = 'Based on the data on the map, select an allowed country in the VPN';
+               liAtention.textContent = 'Enable map select allowed country in your VPN';
                ul.append(liAtention);
                // 50.59 % slower
                // ul.insertAdjacentHTML('beforeend',
-               //    `<li class="bold style-scope yt-formatted-string">Based on the data on the map, select an allowed country in the VPN</li>`);
+               //    `<li class="bold style-scope yt-formatted-string">Enable map select allowed country in your VPN</li>`);
 
                container.append(ul); // append
             }

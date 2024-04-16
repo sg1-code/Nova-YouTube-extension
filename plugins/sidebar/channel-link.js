@@ -22,39 +22,59 @@ window.nova_plugins.push({
       // alt1 - https://greasyfork.org/en/scripts/376510-youtube-fix-channel-links-in-sidebar-recommendations/discussions/124290
       // alt2 - https://greasyfork.org/en/scripts/452335-enter-the-commenter-s-channel-by-youtube-chat
 
-      document.addEventListener('mouseover', ({ target }) => {
-         // console.debug('>', target);
+      document.addEventListener('click', evt => patchLink(evt), { capture: true });
+      // mouse middle click
+      document.addEventListener('auxclick', evt => evt.button === 1 && patchLink(evt), { capture: true });
 
-         if (!target.matches('.ytd-channel-name')) return;
-
-         if ((link = target.closest('a'))
-            && target.__data?.text?.runs?.length
-            && target.__data?.text?.runs[0].navigationEndpoint?.commandMetadata?.webCommandMetadata?.webPageType == 'WEB_PAGE_TYPE_CHANNEL'
+      function patchLink(evt) {
+         if (evt.isTrusted
+            && NOVA.currentPage == 'watch'
+            && evt.target.closest('#channel-name')
+            && (link = evt.target.closest('a'))
          ) {
-            // Doesn't work
-            // target.addEventListener('click', ({ target }) => target.preventDefault());
+            // evt.preventDefault();
+            // // evt.stopPropagation();
+            // evt.stopImmediatePropagation();
 
-            // const urlOrig = '/watch?v=' + link.data.watchEndpoint.videoId;
-            const urlOrig = link.href;
-            const url = target.__data.text.runs[0].navigationEndpoint.commandMetadata.webCommandMetadata.url + '/videos';
+            if ((data = evt.target.closest('ytd-compact-video-renderer, ytd-video-meta-block')?.data)
+               && (res = NOVA.seachInObjectBy.key({
+                  'obj': data,
+                  'keys': 'navigationEndpoint',
+                  'match_fn': val => {
+                     // console.debug('match_fn:', val);
+                     return val?.commandMetadata?.webCommandMetadata?.webPageType == 'WEB_PAGE_TYPE_CHANNEL';
+                  },
+               })?.data)
+            ) {
+               // console.debug('res:', res);
+               const
+                  urlOrigData = link.data,
+                  urlOrig = link.href; // '/watch?v=' + link.data.watchEndpoint.videoId
 
-            // patch
-            link.href = url;
-            link.data.commandMetadata.webCommandMetadata.url = url;
-            link.data.commandMetadata.webCommandMetadata.webPageType = 'WEB_PAGE_TYPE_CHANNEL';
-            link.data.browseEndpoint = target.__data.text.runs[0].navigationEndpoint.browseEndpoint;
-            link.data.browseEndpoint.params = encodeURIComponent(btoa(String.fromCharCode(0x12, 0x06) + 'videos'));
-            // console.debug('patch link:', 1);
+               // patch
+               link.data = res;
+               link.href = link.data.commandMetadata.webCommandMetadata.url += (user_settings['channel-default-tab'] && user_settings.channel_default_tab) || '/videos';
+               // link.data.commandMetadata.webCommandMetadata.url += (user_settings['channel-default-tab'] && user_settings.channel_default_tab) || '/videos';
+               // link.href = link.data.commandMetadata.webCommandMetadata.url;
 
-            // restore
-            target.addEventListener('mouseout', ({ target }) => {
-               link.href = urlOrig;
-               link.data.commandMetadata.webCommandMetadata.url = urlOrig;
-               link.data.commandMetadata.webCommandMetadata.webPageType = 'WEB_PAGE_TYPE_WATCH';
-               // console.debug('restore link:', 2);
-            }, { capture: true, once: true });
+               // restore
+               evt.target.addEventListener('mouseout', ({ target }) => {
+                  link.data = urlOrigData;
+                  link.href = urlOrig;
+                  // console.debug('restore link:', link.data);
+               }, { capture: true, once: true });
+
+               // const url = res.commandMetadata.webCommandMetadata.url + '/videos';
+
+               // // patch
+               // link.href = url;
+               // link.data.commandMetadata.webCommandMetadata.url = url;
+               // link.data.commandMetadata.webCommandMetadata.webPageType = 'WEB_PAGE_TYPE_CHANNEL';
+               // link.data.browseEndpoint = res.browseEndpoint;
+               // link.data.browseEndpoint.params = encodeURIComponent(btoa(String.fromCharCode(0x12, 0x06) + 'videos'));
+            }
          }
-      })
+      }
 
    },
 });

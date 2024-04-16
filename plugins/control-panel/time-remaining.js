@@ -97,7 +97,7 @@ window.nova_plugins.push({
                // getTimeLeftByRate = () => (this.playbackRate == 1) ? '' : '-' + NOVA.formatTimeOut.HMS.digit(delta_ / this.playbackRate);
 
                const text = user_settings.time_remaining_format
-                  .replace(/total|left(\*speed|%)?|done(%)?|'([^']|'')*'/g, partPattern => { // remove key "a" for use text "at"
+                  .replace(/duration(\*speed)|left(\*speed|%)?|done(%)?|'([^']|'')*'/g, partPattern => { // remove key "a" for use text "at"
                      let out;
                      switch (partPattern) {
                         case 'left*speed': out = getTimeLeftByRate(); break;
@@ -105,6 +105,7 @@ window.nova_plugins.push({
                         case 'left%': out = getPercent('L'); break;
                         case 'done': out = currentTime; break;
                         case 'done%': out = getPercent(); break;
+                        case 'duration*speed': out = NOVA.formatTimeOut.HMS.digit(duration / this.playbackRate); break;
                         case 'duration': out = duration; break;
                         // default: console.debug('skiped:', partPattern); break;
                      }
@@ -135,6 +136,48 @@ window.nova_plugins.push({
 
    },
    options: {
+      // Strategy 1 (input + datalist)
+      // time_remaining_format: {
+      //    _tagName: 'input',
+      //    label: 'Time pattern',
+      //    // 'label:zh': '',
+      //    // 'label:ja': '',
+      //    // 'label:ko': '',
+      //    // 'label:vi': '',
+      //    // 'label:id': '',
+      //    // 'label:es': '',
+      //    // 'label:pt': '',
+      //    // 'label:fr': '',
+      //    // 'label:it': '',
+      //    // 'label:tr': '',
+      //    // 'label:de': '',
+      //    // 'label:pl': '',
+      //    // 'label:ua': '',
+      //    // type: 'url',
+      //    type: 'text',
+      //    list: 'time_remaining_format_help_list',
+      //    // pattern: "",
+      //    // title: '',
+      //    // placeholder: '',
+      //    minlength: 4,
+      //    maxlength: 25,
+      //    // value: '',
+      //    required: true,
+      // },
+      // time_remaining_format_help_list: {
+      //    _tagName: 'datalist',
+      //    options: [
+      //       { label: 'left*speed', value: 'left*speed' },
+      //       { label: 'left*speed (done%)', value: 'left*speed (done%)' },
+      //       { label: 'left*speed (left%)', value: 'left*speed (left%)' },
+      //       { label: 'left', value: 'left' },
+      //       { label: 'left%', value: 'left%' },
+      //       { label: 'done%', value: 'done%' },
+      //       { label: 'left/left*speed', value: 'left/left*speed (done%)' },
+      //       { label: 'left*speed/duration*speed (done%)', value: 'left*speed/duration*speed (done%)' },
+      //    ],
+      // },
+      // Strategy 2 (list + input)
       time_remaining_format: {
          _tagName: 'select',
          label: 'Time pattern',
@@ -265,7 +308,7 @@ window.nova_plugins.push({
                // 'label:ua': '',
             },
             {
-               label: 'left*speed/duration (done%)', value: 'left*speed/duration (done%)',
+               label: 'left*speed/duration*speed (done%)', value: 'left*speed/duration*speed (done%)',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',

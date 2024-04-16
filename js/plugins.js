@@ -65,6 +65,7 @@ const Plugins = {
       'other/title-time.js',
       'other/channel-trailer-stop.js',
       'other/channel-tab.js',
+      'other/channel-play-all.js',
       'other/miniplayer-disable.js',
       'other/pages-clear.js',
       'other/rss.js',

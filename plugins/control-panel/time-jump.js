@@ -93,7 +93,8 @@ window.nova_plugins.push({
       //          .observe(container);
       //    });
 
-      // alt - https://greasyfork.org/en/scripts/437859-next-chapter-button-for-youtube
+      // alt1 - https://greasyfork.org/en/scripts/437859-next-chapter-button-for-youtube
+      // alt2 - https://greasyfork.org/en/scripts/491681-30-seconds-advance
 
       if (user_settings.time_jump_title_offset) addTitleOffset();
 

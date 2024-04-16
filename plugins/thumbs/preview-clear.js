@@ -40,7 +40,7 @@ window.nova_plugins.push({
    _runtime: user_settings => {
 
       // alt1 - https://chrome.google.com/webstore/detail/omoinegiohhgbikclijaniebjpkeopip
-      // alt2 - https://greasyfork.org/en/scripts/481732-youtube-blur-no-more/code
+      // alt2 - https://greasyfork.org/en/scripts/481732-youtube-blur-no-more
 
       // Strategy 1 (API). Doesn't work
       // when thums update

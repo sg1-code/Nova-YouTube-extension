@@ -192,6 +192,7 @@ window.nova_plugins.push({
                // alt1 - https://greasyfork.org/en/scripts/455155-youtube-screenshot
                // alt2 - https://greasyfork.org/en/scripts/466259-youtube-video-screenshot
                // alt3 - https://greasyfork.org/en/scripts/482387-screenshot
+               // alt4 - https://greasyfork.org/en/scripts/482387-youtube-screenshot
                const
                   // bar
                   SELECTOR_SCREENSHOT_ID = 'nova-screenshot-result',
@@ -295,7 +296,8 @@ window.nova_plugins.push({
                   canvas.title = 'Click to save';
 
                   // subtitle
-                  if (textString = document.body.querySelector('[id^="caption-window"]')?.innerText) {
+                  // if (textString = document.body.querySelector('.caption-window, .ytp-caption-segment, [id^="caption-window"]')?.innerText) {
+                  if (textString = document.body.querySelector('.caption-window')?.innerText) {
                      // const fontSizePt = +user_settings.player_buttons_custom_screenshot_subtitle_font_size || 40;
                      // context.font = `bold ${fontSizePt}pt Arial`; //  Atention! before textWidth
                      context.font = `bold ${Math.trunc(canvas.height * .05)}px Arial`; //  Atention! before textWidth
@@ -421,6 +423,7 @@ window.nova_plugins.push({
                // alt4 - https://greasyfork.org/en/scripts/459456-add-youtube-thumbnail-to-video-description
                // alt5 - https://greasyfork.org/en/scripts/460610-youtube-thumbnail-viewer
                // alt6 - https://chrome.google.com/webstore/detail/bjchdihmmgfbfheblpmfpaojmjchdioi
+               // alt7 - https://greasyfork.org/en/scripts/449233-youtube-thumbnail-search
                const thumbBtn = document.createElement('button');
                thumbBtn.className = `ytp-button ${SELECTOR_BTN_CLASS_NAME}`;
                // thumbBtn.title = 'View Thumbnail';
@@ -501,6 +504,7 @@ window.nova_plugins.push({
                // https://www.youtube.com/watch?v=RPMgLld0P58
                // alt1 - https://github.com/zhzLuke96/ytp-rotate
                // alt2 - https://greasyfork.org/en/scripts/375568
+               // alt3 - https://greasyfork.org/en/scripts/477524-m-youtube-com-auto-fullscreen-on-rotate
                const
                   hotkey = user_settings.player_buttons_custom_hotkey_rotate || 'KeyR',
                   rotateBtn = document.createElement('button');
@@ -685,12 +689,13 @@ window.nova_plugins.push({
                   });
             }
 
-            // alt - https://greasyfork.org/en/scripts/434527-youtube-remove-overlays
             if (user_settings.player_buttons_custom_items?.includes('card-switch')
                // conflict with plugin [player-hide-elements] option (videowall+card)
                && !user_settings.player_hide_elements?.includes('videowall_endscreen')
                && !user_settings.player_hide_elements?.includes('card_endscreen')
             ) {
+               // alt1 - https://greasyfork.org/en/scripts/434527-youtube-remove-overlays
+               // alt2 - https://greasyfork.org/en/scripts/408725-youtube-hide-end-cards-unless-hovering
                const
                   cardAttrName = 'nova-hide-endscreen',
                   cardBtn = document.createElement('button');

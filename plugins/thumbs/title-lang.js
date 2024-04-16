@@ -25,6 +25,8 @@ window.nova_plugins.push({
    'plugins-conflict': 'thumbs-title-normalize',
    _runtime: user_settings => {
 
+      // alt - https://chromewebstore.google.com/detail/youtube-anti-translate/ndpmhjnlfkgfalaieeneneenijondgag
+
       // if (!user_settings['user-api-key']) return;
 
       const

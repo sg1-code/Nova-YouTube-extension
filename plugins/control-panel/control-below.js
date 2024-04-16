@@ -64,7 +64,7 @@ window.nova_plugins.push({
 
                NOVA.css.push(
                   `/* fix captions */
-                  ${SELECTOR_CONTAINER} .ytp-caption-window-bottom {
+                  ${SELECTOR_CONTAINER} .caption-window {
                      margin-bottom: 0;
                   }
 

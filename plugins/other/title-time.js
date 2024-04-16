@@ -26,11 +26,15 @@ window.nova_plugins.push({
       // alt2 - https://greasyfork.org/en/scripts/450734
       // alt3 - https://greasyfork.org/en/scripts/485000-youtube-video-duration-in-title
 
+      // channel name in title
+      // alt - https://greasyfork.org/en/scripts/482101-youtube-show-channel-name-in-title
+
       NOVA.waitSelector('video')
          .then(video => {
             // remove saved title
             document.addEventListener('yt-navigate-start', () => pageTitle.backup = null);
             // save title
+            // video.addEventListener('play', pageTitle.save.bind(pageTitle));
             video.addEventListener('playing', pageTitle.save.bind(pageTitle));
             // update title
             video.addEventListener('timeupdate', () => pageTitle.update(video));
@@ -66,7 +70,7 @@ window.nova_plugins.push({
                return;
             }
             // this.backup = document.title;
-            this.backup = movie_player.getVideoData().title;
+            this.backup = movie_player.getVideoData().title + ' :: ' + movie_player.getVideoData().author;
             // console.debug('save', this.backup);
          },
 

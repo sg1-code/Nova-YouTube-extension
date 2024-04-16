@@ -182,6 +182,7 @@ const NOVA = {
     * @returns {Promise<void>}
     *
    */
+   // Function to be called when the target element exists
    // untilDOM
    // waitSelector(selector = required(), { container, destroy_after_page_leaving, destroy_timeout }) {
    waitSelector(selector = required(), limit_data) {
@@ -220,6 +221,7 @@ const NOVA = {
          // https://gist.githubusercontent.com/sidneys/ee7a6b80315148ad1fb6847e72a22313/raw/
          // https://greasyfork.org/scripts/21927-arrive-js/code/arrivejs.js  (ex: https://greasyfork.org/en/scripts/429783-confirm-and-upload-imgur)
          // https://greasyfork.org/scripts/464780-global-module/code/global_module.js
+         // https://github.com/CoeJoder/waitForKeyElements.js
 
          // There is a more correct method - transitionend.
          // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/transitionend_event
@@ -512,27 +514,18 @@ const NOVA = {
    },
 
    // cookie: {
-   //    clearAllCookies: function (domain) {
-   //       let cookies = document.cookie.split('; ');
-   //       for (let i = 0; i < cookies.length; i++) {
-   //          var cookie = cookies[i];
-   //          var eqPos = cookie.indexOf('=');
-   //          var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-   //          var cookieDomain = location.hostname.replace(/^www\./i, '');
-   //          if (cookieDomain === domain || cookieDomain.endsWith('.' + domain)) {
-   //             document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;domain=' + cookieDomain + ';path=/';
-   //          }
-   //       }
-   //    },
    //    get: function (name) {
-   //       let match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+   //       const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
    //       return match && decodeURIComponent(match[2]);
    //    },
    //    set: function (name, value, days) {
-   //       if (days == null) days = 1;
-   //       let d = new Date();
-   //       d.setTime(d.getTime() + 24 * 60 * 60 * 1000 * days);
-   //       document.cookie = name + '=' + value + ';path=/;expires=' + d.toGMTString();
+   //       let expires = '';
+   //       if (+days) {
+   //          let date = new Date();
+   //          date.setTime(date.getTime() + (24 * 60 * 60 * 1000 * days));
+   //          expires = '; expires=' + date.toGMTString();
+   //       }
+   //       document.cookie = encodeURIComponent(name) + '=' + encodeURIComponent(value) + ';path=/' + expires;
    //    },
    //    delete: function (name) {
    //       this.set(name, '', -1);
@@ -541,9 +534,21 @@ const NOVA = {
    //       for (const key in this.get()) {
    //          this.delete(key);
    //       }
-   //       let domain = location.hostname.replace(/^www\./i, '');
+   //       const domain = location.hostname.replace(/^www\./i, '');
    //       this.clearAllCookies(domain);
-   //    }
+   //    },
+   //    clearAllCookies: function (domain) {
+   //       let cookies = document.cookie.split('; ');
+   //       for (let i = 0; i < cookies.length; i++) {
+   //          const cookie = cookies[i];
+   //          const eqPos = cookie.indexOf('=');
+   //          const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+   //          const cookieDomain = location.hostname.replace(/^www\./i, '');
+   //          if (cookieDomain === domain || cookieDomain.endsWith('.' + domain)) {
+   //             document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;domain=' + cookieDomain + ';path=/';
+   //          }
+   //       }
+   //    },
    // },
 
    // cookie: {
@@ -1510,10 +1515,9 @@ const NOVA = {
          else if (num < 990000000) return Math.round(num / 1e5) / 10 + 'M';
          else return Math.round(num / 1e8) / 10 + 'B';
 
-         function round(n, precision = 1) {
-            // const prec = Math.pow(10, precision);
-            const prec = 10 ** precision;
-            return Math.round(n * prec) / prec;
+         function round(num, sig = 1) {
+            const prec = Math.pow(10, sig);
+            return Math.round(num * prec) / prec;
          }
       },
       // broken "1000000" => '1000K'
@@ -1735,6 +1739,11 @@ const NOVA = {
                'obj': JSON.parse(obj),
                'keys': 'channelId',
             })?.data),
+         // ((typeof ytcfg === 'object') && (obj = document.getElementById('page-manager')?.getCurrentData())
+         //    && NOVA.seachInObjectBy.key({
+         //       'obj': JSON.parse(obj),
+         //       'keys': 'channelId',
+         //    })?.data),
       ]
          .find(i => isChannelId(i));
       // console.debug('channelId (local):', result);
