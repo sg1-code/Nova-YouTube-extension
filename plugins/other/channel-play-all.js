@@ -25,6 +25,8 @@ window.nova_plugins.push({
       // alt2 - https://greasyfork.org/en/scripts/454215-bring-back-youtube-channel-playlists
       // alt3 - https://greasyfork.org/en/scripts/490842-youtube-play-all-from-channel
       // alt4 - https://greasyfork.org/en/scripts/492119-youtube-all-videos-playlists-yavp
+      // alt5 - https://greasyfork.org/en/scripts/496909-all-vids-playlist
+      // alt6 - https://greasyfork.org/en/scripts/406661-youtube-most-popular-videos-of-channel-shortcut
 
       const
          SELECTOR_ID = 'nova-play-all-channel-btn',
@@ -45,7 +47,7 @@ window.nova_plugins.push({
             // mobile view 'ytm-feed-filter-chip-bar-renderer > div'
             NOVA.waitSelector('#owner.ytd-watch-metadata')
                .then(container => {
-                  if (channelId = NOVA.getChannelId()) {
+                  if (channelId = NOVA.getChannelId(user_settings['user-api-key'])) {
                      const btnList = user_settings.channel_play_all_mode
                         ? { id: 'UULF', title: 'All' }
                         : { id: 'UULP', title: 'MOST POPULAR' };
@@ -56,27 +58,31 @@ window.nova_plugins.push({
                      });
 
                      function insertToHTML({ url = required(), container = required() }) {
-                        console.debug('insertToHTML', ...arguments);
+                        // console.debug('insertToHTML', ...arguments);
                         if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
 
                         (document.getElementById(SELECTOR_ID) || (function () {
                            const el = document.createElement('a');
                            el.id = SELECTOR_ID;
-                           el.className = 'style-scope yt-formatted-string bold yt-spec-button-shape-next yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m';
-                           el.style.cssText = 'margin-left:5px; flex: .6;';
-                           // Object.assign(el.style, {
-                           //    flex: .6,
-                           //    cursor: 'pointer',
-                           // });
+                           el.classList.add('style-scope', 'yt-formatted-string', 'bold', 'yt-spec-button-shape-next--tonal', 'yt-spec-button-shape-next--mono', 'yt-spec-button-shape-next--size-m'); // yt-spec-button-shape-next
+                           // el.style.cssText = '';
+                           Object.assign(el.style, {
+                              // flex: .6,
+                              // cursor: 'pointer',
+                              'margin-left': '5px',
+                              'text-decoration': 'none',
+                              'text-wrap': 'nowrap',
+                           });
                            el.textContent = `► Play ${btnList.title}`;
-                           el.title = 'Play all uploads videos from the channel';
+                           // el.title = 'Play all uploads videos from the channel';
+                           el.title = 'Play every videos in channel';
                            return container.appendChild(el);
 
                            // container.insertAdjacentElement('beforeend', el);
                            // return el;
                            // 62.88 % slower
-                           // container.insertAdjacentHTML('beforeend',
-                           //    `<span id="${SELECTOR_ID}" yt-spec-button-shape-next yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m yt-spec-button-shape-next--icon-leading" style=margin-left:5px; flex: .6;" id="${SELECTOR_ID}" title="Nova play all channel videos">Play All</a>`);
+                           // container.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(
+                           //    `<span id="${SELECTOR_ID}" yt-spec-button-shape-next yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m yt-spec-button-shape-next--icon-leading" style="" id="${SELECTOR_ID}" title="Nova play all channel videos">Play All</a>`));
                            // return document.getElementById(SELECTOR_ID);
                         })())
                            .href = url;
@@ -95,8 +101,8 @@ window.nova_plugins.push({
             switch (NOVA.channelTab) {
                case 'videos':
                   btnList = user_settings.channel_play_all_mode
-                     ? { id: 'UULF', title: 'All Videos' }
-                     : { id: 'UULP', title: 'Popular Videos' };
+                     ? { id: 'UULF', title: 'All' }
+                     : { id: 'UULP', title: 'Popular' };
                   break;
 
                case 'shorts':
@@ -122,10 +128,10 @@ window.nova_plugins.push({
 
                   const btn = document.createElement('tp-yt-paper-button');
                   // const btn = document.createElement('a');
-                  btn.className = 'style-scope yt-formatted-string bold yt-chip-cloud-chip-renderer 1yt-spec-button-shape-next';
+                  btn.classList.add('style-scope', 'yt-formatted-string', 'bold', 'yt-chip-cloud-chip-renderer', '1yt-spec-button-shape-next');
                   btn.classList.add(SELECTOR_ID);
                   // btn.style.cssText = 'color: var(--yt-spec-text-primary); text-wrap: nowrap;';
-                  btn.style.cssText = 'color: wheat; text-wrap: nowrap;';
+                  btn.style.cssText = 'color: wheat; text-wrap: nowrap; text-decoration: none;';
                   // Object.assign(btn.style, {
                   //    color: 'wheat',
                   //    // color: 'var(--yt-spec-text-primary)',
@@ -135,11 +141,11 @@ window.nova_plugins.push({
                   btn.textContent = `► Play ${btnList.title}`;
                   // btn.title = 'Play all uploads videos from the channel';
 
-                  // if (channelId = NOVA.getChannelId()) {
+                  // if (channelId = NOVA.getChannelId(user_settings['user-api-key'])) {
                   //    btn.href = '/playlist?list=UU' + channelId.substring(2);
                   // }
                   btn.addEventListener('click', () => {
-                     if (channelId = NOVA.getChannelId()) {
+                     if (channelId = NOVA.getChannelId(user_settings['user-api-key'])) {
                         // list=UU<ID> adds shorts into the playlist
                         // list=UULF<ID> videos without shorts
                         // list=UULP<ID> videos sorted by popular
@@ -154,14 +160,14 @@ window.nova_plugins.push({
                   // // btn.addEventListener('click', () => location.href = location.href + "?view=57");
                   // btn.addEventListener('click', () => location.href = NOVA.queryURL.set({ 'view': 57 }));
                   // // btn.addEventListener('click', () => {
-                  // //    if (channelId = NOVA.getChannelId()) {
+                  // //    if (channelId = NOVA.getChannelId(user_settings['user-api-key'])) {
                   // //       // vidId = NOVA.queryURL.get('v',document.body.querySelector('a#thumbnail[href]:first-child').href);
                   // //       location.href = `/playlist?list=UU` + channelId;
                   // //    }
                   // (sort:most)
                   // btn2.textContent = '► Play MOST POPULAR';
                   // btn2.addEventListener('click', () => {
-                  //    if (channelId = NOVA.getChannelId()) {
+                  //    if (channelId = NOVA.getChannelId(user_settings['user-api-key'])) {
                   //       location.href = `/playlist?v=${vidId}&list=PU` + channelId.substring(2);
                   //    }
                   // });
@@ -182,7 +188,7 @@ window.nova_plugins.push({
                   //       const li = document.createElement('li');
 
                   //       const a = document.createElement('a');
-                  //       li.className = 'style-scope yt-formatted-string bold';
+                  //       li.classList.add('style-scope', 'yt-formatted-string', 'bold');
                   //       // a.href = `/playlist?${item.list}` + channelId.substring(2);
                   //       a.target = '_blank';
                   //       a.textContent = item.label;
@@ -218,7 +224,7 @@ window.nova_plugins.push({
          // 'label:ua': 'Режим',
          options: [
             {
-               label: 'all', value: true, /*value: 'UU',*/
+               label: 'all videos', value: true, /*value: 'UU',*/
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',

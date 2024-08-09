@@ -24,12 +24,12 @@ window.nova_plugins.push({
 
       // alt1 - https://greasyfork.org/en/scripts/453367-youtube-live-clock
       // alt2 - https://greasyfork.org/en/scripts/470937-youtube-live-datetime-tooltip
-      // alt3 - https://chrome.google.com/webstore/detail/cnllmiliafeacdmlngaofjpjaljoolpc
+      // alt3 - https://chromewebstore.google.com/detail/cnllmiliafeacdmlngaofjpjaljoolpc
 
       // new Date(document.head.querySelector('meta[itemprop="startDate"][content]')?.content);
       // new Date(document.head.querySelector('meta[itemprop="endDate"][content]')?.content);
 
-      // Strategy 1. UnHide default
+      // Solution 1. UnHide default
       NOVA.waitSelector('#movie_player video')
          .then(video => {
             video.addEventListener('canplay', () => {
@@ -40,7 +40,7 @@ window.nova_plugins.push({
                }
 
                // // meta[itemprop="isLiveBroadcast"][content="True"]
-               // if (document.body.querySelector('ytd-watch-flexy')?.playerData.videoDetails.isLiveContent) {
+               // if (document.body.querySelector('.ytd-page-manager[video-id]')?.playerData.videoDetails.isLiveContent) {
                // if (movie_player.getVideoData().isLive) {
                //    NOVA.waitSelector('#movie_player .ytp-chrome-controls .ytp-live .ytp-time-current', { destroy_after_page_leaving: true })
                //       .then(el => {
@@ -56,7 +56,7 @@ window.nova_plugins.push({
                }`);
          });
 
-      // Strategy 2. if ".ytp-time-current" don't update
+      // Solution 2. if ".ytp-time-current" don't update
       // const SELECTOR_ID = 'nova-player-live-duration';
 
       // NOVA.waitSelector('#movie_player .ytp-chrome-controls .ytp-live')
@@ -89,8 +89,8 @@ window.nova_plugins.push({
       //       container.after(el);
       //       // container.insertAdjacentElement('afterend', el);
       //       return el;
-      //       // container.insertAdjacentHTML('afterend',
-      //       //    `<span id="${SELECTOR_ID}" class="" style="">${text}</span>`);
+      //       // container.insertAdjacentHTML('afterend', NOVA.createSafeHTML(
+      //       //    `<span id="${SELECTOR_ID}" class="" style="">${text}</span>`));
       //       // return document.getElementById(SELECTOR_ID);
       //    })())
       //       .textContent = text;

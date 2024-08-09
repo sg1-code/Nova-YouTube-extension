@@ -41,7 +41,9 @@ window.nova_plugins.push({
       // alt3 - https://greasyfork.org/en/scripts/407207-ad-free-youtube-grid
       // alt4 - https://greasyfork.org/en/scripts/480134-starburst-ads
       // alt5 - https://greasyfork.org/en/scripts/486616-youtube-search-results-cleanup
-      // alt5 - https://greasyfork.org/en/scripts/488224-control-panel-for-youtube
+      // alt6 - https://greasyfork.org/en/scripts/488224-control-panel-for-youtube
+      // alt7 - https://greasyfork.org/en/scripts/491537-youtube-remove-annoyances
+      // alt8 - https://greasyfork.org/en/scripts/496728-youtube-awesome
 
       // hide donate"
       // '#donation-shelf',
@@ -133,6 +135,8 @@ window.nova_plugins.push({
 
                // home, watch page
                'ytd-feed-nudge-renderer', // message "Recommendations not quite right? When you turn on watch history, you’ll get more personalized recommendations."
+
+               // '#masthead #end #buttons ytd-topbar-menu-button-renderer', // remove "Create" icon in header
             ]);
 
             // To above v105 https://developer.mozilla.org/en-US/docs/Web/CSS/:has

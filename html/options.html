@@ -5,6 +5,7 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1">
    <title>Options page</title>
+   <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
 
    <link rel="stylesheet" href="/css/libs/normalize.min.css">
    <link rel="stylesheet" href="/css/libs/tooltip/tooltip.min.css" />
@@ -18,14 +19,15 @@
    <link rel="stylesheet" href="/css/options.css" />
    <link rel="stylesheet" href="/css/appearance.css" />
 
-   <script src="/js/libs/browser-support.js"></script>
    <!-- libs -->
+   <script src="/js/libs/browser-support.js"></script>
    <script src="/js/libs/localization.js"></script>
    <script src="/js/libs/storage.js"></script>
    <script src="/js/libs/options.js"></script>
 
    <!-- scripts -->
    <script src="/js/plugins.js"></script>
+   <script src="/js/optionsBilder-extension.js"></script>
    <script src="/js/optionsBilder.js"></script>
 </head>
 
@@ -166,10 +168,6 @@
                      <label for="report_issues"
                         tooltip="__MSG_opt_report_issues_tooltip__">__MSG_opt_report_issues__</label>
                      <input type="checkbox" name="report_issues" id="report_issues" />
-
-                     <!-- <label for="detect_player_crash"
-                           tooltip="__MSG_opt_detect_player_crash_tooltip__">detect player crash</label>
-                        <input type="checkbox" name="detect_player_crash" id="detect_player_crash" /> -->
                   </div>
 
                   <div class="between">
@@ -209,14 +207,15 @@
                            tooltip="__MSG_email_tooltip__" flow="right">__MSG_email__</a>
                      </li>
                      <li>
+                        <a href="https://www.buymeacoffee.com/raingart" target="_blank" rel="nofollow"
+                           tooltip="__MSG_donate_buymeacoffee_tooltip__" flow="right">__MSG_donate_buymeacoffee__</a>
+                     </li>
+                     <!--
+                     <li>
                         <a href="https://www.patreon.com/join/raingart/checkout?rid=3120225" target="_blank"
                            tooltip="__MSG_donate_patreon_tooltip__" flow="right">__MSG_donate_patreon__</a>
                      </li>
                      <li>
-                        <a href="https://www.buymeacoffee.com/raingart" target="_blank" rel="nofollow"
-                           tooltip="__MSG_donate_buymeacoffee_tooltip__" flow="right">__MSG_donate_buymeacoffee__</a>
-                     </li>
-                     <!-- <li>
                         <a href="https://www.paypal.com/donate/?hosted_button_id=B44WLWHZ8AGU2" target="_blank"
                            rel="nofollow" tooltip="__MSG_donate_paypal_tooltip__" flow="right">__MSG_donate_paypal__</a>
                      </li> -->
@@ -229,8 +228,7 @@
                      <legend>Translation:</legend>
                      <ul>
                         <li>Polski - <a href="https://github.com/J4CKED" target="_blank" rel="nofollow">J4CKED</a></li>
-                        <li>Українська - <a href="https://github.com/bmkuma" target="_blank" rel="nofollow">bmkuma</a>
-                        </li>
+                        <li>Українська - <a href="https://github.com/bmkuma" target="_blank" rel="nofollow">bmkuma</a></li>
                      </ul>
                   </fieldset>
 

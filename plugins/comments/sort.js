@@ -7,6 +7,8 @@
 
 // https://www.youtube.com/watch?v=lP4djyHSzzg - min test
 
+// https://www.youtube.com/watch?v=zEE4aAMbD5I&lc=Ugz7num8lktTuHRbFNp4AaABAg- paid comment. There is no way to determine this type
+
 window.nova_plugins.push({
    id: 'comments-sort',
    title: 'Comments sort',
@@ -23,7 +25,7 @@ window.nova_plugins.push({
    // 'title:de': 'Kommentare sortieren',
    'title:pl': 'Sortowanie komentarzy',
    // 'title:ua': 'Сортування коментарів',
-   run_on_pages: 'watch, -mobile',
+   run_on_pages: 'watch, embed, -mobile',
    // restart_on_location_change: true,
    section: 'comments',
    opt_api_key_warn: true,
@@ -51,12 +53,17 @@ window.nova_plugins.push({
       // alt1 - https://github.com/yakisova41/return-youtube-comment-username
       // alt2 - https://greasyfork.org/en/scripts/492172-youtube-comment-username-reveals
 
-      // alt - https://greasyfork.org/en/scripts/11057-block-youtube-users
+      // alt1 - https://greasyfork.org/en/scripts/11057-block-youtube-users
+      // alt2 - https://greasyfork.org/en/scripts/500798-youtube-filter-channel-comment-video
 
       // #comments #contents #submessage[is-empty] - "Comments are turned off."
 
+      // exclude (Width < 700px)
+      if (NOVA.currentPage == 'embed' && window.innerWidth < 700) return;
+
       const
          MAX_COMMENTS = (user_settings['user-api-key'] && +user_settings.comments_sort_max) || 250, // no API key limit comments
+         BTN_CLASS_NAME = 'nova-comments-sort',
          // CACHE_PREFIX = 'nova-channel-videos-count:',
          MODAL_NAME_SELECTOR_ID = 'nova-modal-comments',
          MODAL_CONTENT_SELECTOR_ID = 'modal-content',
@@ -66,71 +73,89 @@ window.nova_plugins.push({
          BLOCK_KEYWORDS = NOVA.strToArray(user_settings.comments_sort_blocklist?.toLowerCase());
       // getCacheName = () => CACHE_PREFIX + ':' + (NOVA.queryURL.get('v') || movie_player.getVideoData().video_id);
 
-      // try fix disappear button
-      NOVA.waitSelector('#movie_player')
-         .then(insertButton);
-
-      // insertButton();
+      insertButton();
 
       function insertButton() {
-         // NOVA.waitSelector('#comments ytd-comments-header-renderer #title')
-         NOVA.waitSelector(
-            user_settings['comments-popup']
-               ? '#masthead-container'
-               // ? '#movie_player'
-               // ? 'ytd-watch-flexy'
-               // ? '#comments'
-               // ? 'html:not(:fullscreen) ytd-watch-metadata #description.ytd-watch-metadata:not([hidden])'
-               : '#comments ytd-comments-header-renderer #title'
-            // : '#page-manager #owner'
-         )
+         NOVA.waitSelector(getParentSelector())
             .then(menu => {
                // [data-open-modal="nova-modal-comments"]
                const btn = document.createElement('span');
+               btn.className = BTN_CLASS_NAME;
                btn.setAttribute('data-open-modal', MODAL_NAME_SELECTOR_ID);
-               btn.title = 'Nova Comments';
-               // btn.innerHTML =
-               btn.textContent = '►';
-               btn.addEventListener('click', () => {
+               btn.title = 'Nova comments';
+               // btn.textContent = '►';
+               // btn.innerHTML = NOVA.createSafeHTML(
+               //    `<svg width="100%" height="100%" viewBox="0 0 121.86 122.88">
+               //       <title>Nova comments</title>
+               //       <g fill="currentColor">
+               //          <path d="M30.28,110.09,49.37,91.78A3.84,3.84,0,0,1,52,90.72h60a2.15,2.15,0,0,0,2.16-2.16V9.82a2.16,2.16,0,0,0-.64-1.52A2.19,2.19,0,0,0,112,7.66H9.82A2.24,2.24,0,0,0,7.65,9.82V88.55a2.19,2.19,0,0,0,2.17,2.16H26.46a3.83,3.83,0,0,1,3.82,3.83v15.55ZM28.45,63.56a3.83,3.83,0,1,1,0-7.66h53a3.83,3.83,0,0,1,0,7.66Zm0-24.86a3.83,3.83,0,1,1,0-7.65h65a3.83,3.83,0,0,1,0,7.65ZM53.54,98.36,29.27,121.64a3.82,3.82,0,0,1-6.64-2.59V98.36H9.82A9.87,9.87,0,0,1,0,88.55V9.82A9.9,9.9,0,0,1,9.82,0H112a9.87,9.87,0,0,1,9.82,9.82V88.55A9.85,9.85,0,0,1,112,98.36Z" />
+               //       </g>
+               //    </svg>`);
+               // fix - This document requires 'TrustedHTML' assignment.
+               btn.append((function createSvgIcon() {
+                  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                  svg.setAttribute('width', '100%');
+                  svg.setAttribute('height', '100%');
+                  svg.setAttribute('viewBox', '0 0 121.86 122.88');
+
+                  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                  g.setAttribute('fill', 'currentColor');
+
+                  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                  path.setAttribute('d', 'M30.28,110.09,49.37,91.78A3.84,3.84,0,0,1,52,90.72h60a2.15,2.15,0,0,0,2.16-2.16V9.82a2.16,2.16,0,0,0-.64-1.52A2.19,2.19,0,0,0,112,7.66H9.82A2.24,2.24,0,0,0,7.65,9.82V88.55a2.19,2.19,0,0,0,2.17,2.16H26.46a3.83,3.83,0,0,1,3.82,3.83v15.55ZM28.45,63.56a3.83,3.83,0,1,1,0-7.66h53a3.83,3.83,0,0,1,0,7.66Zm0-24.86a3.83,3.83,0,1,1,0-7.65h65a3.83,3.83,0,0,1,0,7.65ZM53.54,98.36,29.27,121.64a3.82,3.82,0,0,1-6.64-2.59V98.36H9.82A9.87,9.87,0,0,1,0,88.55V9.82A9.9,9.9,0,0,1,9.82,0H112a9.87,9.87,0,0,1,9.82,9.82V88.55A9.85,9.85,0,0,1,112,98.36Z');
+
+                  g.append(path);
+                  svg.append(g);
+
+                  return svg;
+               })());
+
+               btn.addEventListener('click', evt => {
+                  evt.preventDefault();
+                  evt.stopPropagation();
+                  evt.stopImmediatePropagation();
                   // once if not inited
                   if (!document.body.querySelector(`#${MODAL_CONTENT_SELECTOR_ID} table`)) {
                      getComments();
                      // eventListenerPatchTimeLink();
                   }
                   btn.dispatchEvent(new CustomEvent(MODAL_NAME_SELECTOR_ID, { bubbles: true, detail: 'test' }));
-               });
+               }, { capture: true });
 
                // append css
-               Object.assign(btn.style,
-                  user_settings['comments-popup']
-                     ? {
-                        /*transform: rotate(-90deg) translateX(-100%);*/
-                        position: 'fixed',
-                        right: '0',
-                        top: 'var(--ytd-masthead-height)',
-                        // right: '1em',
-                        visibility: 'visible',
-                        'z-index': 1 + Math.max(
-                           // getComputedStyle(menu)['z-index'],
-                           // NOVA.css.get('yt-live-chat-app', 'z-index'),
-                           NOVA.css.get('.ytp-chrome-top', 'z-index'),
-                           60),
-                        'font-size': '18px',
-                     }
-                     : {
-                        'font-size': '24px',
-                        'text-decoration': 'none',
-                        padding: '0 10px',
-                        'background-color': 'transparent',
-                        border: 'none',
-                     },
-                  // common
-                  {
-                     color: 'orange',
-                     cursor: 'pointer',
-                  });
+               // Object.assign(btn.style,
+               //    (user_settings['comments-dropdown'] && user_settings['header-unfixed'])
+               //       ? {
+               //          /*transform: rotate(-90deg) translateX(-100%);*/
+               //          position: 'fixed',
+               //          right: '0',
+               //          top: 'var(--ytd-masthead-height)',
+               //          // right: '1em',
+               //          visibility: 'visible',
+               //          'z-index': 1 + Math.max(
+               //             // getComputedStyle(menu)['z-index'],
+               //             // NOVA.css.get('yt-live-chat-app', 'z-index'),
+               //             NOVA.css.get('.ytp-chrome-top', 'z-index'),
+               //             60),
+               //          // 'font-size': '18px',
+               //          height: '18px',
+               //       }
+               //       : {
+               //          // 'font-size': '24px',
+               //          height: '22px',
+               //          'text-decoration': 'none',
+               //          padding: '0 10px',
+               //          'background-color': 'transparent',
+               //          border: 'none',
+               //       },
+               //    // common
+               //    // {
+               //    //    color: 'var(--yt-spec-text-primary, orange)',
+               //    //    cursor: 'pointer',
+               //    // }
+               // );
 
-               user_settings['comments-popup']
+               user_settings['comments-dropdown']
                   ? menu.append(btn)
                   : menu.prepend(btn);
 
@@ -138,21 +163,67 @@ window.nova_plugins.push({
                // menu.append(btn);
 
                insertModal();
+
+               prepareModal();
                // clear table after page transition
-               NOVA.runOnPageLoad(() => {
+               // NOVA.runOnPageLoad(() => {
+               document.addEventListener('yt-navigate-start', () => {
                   if (NOVA.currentPage == 'watch') {
-                     document.getElementById(MODAL_CONTENT_SELECTOR_ID).innerHTML = '<pre>Loading data...</pre>';
+                     prepareModal();
+                     btn.style.display = null;
+                  }
+                  else {
+                     btn.style.display = 'none';
                   }
                });
 
+               function prepareModal() {
+                  // document.getElementById(MODAL_CONTENT_SELECTOR_ID).innerHTML = NOVA.createSafeHTML('<pre>Loading data...</pre>');
+                  const pre = document.createElement('pre');
+                  pre.textContent = 'Loading data...';
+                  document.getElementById(MODAL_CONTENT_SELECTOR_ID)?.append(pre);
+               }
+
             });
+
+         function getParentSelector() {
+            let css = '', out;
+
+            switch (NOVA.currentPage) {
+               case 'watch':
+                  // out = (user_settings['comments-dropdown'] || user_settings['header-unfixed'])
+                  // ? '#comments ytd-comments-header-renderer #title'
+                  // : '#masthead-container #end';
+                  out = '#masthead-container #end';
+                  css = 'padding: 1em; height: 2em;';
+                  break;
+
+               case 'embed':
+                  out = '.ytp-chrome-top-buttons';
+                  css = 'float: left; padding: 20px;';
+                  break;
+            }
+
+            NOVA.css.push(
+               `.${BTN_CLASS_NAME} {
+                  color: var(--yt-spec-text-primary, orange);
+                  cursor: pointer;
+                  height: 3em;
+                  ${css};
+               }
+               .${BTN_CLASS_NAME}:hover {
+                 color: deepskyblue;
+               }`);
+
+            return out;
+         }
       }
 
       let commentList = [];
 
       function getComments(next_page_token) {
          // console.debug('genTable:', ...arguments);
-         // const channelId = NOVA.getChannelId();
+         // const channelId = NOVA.getChannelId(user_settings['user-api-key']);
          // if (!channelId) return console.error('genTable channelId: empty', channelId);
 
          // has in cache
@@ -195,9 +266,9 @@ window.nova_plugins.push({
                   }
                   // modal message
                   else {
-                     return document.getElementById(MODAL_CONTENT_SELECTOR_ID).innerHTML =
+                     return document.getElementById(MODAL_CONTENT_SELECTOR_ID).innerHTML = NOVA.createSafeHTML(
                         `<pre>Error [${res.code}]: ${res.reason}</pre>
-                        <pre>${res.error}</pre>`;
+                        <pre>${res.error}</pre>`);
                   }
                }
 
@@ -254,7 +325,7 @@ window.nova_plugins.push({
                // ) {
                else if (res?.nextPageToken) {
                   // display current download status
-                  document.getElementById(MODAL_CONTENT_SELECTOR_ID).innerHTML = `<pre>Loading: ${commentList.length + (user_settings['user-api-key'] ? '' : '/' + MAX_COMMENTS)}</pre>`;
+                  document.getElementById(MODAL_CONTENT_SELECTOR_ID).innerHTML = NOVA.createSafeHTML(`<pre>Loading: ${commentList.length + (user_settings['user-api-key'] ? '' : '/' + MAX_COMMENTS)}</pre>`);
 
                   getComments(res?.nextPageToken);
                }
@@ -268,7 +339,7 @@ window.nova_plugins.push({
 
       function genTable() {
          if (!commentList.length) {
-            return document.getElementById(MODAL_CONTENT_SELECTOR_ID).innerHTML = `<pre>Comments empty</pre>`;
+            return document.getElementById(MODAL_CONTENT_SELECTOR_ID).innerHTML = NOVA.createSafeHTML(`<pre>Comments empty</pre>`);
          }
 
          const ul = document.createElement('tbody');
@@ -300,7 +371,7 @@ window.nova_plugins.push({
 
                   // invalid time "updatedAt" - https://www.youtube.com/watch?v=1RjnI64Rwqs&lc=Uggcg-Z0w-cmRXgCoAEC
 
-                  li.innerHTML =
+                  li.innerHTML = NOVA.createSafeHTML(
                      `<td>${comment.likeCount}</td>
                      <td sorttable_customkey="${comment.totalReplyCount}" class="${NOVA_REPLYS_SWITCH_CLASS_NAME}">
                      ${comment.comments?.length
@@ -314,10 +385,88 @@ window.nova_plugins.push({
                      </td>
                      <td sorttable_customkey="${comment.textOriginal.length}">
                         <span class="text-overflow-dynamic-ellipsis">${comment.textDisplay}</span>
-                        ${appendReplies()}
-                     </td>`;
+                        ${appendReplies()?.outerHTML || ''}
+                     </td>`);
+                  // fix - This document requires 'TrustedHTML' assignment.
+                  // function createCommentCell(text, sortKey) {
+                  //    const td = document.createElement('td');
+                  //    td.textContent = text;
+                  //    if (sortKey) {
+                  //       td.setAttribute('sorttable_customkey', sortKey);
+                  //    }
+                  //    return td;
+                  // }
 
-                  ul.append(li); // append
+                  // function createCommentLinkCell(comment, replyInputName) {
+                  //    const td = document.createElement('td');
+                  //    td.classList.add(NOVA_REPLYS_SWITCH_CLASS_NAME);
+
+                  //    if (comment.comments?.length) {
+                  //       const link = document.createElement('a');
+                  //       link.href = `https://www.youtube.com/watch?v=${comment.videoId}&lc=${comment.id}`;
+                  //       link.target = '_blank';
+                  //       link.title = 'Open comment link';
+                  //       link.textContent = comment.totalReplyCount;
+
+                  //       const label = document.createElement('label');
+                  //       label.htmlFor = replyInputName;
+
+                  //       td.append(link);
+                  //       td.append(label);
+                  //    }
+
+                  //    return td;
+                  // }
+
+                  // function createCommentDateCell(comment) {
+                  //    const td = document.createElement('td');
+                  //    td.setAttribute('sorttable_customkey', new Date(comment.publishedAt).getTime());
+                  //    td.textContent = NOVA.formatTimeOut.ago(new Date(comment.publishedAt));
+                  //    return td;
+                  // }
+
+                  // function createCommentAuthorCell(comment) {
+                  //    const td = document.createElement('td');
+                  //    const link = document.createElement('a');
+                  //    link.href = comment.authorChannelUrl;
+                  //    link.target = '_blank';
+                  //    link.title = comment.authorDisplayName;
+
+                  //    const img = document.createElement('img');
+                  //    img.src = comment.authorProfileImageUrl;
+                  //    img.alt = comment.authorDisplayName;
+
+                  //    link.append(img);
+                  //    return td.appendChild(link);
+                  // }
+
+                  // function createCommentTextCell(comment) {
+                  //    const td = document.createElement('td');
+                  //    const span = document.createElement('span');
+                  //    span.classList.add('text-overflow-dynamic-ellipsis');
+                  //    span.textContent = comment.textDisplay;
+
+                  //    td.append(span);
+                  //    // Assuming appendReplies() creates content
+                  //    if (repliesDom = appendReplies()) td.append(repliesDom);
+
+                  //    return td;
+                  // }
+
+                  // const likeCountCell = createCommentCell(comment.likeCount);
+                  // const replyCountCell = createCommentLinkCell(comment, replyInputName);
+                  // const dateCell = createCommentDateCell(comment);
+                  // const authorCell = createCommentAuthorCell(comment);
+                  // const textCell = createCommentTextCell(comment);
+
+                  // li.append(likeCountCell);
+                  // li.append(replyCountCell);
+                  // li.append(dateCell);
+                  // li.append(authorCell);
+                  // li.append(textCell);
+                  // end fix - This document requires 'TrustedHTML' assignment.
+
+                  ul.append(li);
 
                   // checkbox reply show
                   // if (+comment.totalReplyCount) {
@@ -330,10 +479,12 @@ window.nova_plugins.push({
                         document.body.querySelector(`table[${NOVA_REPLYS_SELECTOR_ID}="${target.name}"]`)
                            .classList.toggle('nova-hide');
                      });
-                     li.querySelector('td label[for]')?.before(checkbox);
-                     // li.querySelector('td label[for]').append(checkbox);
+                     li.querySelector('td label[for]')
+                        ?.before(checkbox);
+                     // ?.append(checkbox);
                   }
 
+                  createReplyItem
                   function appendReplies() {
                      if (!+comment.totalReplyCount) return '';
 
@@ -352,22 +503,57 @@ window.nova_plugins.push({
                            // li.className = 'item';
                            // isAuthor
                            if (channelName && reply.snippet.authorChannelUrl.includes(channelName)) li.classList.add('author');
-                           li.innerHTML =
-                              `<td>
-                                 <a href="${reply.snippet.authorChannelUrl}" target="_blank" title="${reply.snippet.authorDisplayName}">
-                                    <img src="${reply.snippet.authorProfileImageUrl}" alt="${reply.snippet.authorDisplayName}" />
-                                 </a>
-                              </td>
-                              <td>
-                                 <span class="text-overflow-dynamic-ellipsis">
-                                    <div class="nova-reply-time-text">${reply.snippet.likeCount
-                                 ? `${reply.snippet.likeCount} likes` : ''}</div>
-                                    <div>${reply.snippet.textDisplay}</div>
-                                 </span>
-                              </td>`;
+                           // Solution 1
+                           // li.innerHTML = NOVA.createSafeHTML(
+                           //    `<td>
+                           //       <a href="${reply.snippet.authorChannelUrl}" target="_blank" title="${reply.snippet.authorDisplayName}">
+                           //          <img src="${reply.snippet.authorProfileImageUrl}" alt="${reply.snippet.authorDisplayName}" />
+                           //       </a>
+                           //    </td>
+                           //    <td>
+                           //       <span class="text-overflow-dynamic-ellipsis">
+                           //          <div class="nova-reply-time-text">${reply.snippet.likeCount
+                           //       ? `${reply.snippet.likeCount} likes` : ''}</div>
+                           //          <div>${reply.snippet.textDisplay}</div>
+                           //       </span>
+                           //    </td>`);
+                           // Solution 2
+                           const authorCell = document.createElement('td');
+                           const authorLink = document.createElement('a');
+                           authorLink.href = reply.snippet.authorChannelUrl;
+                           authorLink.target = '_blank';
+                           authorLink.title = reply.snippet.authorDisplayName;
+
+                           const authorImage = document.createElement('img');
+                           authorImage.src = reply.snippet.authorProfileImageUrl;
+                           authorImage.alt = reply.snippet.authorDisplayName;
+
+                           authorLink.append(authorImage);
+                           authorCell.append(authorLink);
+
+                           const contentCell = document.createElement('td');
+                           const containerReply = document.createElement('span');
+                           containerReply.className = 'text-overflow-dynamic-ellipsis';
+
+                           const likeCountDiv = document.createElement('div');
+                           likeCountDiv.className = 'nova-reply-time-text';
+                           likeCountDiv.textContent = reply.snippet.likeCount ? `${reply.snippet.likeCount} likes` : '';
+
+                           const replyText = document.createElement('div');
+                           // Atention: broken <br> tag.
+                           // fix - This document requires 'TrustedHTML' assignment.
+                           replyText.innerHTML = NOVA.createSafeHTML(reply.snippet.textDisplay);
+
+                           containerReply.append(likeCountDiv);
+                           containerReply.append(replyText);
+                           contentCell.append(containerReply);
+
+                           li.append(authorCell);
+                           li.append(contentCell);
+
                            table.append(li); // append
                         });
-                     return table.outerHTML;
+                     return table;
                   }
 
                } catch (error) {
@@ -419,7 +605,7 @@ window.nova_plugins.push({
 
          // render table
          const MODAL_CONTENT_FILTER_SELECTOR_ID = 'nova-search-comment';
-         document.getElementById(MODAL_CONTENT_SELECTOR_ID).innerHTML =
+         document.getElementById(MODAL_CONTENT_SELECTOR_ID).innerHTML = NOVA.createSafeHTML(
             `<table class="sortable" border="0" cellspacing="0" cellpadding="0">
                <thead id="${MODAL_CONTENT_FILTER_SELECTOR_ID}">
                   <tr>
@@ -431,12 +617,60 @@ window.nova_plugins.push({
                   </tr>
                </thead>
                <!-- $ {ul.innerHTML} -->
-            </table>`;
+            </table>`);
+
+         // fix - This document requires 'TrustedHTML' assignment.
+         // const table = document.createElement('table');
+         // table.className = 'sortable';
+         // table.border = '0';
+         // table.cellSpacing = '0';
+         // table.cellPadding = '0';
+
+         // const thead = document.createElement('thead');
+         // thead.id = MODAL_CONTENT_FILTER_SELECTOR_ID;
+
+         // const headerRow = document.createElement('tr');
+
+         // // Create and append th elements for each column
+         // const thLikes = document.createElement('th');
+         // thLikes.className = 'sorttable_numeric';
+         // thLikes.textContent = 'likes';
+         // headerRow.append(thLikes);
+
+         // const thReplys = document.createElement('th');
+         // // thReplys.classList.add('sorttable_numeric');
+         // thReplys.textContent = 'replys';
+         // headerRow.append(thReplys);
+
+         // const thDate = document.createElement('th');
+         // thDate.className = 'sorttable_numeric';
+         // thDate.textContent = 'date';
+         // headerRow.append(thDate);
+
+         // const thAvatar = document.createElement('th');
+         // thAvatar.className = 'sorttable_nosort';
+         // thAvatar.textContent = 'avatar';
+         // headerRow.append(thAvatar);
+
+         // const thComment = document.createElement('th');
+         // thComment.className = 'sorttable_numeric';
+         // thComment.textContent = `comments (${commentList.length/*res.pageInfo.totalResults*/})`;
+         // headerRow.append(thComment);
+
+         // thead.append(headerRow);
+         // table.append(thead);
+
+         // // Append the table body content (ul.innerHTML) here
+
+         // document.getElementById(MODAL_CONTENT_SELECTOR_ID).textContent = '';
+         // document.getElementById(MODAL_CONTENT_SELECTOR_ID).append(table);
+         // end fix - This document requires 'TrustedHTML' assignment.
 
          document.getElementById(MODAL_CONTENT_FILTER_SELECTOR_ID).after(ul); /*$ {ul.innerHTML}*/
 
          // add sort event
-         connectSortable().makeSortable(document.body.querySelector('table.sortable'));
+         // connectSortable().makeSortable(document.body.querySelector('table.sortable'));
+         connectSortable.apply(this).makeSortable(document.body.querySelector('table.sortable'));
 
          // scroll to top on sorting
          // document.body.querySelector(`#${MODAL_CONTENT_SELECTOR_ID} table.sortable thead`)
@@ -459,7 +693,7 @@ window.nova_plugins.push({
                //       attributes: true,
                //       attributeFilter: ['class']
                //    });
-
+               // scroll to top after sorted
                if (containerScroll = document.body.querySelector('.modal-container')) containerScroll.scrollTop = 0;
             });
 
@@ -489,7 +723,7 @@ window.nova_plugins.push({
 
                background-color: var(--dark-theme-divider-color);
                color: var(--dark-theme-text-color);
-               --off-hover-bg: var(--light-theme-secondary-color);
+               --off-hover-bg: var(--light-theme-secondary-color, deepskyblue, greenyellow);
                /* --checked-bg: #188cc3;
                --checked-bg: #ff691c; */
                --checked-bg: #e85717;
@@ -528,7 +762,6 @@ window.nova_plugins.push({
 
             .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:hover:before {
                background-color: var(--off-hover-bg);
-               /* background-color: greenyellow; */
             }
 
             .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:after,
@@ -631,7 +864,7 @@ window.nova_plugins.push({
               background-color: var(--ytd-searchbox-background);
               color: var(--ytd-searchbox-text-color); */
 
-              /* height: 100%; */
+              height: 100%;
             }
 
             #${parent_selector_id} input[type=search]:focus,
@@ -719,13 +952,14 @@ window.nova_plugins.push({
 
             .modal-container {
                border-radius: 4px;
-               background-color: silver;
+               /* background-color: silver; */
+               border: 1px solid #222;
 
                position: relative;
                display: flex;
                box-sizing: border-box;
                overflow-y: auto;
-               max-width: 70%;
+               max-width: ${(NOVA.currentPage == 'embed' ? 95 : 70)}%;
                max-height: 100vh;
 
                transform: scale(0.9);
@@ -764,9 +998,9 @@ window.nova_plugins.push({
                /*--yt-spec-general-background-a: #181818;
                --yt-spec-general-background-b: #0f0f0f;
                --yt-spec-general-background-c: #030303;*/
-               background-color: var(--yt-spec-brand-background-primary);
+               /* background-color: var(--yt-spec-brand-background-primary);
                background-color: var(--yt-spec-menu-background);
-               background-color: var(--yt-spec-raised-background);
+               background-color: var(--yt-spec-raised-background); */
                color: var(--yt-spec-text-primary);
             }
 
@@ -775,20 +1009,45 @@ window.nova_plugins.push({
             }`);
 
          // html
-         document.body
-            // document.getElementById('comments')
-            // document.body.querySelector('ytd-app')
-            .insertAdjacentHTML('beforeend',
-               `<div id="${MODAL_NAME_SELECTOR_ID}" class="modal" data-modal>
-                  <div class="modal-container">
-                     <div class="modal-close" data-close-modal>✕</div>
+         // document.body
+         //    // document.getElementById('comments')
+         //    // document.body.querySelector('ytd-app')
+         //    .insertAdjacentHTML('beforeend', NOVA.createSafeHTML(
+         //       `<div id="${MODAL_NAME_SELECTOR_ID}" class="modal" data-modal>
+         //          <div class="modal-container">
+         //             <div class="modal-close" data-close-modal>✕</div>
 
-                     <div class="modal-content" id="${MODAL_CONTENT_SELECTOR_ID}"></div>
-                  </div>
-               </div>`);
+         //             <div class="modal-content" id="${MODAL_CONTENT_SELECTOR_ID}"></div>
+         //          </div>
+         //       </div>`));
+         // fix - This document requires 'TrustedHTML' assignment.
+         const modalContainer = document.createElement('div');
+         modalContainer.id = MODAL_NAME_SELECTOR_ID;
+         modalContainer.className = 'modal';
+         modalContainer.setAttribute('data-modal', '');
 
-         // closeButton.innerHTML =
-         //    '<svg xmlns="http://www.w3.org/2000/svg" height="1.5rem" viewBox="0 0 384 512"><path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>';
+         const modalClose = document.createElement('div');
+         modalClose.className = 'modal-close';
+         modalClose.setAttribute('data-close-modal', '');
+         modalClose.textContent = '✕';
+
+         const modalContent = document.createElement('div');
+         modalContent.id = MODAL_CONTENT_SELECTOR_ID;
+         modalContent.className = 'modal-content';
+
+         const container = document.createElement('div');
+         container.className = 'modal-container';
+         container.append(modalClose);
+         container.append(modalContent);
+
+         modalContainer.append(container);
+
+         document.body.append(modalContainer);
+
+         // closeButton.innerHTML = NOVA.createSafeHTML(
+         //    `<svg xmlns="http://www.w3.org/2000/svg" height="1.5rem" viewBox="0 0 384 512">
+         //       <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z" />
+         //    </svg>`);
 
          // js
          // demo - https://www.cssscript.com/demo/lite-modal-javascript-library-modalite/
@@ -850,6 +1109,8 @@ window.nova_plugins.push({
             table.sortable th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):hover:after {
                position: absolute;
                content: " \\25B4\\25BE";
+               /* content: " ▼"; */
+               /* content: " ▽"; */
             }
 
             thead, th, td {
@@ -893,6 +1154,7 @@ window.nova_plugins.push({
 
             #${MODAL_CONTENT_SELECTOR_ID} tr:nth-child(even) {
                background-color: var(--yt-spec-menu-background);
+               background: color-mix(in srgb, currentColor 10%, transparent);
             }
 
             /*#${MODAL_CONTENT_SELECTOR_ID} td {
@@ -913,8 +1175,11 @@ window.nova_plugins.push({
                word-wrap: break-word;
             }
 
-            #${MODAL_CONTENT_SELECTOR_ID} tr.author {
+            #${MODAL_CONTENT_SELECTOR_ID} td .text-overflow-dynamic-ellipsis:hover{
+               max-height: 55vh !important;
             }
+
+            #${MODAL_CONTENT_SELECTOR_ID} tr.author { }
 
             #${MODAL_CONTENT_SELECTOR_ID} .author > td > .text-overflow-dynamic-ellipsis {
                background-color: rgba(0, 47, 144, .2);
@@ -929,11 +1194,9 @@ window.nova_plugins.push({
          // document.body.querySelector('table.sortable').style.cursor = 'wait';
          // document.body.querySelector('table.sortable').style.removeProperty('cursor')
 
-         // fork from https://github.com/dascritch/sorttable
-         return sorttable = { selector_tables: "table.sortable", class_sort_bottom: "sortbottom", class_no_sort: "sorttable_nosort", class_sorted: "sorttable_sorted", class_sorted_reverse: "sorttable_sorted_reverse", id_sorttable_sortfwdind: "sorttable_sortfwdind", id_sorttable_sortfrevind: "sorttable_sortrevind", icon_up: "&nbsp;&#x25B4;", icon_down: "&nbsp;&#x25BE;", regex_non_decimal: /[^0-9\.\-]/g, regex_trim: /^\s+|\s+$/g, regex_any_sorttable_class: /\bsorttable_([a-z0-9]+)\b/, init: function () { arguments.callee.done || (arguments.callee.done = !0, sorttable.forEach(document.querySelectorAll(sorttable.selector_tables), sorttable.makeSortable)) }, insert_thead_in_table: function (t) { 0 === t.getElementsByTagName("thead").length && (thead_element = document.createElement("thead"), thead_element.appendChild(t.rows[0]), t.insertBefore(thead_element, t.firstChild)) }, forEach: function (t, e, r) { if (t) { var s = Object; if (t instanceof Function) s = Function; else { if (t.forEach instanceof Function) return void t.forEach(e, r); "string" == typeof t ? s = String : "number" == typeof t.length && (s = Array) } s.forEach(t, e, r) } }, innerSortFunction: function (t) { if (this.classList.contains(sorttable.class_sorted)) return sorttable.reverse(this.sorttable_tbody), this.classList.remove(sorttable.class_sorted), this.classList.add(sorttable.class_sorted_reverse), this.removeChild(document.getElementById(sorttable.id_sorttable_sortfwdind)), sortrevind = document.createElement("span"), sortrevind.id = sorttable.id_sorttable_sortfrevind, sortrevind.innerHTML = sorttable.icon_up, this.appendChild(sortrevind), void t.preventDefault(); if (this.classList.contains(sorttable.class_sorted_reverse)) return sorttable.reverse(this.sorttable_tbody), this.classList.remove(sorttable.class_sorted_reverse), this.classList.add(sorttable.class_sorted), this.removeChild(document.getElementById(sorttable.id_sorttable_sortfrevind)), sortfwdind = document.createElement("span"), sortfwdind.id = sorttable.id_sorttable_sortfwdind, sortfwdind.innerHTML = sorttable.icon_down, this.appendChild(sortfwdind), void t.preventDefault(); theadrow = this.parentNode, sorttable.forEach(theadrow.childNodes, (function (t) { 1 == t.nodeType && (t.classList.remove(sorttable.class_sorted_reverse), t.classList.remove(sorttable.class_sorted)) })), sortfwdind = document.getElementById(sorttable.id_sorttable_sortfwdind), sortfwdind && sortfwdind.parentNode.removeChild(sortfwdind), sortrevind = document.getElementById(sorttable.id_sorttable_sortfrevind), sortrevind && sortrevind.parentNode.removeChild(sortrevind), this.classList.add(sorttable.class_sorted), sortfwdind = document.createElement("span"), sortfwdind.id = sorttable.id_sorttable_sortfwdind, sortfwdind.innerHTML = sorttable.icon_down, this.appendChild(sortfwdind), row_array = [], col = this.sorttable_columnindex, rows = this.sorttable_tbody.rows; for (var e = 0; e < rows.length; e++)row_array[row_array.length] = [sorttable.getInnerText(rows[e].cells[col]), rows[e]]; row_array.sort(this.sorttable_sortfunction), tb = this.sorttable_tbody; for (e = 0; e < row_array.length; e++)tb.appendChild(row_array[e][1]); t.preventDefault(), delete row_array }, makeSortable: function (t) { if (sorttable.insert_thead_in_table(t), null == t.tHead && (t.tHead = t.getElementsByTagName("thead")[0]), 1 == t.tHead.rows.length) { for (var e = [], r = 0; r < t.rows.length; r++)t.rows[r].classList.contains(sorttable.class_sort_bottom) && (e[e.length] = t.rows[r]); if (e) { if (null == t.tFoot) { var s = document.createElement("tfoot"); t.appendChild(s) } for (r = 0; r < e.length; r++)s.appendChild(e[r]) } var o = t.tHead.rows[0].cells; for (r = 0; r < o.length; r++)o[r].classList.contains(sorttable.class_no_sort) || (mtch = o[r].className.match(sorttable.regex_any_sorttable_class), mtch && (override = mtch[1]), mtch && "function" == typeof sorttable["sort_" + override] ? o[r].sorttable_sortfunction = sorttable["sort_" + override] : o[r].sorttable_sortfunction = sorttable.guessType(t, r), o[r].sorttable_columnindex = r, o[r].sorttable_tbody = t.tBodies[0], o[r].addEventListener("click", sorttable.innerSortFunction)) } }, guessType: function (t, e) { return sorttable.sort_alpha }, getInnerText: function (t) { if (!t) return ""; if (void 0 !== t.dataset && void 0 !== t.dataset.value) return t.dataset.value; if (hasInputs = "function" == typeof t.getElementsByTagName && t.getElementsByTagName("input").length, null != t.getAttribute("sorttable_customkey")) return t.getAttribute("sorttable_customkey"); if (void 0 !== t.textContent && !hasInputs) return t.textContent.replace(sorttable.regex_trim, ""); if (void 0 !== t.innerText && !hasInputs) return t.innerText.replace(sorttable.regex_trim, ""); if (void 0 !== t.text && !hasInputs) return t.text.replace(sorttable.regex_trim, ""); switch (t.nodeType) { case 3: if ("input" == t.nodeName.toLowerCase()) return t.value.replace(sorttable.regex_trim, ""); case 4: return t.nodeValue.replace(sorttable.regex_trim, ""); case 1: case 11: for (var e = "", r = 0; r < t.childNodes.length; r++)e += sorttable.getInnerText(t.childNodes[r]); return e.replace(sorttable.regex_trim, ""); default: return "" } }, reverse: function (t) { for (var e = [], r = 0; r < t.rows.length; r++)e[e.length] = t.rows[r]; for (r = e.length - 1; r >= 0; r--)t.appendChild(e[r]) }, sort_numeric: function (t, e) { var r = parseFloat(t[0].replace(sorttable.regex_non_decimal, "")); isNaN(r) && (r = 0); var s = parseFloat(e[0].replace(sorttable.regex_non_decimal, "")); return isNaN(s) && (s = 0), r - s }, sort_alpha: function (t, e) { return t[0] == e[0] ? 0 : t[0] < e[0] ? -1 : 1 }, shaker_sort: function (t, e) { for (var r = 0, s = t.length - 1, o = !0; o;) { o = !1; for (var a = r; a < s; ++a)if (e(t[a], t[a + 1]) > 0) { var n = t[a]; t[a] = t[a + 1], t[a + 1] = n, o = !0 } if (s-- , !o) break; for (a = s; a > r; --a)if (e(t[a], t[a - 1]) < 0) { n = t[a]; t[a] = t[a - 1], t[a - 1] = n, o = !0 } r++ } } };
+         // https://github.com/raingart/sorttable
+         return sorttable = { selectorTables: "table.sortable", classSortBottom: "sortbottom", classNoSort: "sorttable_nosort", classSorted: "sorttable_sorted", classSortedReverse: "sorttable_sorted_reverse", idSorttableSortfwdind: "sorttable_sortfwdind", idSorttableSortfrevind: "sorttable_sortrevind", iconUp: "&nbsp;&#x25B4;", iconDown: "&nbsp;&#x25BE;", regexNonDecimal: /[^0-9\.\-]/g, regexTrim: /^\s+|\s+$/g, regexAnySorttableClass: /\bsorttable_([a-z0-9]+)\b/, init() { sorttable.init.done || (sorttable.init.done = !0, document.querySelectorAll(sorttable.selectorTables).forEach(sorttable.makeSortable)) }, innerSortFunction(t, e) { d("wait"); const o = this.classList.contains(sorttable.classSorted), s = this.classList.contains(sorttable.classSortedReverse); if (o || s) return sorttable.reverse(this.sorttable_tbody), c(this, s), void t.preventDefault(); const r = [], a = this.sorttable_columnindex, n = this.sorttable_tbody.rows; for (let t = 0; t < n.length; t++)r.push([sorttable.getInnerText(n[t].cells[a]), n[t]]); r.sort(this.sorttable_sortfunction), c(this, !0); const l = this.sorttable_tbody, i = document.createDocumentFragment(); for (let t = 0; t < r.length; t++)i.append(r[t][1]); function c(t, e) { const { id: o, icon: s } = e ? { id: sorttable.idSorttableSortfwdind, icon: sorttable.iconDown } : { id: sorttable.idSorttableSortfrevind, icon: sorttable.iconUp }; document.getElementById(sorttable.idSorttableSortfwdind)?.remove(), document.getElementById(sorttable.idSorttableSortfrevind)?.remove(); const r = document.createElement("span"); r.id = o, r.innerHTML = NOVA.createSafeHTML(s), t.append(r), t.classList.remove(sorttable.classSorted, sorttable.classSortedReverse), t.classList.add(e ? sorttable.classSorted : sorttable.classSortedReverse), d() } function d(t = null) { e.style.cursor = t } l.append(i), t.preventDefault() }, makeSortable(t) { if (!t.tHead) { const e = document.createElement("thead"); t.insertBefore(e, t.firstChild) } if (1 !== t.tHead.rows.length) return; const e = Array.from(t.rows).filter((t => t.classList.contains(sorttable.classSortBottom))); if (e.length) { let o = t.tFoot; o || (o = document.createElement("tfoot"), t.append(o)); const s = document.createDocumentFragment(); e.forEach((t => s.append(t))), o.append(s) } const o = t.tHead.rows[0].cells; for (let e = 0; e < o.length; e++) { const s = o[e]; if (!s.classList.contains(sorttable.classNoSort)) { const o = s.className.match(sorttable.regexAnySorttableClass)?.[1]; s.sorttable_sortfunction = o ? sorttable[`sort_${o}`] : sorttable.guessType(t, e), s.sorttable_columnindex = e, s.sorttable_tbody = t.tBodies[0] } } t.tHead.addEventListener("click", (e => { const o = e.target; "TH" !== o.tagName || o.classList.contains(sorttable.classNoSort) || sorttable.innerSortFunction.call(o, e, t) })) }, guessedTypesCache: new WeakMap, guessType(t, e) { const o = this.guessedTypesCache.get(t) || new Map; if (o.has(e)) return o.get(e); const s = []; for (let o = 0; o < t.rows.length; o++) { const r = t.rows[o].cells[e]; if (r.textContent?.trim()) { s.push(sorttable.sort_alpha); break } } return o.set(e, columnType), this.guessedTypesCache.set(t, o), columnType }, innerTextCache: new WeakMap, getInnerText(t) { if (!t) return ""; if (t.dataset && t.dataset.value) return t.dataset.value; if (customkey = t.getAttribute("sorttable_customkey")) return customkey; const e = sorttable.innerTextCache.get(t); if (void 0 !== e) return e; const o = "function" == typeof t?.getElementsByTagName && t.getElementsByTagName("input").length, s = t.textContent?.trim() || t.innerText?.trim() || t.text?.trim(); if (s && !o) return s; let r = ""; switch (t.nodeType) { case 3: "input" === t.nodeName.toLowerCase() && (r = t.value.trim()); break; case 1: for (let e = 0; e < t.childNodes.length; e++)r += sorttable.getInnerText(t.childNodes[e]) }return sorttable.innerTextCache.set(t, r.trim()), r.trim() }, reverse(t) { Array.from(t.rows).reverse().forEach((e => t.append(e))) }, sort_numeric: (t, e) => parseFloat(t[0].replace(sorttable.regexNonDecimal, "")) - parseFloat(e[0].replace(sorttable.regexNonDecimal, "")), sort_alpha: (t, e) => t[0].localeCompare(e[0]), shakerSort(t, e) { let o = 0, s = t.length - 1; for (; o < s;)r(t, e, o, s), s-- , a(t, e, o, s), o++; function r(t, e, o, s) { let r = !1; for (let a = o; a < s; a++)e(t[a], t[a + 1]) > 0 && ([t[a], t[a + 1]] = [t[a + 1], t[a]], r = !0); return r } function a(t, e, o, s) { let r = !1; for (let a = s; a > o; a--)e(t[a], t[a - 1]) < 0 && ([t[a], t[a - 1]] = [t[a - 1], t[a]], r = !0); return r } } };
 
-         // a little simplified ver. for https://www.kryogenix.org/code/browser/sorttable/
-         // function dean_addEvent(t, e, r) { if (t.addEventListener) t.addEventListener(e, r, !1); else { r.$$guid || (r.$$guid = dean_addEvent.guid++), t.events || (t.events = {}); var o = t.events[e]; o || (o = t.events[e] = {}, t["on" + e] && (o[0] = t["on" + e])), o[r.$$guid] = r, t["on" + e] = handleEvent } } function handleEvent(t) { var e = !0; t = t || fixEvent(((this.ownerDocument || this.document || this).parentWindow || window).event); var r = this.events[t.type]; for (var o in r) this.$$handleEvent = r[o], !1 === this.$$handleEvent(t) && (e = !1); return e } function fixEvent(t) { return t.preventDefault = fixEvent.preventDefault, t.stopPropagation = fixEvent.stopPropagation, t } sorttable = { makeSortable: function (t) { if (0 == t.getElementsByTagName("thead").length && (the = document.createElement("thead"), the.appendChild(t.rows[0]), t.insertBefore(the, t.firstChild)), null == t.tHead && (t.tHead = t.getElementsByTagName("thead")[0]), 1 == t.tHead.rows.length) { sortbottomrows = []; for (var e = 0; e < t.rows.length; e++)-1 != t.rows[e].className.search(/\bsortbottom\b/) && (sortbottomrows[sortbottomrows.length] = t.rows[e]); if (sortbottomrows) { null == t.tFoot && (tfo = document.createElement("tfoot"), t.appendChild(tfo)); for (e = 0; e < sortbottomrows.length; e++)tfo.appendChild(sortbottomrows[e]); delete sortbottomrows } headrow = t.tHead.rows[0].cells; for (e = 0; e < headrow.length; e++)headrow[e].className.match(/\bsorttable_nosort\b/) || (mtch = headrow[e].className.match(/\bsorttable_([a-z0-9]+)\b/), mtch && (override = mtch[1]), mtch && "function" == typeof sorttable["sort_" + override] ? headrow[e].sorttable_sortfunction = sorttable["sort_" + override] : headrow[e].sorttable_sortfunction = sorttable.guessType(t, e), headrow[e].sorttable_columnindex = e, headrow[e].sorttable_tbody = t.tBodies[0], dean_addEvent(headrow[e], "click", sorttable.innerSortFunction = function (t) { if (-1 != this.className.search(/\bsorttable_sorted\b/)) return sorttable.reverse(this.sorttable_tbody), this.className = this.className.replace("sorttable_sorted", "sorttable_sorted_reverse"), this.removeChild(document.getElementById("sorttable_sortfwdind")), sortrevind = document.createElement("span"), sortrevind.id = "sorttable_sortrevind", sortrevind.innerHTML = "&nbsp;&#x25B4;", void this.appendChild(sortrevind); if (-1 != this.className.search(/\bsorttable_sorted_reverse\b/)) return sorttable.reverse(this.sorttable_tbody), this.className = this.className.replace("sorttable_sorted_reverse", "sorttable_sorted"), this.removeChild(document.getElementById("sorttable_sortrevind")), sortfwdind = document.createElement("span"), sortfwdind.id = "sorttable_sortfwdind", sortfwdind.innerHTML = "&nbsp;&#x25BE;", void this.appendChild(sortfwdind); theadrow = this.parentNode, forEach(theadrow.childNodes, (function (t) { 1 == t.nodeType && (t.className = t.className.replace("sorttable_sorted_reverse", ""), t.className = t.className.replace("sorttable_sorted", "")) })), sortfwdind = document.getElementById("sorttable_sortfwdind"), sortfwdind && sortfwdind.parentNode.removeChild(sortfwdind), sortrevind = document.getElementById("sorttable_sortrevind"), sortrevind && sortrevind.parentNode.removeChild(sortrevind), this.className += " sorttable_sorted", sortfwdind = document.createElement("span"), sortfwdind.id = "sorttable_sortfwdind", sortfwdind.innerHTML = "&nbsp;&#x25BE;", this.appendChild(sortfwdind), row_array = [], col = this.sorttable_columnindex, rows = this.sorttable_tbody.rows; for (var e = 0; e < rows.length; e++)row_array[row_array.length] = [sorttable.getInnerText(rows[e].cells[col]), rows[e]]; row_array.sort(this.sorttable_sortfunction).reverse(), tb = this.sorttable_tbody; for (e = 0; e < row_array.length; e++)tb.appendChild(row_array[e][1]); delete row_array })) } }, guessType: function (t, e) { sortfn = sorttable.sort_alpha; for (var r = 0; r < t.tBodies[0].rows.length; r++)if (text = sorttable.getInnerText(t.tBodies[0].rows[r].cells[e]), "" != text && text.match(/^-?[£$¤]?[\d,.]+%?$/)) return sorttable.sort_numeric; return sortfn }, getInnerText: function (t) { if (!t) return ""; if (hasInputs = "function" == typeof t.getElementsByTagName && t.getElementsByTagName("input").length, null != t.getAttribute("sorttable_customkey")) return t.getAttribute("sorttable_customkey"); if (void 0 !== t.textContent && !hasInputs) return t.textContent.replace(/^\s+|\s+$/g, ""); if (void 0 !== t.innerText && !hasInputs) return t.innerText.replace(/^\s+|\s+$/g, ""); if (void 0 !== t.text && !hasInputs) return t.text.replace(/^\s+|\s+$/g, ""); switch (t.nodeType) { case 3: if ("input" == t.nodeName.toLowerCase()) return t.value.replace(/^\s+|\s+$/g, ""); case 4: return t.nodeValue.replace(/^\s+|\s+$/g, ""); case 1: case 11: for (var e = "", r = 0; r < t.childNodes.length; r++)e += sorttable.getInnerText(t.childNodes[r]); return e.replace(/^\s+|\s+$/g, ""); default: return "" } }, reverse: function (t) { newrows = []; for (var e = 0; e < t.rows.length; e++)newrows[newrows.length] = t.rows[e]; for (e = newrows.length - 1; e >= 0; e--)t.appendChild(newrows[e]); delete newrows }, sort_numeric: function (t, e) { return aa = parseFloat(t[0].replace(/[^0-9.-]/g, "")), isNaN(aa) && (aa = 0), bb = parseFloat(e[0].replace(/[^0-9.-]/g, "")), isNaN(bb) && (bb = 0), aa - bb }, sort_alpha: function (t, e) { return t[0].localeCompare(e[0]) } }, dean_addEvent.guid = 1, fixEvent.preventDefault = function () { this.returnValue = !1 }, fixEvent.stopPropagation = function () { this.cancelBubble = !0 }, Function.prototype.forEach = function (t, e, r) { for (var o in t) void 0 === this.prototype[o] && e.call(r, t[o], o, t) }, String.forEach = function (t, e, r) { Array.forEach(t.split(""), (function (o, n) { e.call(r, o, n, t) })) }; var forEach = function (t, e, r) { if (t) { var o = Object; if (t instanceof Function) o = Function; else { if (t.forEach instanceof Function) return void t.forEach(e, r); "string" == typeof t ? o = String : "number" == typeof t.length && (o = Array) } o.forEach(t, e, r) } };
       }
 
    },

@@ -32,13 +32,13 @@ window.nova_plugins.push({
    // 'desc:ua': 'Перемістити елементи керування плеєром до низу',
    _runtime: user_settings => {
 
-      // alt1 - https://chrome.google.com/webstore/detail/chpodcedholiggcllnmmjlnghllddgmj
+      // alt1 - https://chromewebstore.google.com/detail/chpodcedholiggcllnmmjlnghllddgmj
       // alt2 - https://greasyfork.org/en/scripts/469704-youtube-player-controls-below-video
       // alt3 - https://greasyfork.org/en/scripts/976-youtube-right-side-description
       // alt4 - https://greasyfork.org/en/scripts/474286-always-show-the-control-bar-below-the-video
       // alt5 - https://chromewebstore.google.com/detail/gmlbhbdkhnfhhmhdjopdbcfliajcafde
 
-      // if (['cinema_mode', 'force'].includes(user_settings.player_full_viewport_mode)) return; // conflict with plugin [theater-mode]
+      // if (['cinema', 'force'].includes(user_settings.player_full_viewport_mode)) return; // conflict with plugin [theater-mode]
       // if (user_settings['player-float-progress-bar']) return; // conflict with plugin [player-float-progress-bar]
 
       NOVA.waitSelector('.ytp-chrome-bottom')
@@ -49,7 +49,7 @@ window.nova_plugins.push({
                && (heightProgressBar = NOVA.css.get('.ytp-progress-bar-container', 'height'))
             ) {
                const height = `calc(${heightPanel} + ${heightProgressBar})` || '51px';
-               let SELECTOR_CONTAINER = 'ytd-watch-flexy:not([fullscreen])';
+               let SELECTOR_CONTAINER = '.ytd-page-manager[video-id]:not([fullscreen])';
 
                // fix for [theater-mode] plugin
                // if (user_settings.player_full_viewport_mode) {
@@ -85,7 +85,7 @@ window.nova_plugins.push({
                   }
 
                   /* fix control (overflow-x) */
-                  ${SELECTOR_CONTAINER} .html5-video-player {
+                  ${SELECTOR_CONTAINER} #movie_player {
                      overflow: visible;
                   }
 
@@ -128,22 +128,19 @@ window.nova_plugins.push({
                         display: none !important;
                      }`);
                }
-               // fixControlFreeze.apply(document.body.querySelector('ytd-watch-flexy')); // for - this.hasAttribute('fullscreen')
                fixControlFreeze();
             }
          });
 
       // moveMousePeriodic
       // this.mouseMoveIntervalId = fixControlFreeze()
-      // fixControlFreeze. copy of the function is also in plugin [player-control-autohide]
-      function fixControlFreeze(ms = 2000) {
+      function fixControlFreeze(ms = 2000) { // copy of the function in plugin [player-control-autohide]
          if (user_settings.player_hide_elements?.includes('time_display')
             || (user_settings['theater-mode'] && ['force', 'offset'].includes(user_settings.player_full_viewport_mode))
          ) {
             return;
          }
          // if (typeof this.mouseMoveIntervalId === 'number') clearTimeout(this.mouseMoveIntervalId); // reset timeout
-         // const moveMouse = new Event('mousemove');
          // this.mouseMoveIntervalId = setInterval(() => {
          return setInterval(() => {
             if (user_settings['theater-mode']
@@ -161,7 +158,7 @@ window.nova_plugins.push({
                && !document.fullscreenElement // this.hasAttribute('fullscreen')
             ) {
                // console.debug('wakeUpControls');
-               // movie_player.dispatchEvent(moveMouse);
+               // movie_player.dispatchEvent(new Event('mousemove'));
                movie_player.wakeUpControls();
             }
          }, ms);

@@ -261,7 +261,7 @@ window.nova_plugins.push({
                // 'label:ua': '',
             },
             {
-               label: 'play / stop live', value: 'play_button',
+               label: 'play/stop live', value: 'play_button',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',

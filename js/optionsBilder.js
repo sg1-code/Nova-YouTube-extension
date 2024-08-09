@@ -1,10 +1,10 @@
-console.debug('init optionsView.js');
+console.debug('init optionsBilder.js');
 
 // alt1 - https://github.com/colejd/guify
 // alt2 - https://github.com/timtnleeProject/skeletons
+// alt3 - https://github.com/efemkay/obsidian-modular-css-layout
 
 window.nova_plugins = [];
-Plugins.load();
 
 const Opt = {
    // DEBUG: true,
@@ -246,7 +246,8 @@ const Opt = {
                         label.textContent = value;
                         label.htmlFor = (property.type?.toLowerCase() == 'radio') ? name : property.name;
                         exportContainer.append(label);
-                        // exportContainer.insertAdjacentHTML('beforeend", '<label>' + value + '</label>');
+                        // exportContainer.insertAdjacentHTML('beforeend", NOVA.createSafeHTML('<label>' + value + '</label>');
+                        // exportContainer.insertAdjacentHTML('beforeend", NOVA.createSafeHTML('<label>' + value + '</label>'));
                         break;
 
                      case 'type':
@@ -259,9 +260,8 @@ const Opt = {
                   };
                });
 
-            exportHTML
-               .appendChild(exportContainer)
-               .append(exportProperty);
+            exportContainer.append(exportProperty);
+            exportHTML.append(exportContainer);
          }
          return exportHTML;
       },
@@ -283,6 +283,8 @@ const Opt = {
    },
 
    eventListener() {
+      // tab selector
+      if (tabId = new URLSearchParams(location.search).get('tabs')) Opt.openTab(tabId);
       // appearance map
       document.body.querySelectorAll('.appearance > *')
          .forEach(mapZone => {
@@ -342,86 +344,101 @@ const Opt = {
          });
 
       // group spoiler
-      if (document.body.clientWidth < 350) { // check in popup
-         document.body.querySelectorAll(this.UI.pluginsContainer + '> ul')
-            .forEach(ul => ul.addEventListener('click', ({ target }) => {
-               target.classList.toggle('collapse')
-               target.querySelectorAll('li.item').forEach(li => li.classList.toggle('hide'));
-            }));
+      // if (document.body.clientWidth < 350) { // check in popup
+      document.body.querySelectorAll(this.UI.pluginsContainer + '> ul')
+         .forEach(ul => ul.addEventListener('click', ({ target }) => {
+            target.classList.toggle('collapse')
+            target.querySelectorAll('li.item').forEach(li => li.classList.toggle('hide'));
+         }));
+      // }
+
+      // reload page after localization change
+      document.addEventListener('submit', evt => {
+         if (evt.target?.lang_code.value != Opt.lang_code) Opt.openTab('tab-plugins', 'reload_page');
+      });
+
+      // search bar
+      const searchInput = document.body.querySelector('form input[type=search]');
+      ['change', 'keyup'].forEach(evt => {
+         searchInput
+            .addEventListener(evt, function () {
+               searchFilterHTML({
+                  'keyword': this.value,
+                  'filter_selectors': `${Opt.UI.pluginsContainer} li.item`,
+                  'highlight_selector': 'label',
+                  // 'highlight_class': 'nova-mark-text',
+               });
+            });
+         document.getElementById('search_clear')
+            .addEventListener('click', () => {
+               searchInput.value = '';
+               searchInput.dispatchEvent(new Event('change')); // run searchFilterHTML
+            });
+      });
+
+      function searchFilterHTML({
+         keyword = required(),
+         filter_selectors = required(),
+         highlight_selector,
+         highlight_class,
+      }) {
+         // console.debug('searchFilterHTML:', ...arguments);
+         keyword = keyword.toString().toLowerCase();
+
+         document.body.querySelectorAll(filter_selectors)
+            .forEach(item => {
+               const
+                  text = item.textContent,
+                  // text = item.getAttribute('tooltip'),
+                  hasText = text?.toLowerCase().includes(keyword),
+                  highlight = el => {
+                     if (el.innerHTML.includes('<mark ')) {
+                        // el.innerHTML = el.textContent
+                        el.innerHTML = el.innerHTML
+                           .replace(/<\/?mark[^>]*>/g, ''); // clear highlight tags
+                     }
+                     item.style.display = hasText ? '' : 'none'; // hide el out of search
+                     if (hasText && keyword) {
+                        highlightTerm({
+                           'target': el,
+                           'keyword': keyword,
+                           'highlightClass': highlight_class,
+                        });
+                     }
+                  };
+
+               (highlight_selector ? item.querySelectorAll(highlight_selector) : [item])
+                  .forEach(highlight);
+            });
+
+         function highlightTerm({ target = required(), keyword = required(), highlightClass }) {
+            // console.debug('highlightTerm:', ...arguments);
+            const
+               // content = target.innerHTML,
+               content = target.textContent,
+               pattern = new RegExp('(>[^<.]*)?(' + keyword + ')([^<.]*)?', 'gi'),
+               highlightStyle = highlightClass ? `class="${highlightClass}"` : 'style="background-color:#afafaf"',
+               replaceWith = `$1<mark ${highlightStyle}>$2</mark>$3`,
+               marked = content.replaceAll(pattern, replaceWith);
+
+            return (target.innerHTML = marked) !== content;
+         }
       }
 
-      // export setting
-      document.getElementById('settings_export')
-         ?.addEventListener('click', () => {
-            Storage.getParams(user_settings => {
-               const d = document.createElement('a');
-               d.style.display = 'none';
-               d.setAttribute('download', 'nova-settings.json');
-               d.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(user_settings)));
-               document.body.append(d);
-               d.click();
-               console.debug('Settings file exported:', d.download);
-               document.body.removeChild(d);
-            }, storageMethod);
-         });
-
-      // import setting
-      document.getElementById('settings_import')
-         ?.addEventListener('click', () => {
-            // check in popup
-            if (document.body.clientWidth < 350) {
-               // if (confirm(i18n('opt_import_popup'))) browser.runtime.openOptionsPage();
-               if (confirm(i18n('opt_prompt_import_settings'))) {
-                  // browser.runtime.openOptionsPage();
-                  const urlOptionsPage = new URL(browser.runtime.getURL(
-                     browser.runtime.getManifest().options_ui?.page// || options_page
-                  )); // manifest v2
-                  // const urlOptionsPage = new URL(browser.extension.getURL(browser.runtime.getManifest().options_page)); // manifest v3
-                  urlOptionsPage.searchParams.set('tabs', 'tab-other');
-                  window.open(urlOptionsPage.href);
-               }
-               return;
-            }
-            const f = document.createElement('input');
-            f.type = 'file';
-            f.accept = 'application/JSON';
-            f.style.display = 'none';
-            f.addEventListener('change', ({ target }) => {
-               if (f.files.length !== 1) return alert('file empty');
-               const rdr = new FileReader();
-               rdr.addEventListener('load', () => {
-                  try {
-                     Storage.setParams(JSON.parse(rdr.result), storageMethod);
-                     alert(i18n('opt_alert_import_successfully'));
-                     // location.reload();
-                     this.openTab('tab-plugins', 'reload_page');
-                  }
-                  catch (err) { alert('Error parsing settings\n' + err.name + ": " + err.message); }
-               });
-               rdr.addEventListener('error', error => alert('Error loading file\n' + rdr.error));
-               rdr.readAsText(target.files[0]);
-            });
-            document.body.append(f);
-            f.click();
-            document.body.removeChild(f);
-         });
-
-      // reset setting
-      document.getElementById('settings_reset')
-         ?.addEventListener('click', () => {
-            if (confirm(i18n('opt_prompt_reset_settings'))) {
-               Storage.setParams(null, storageMethod);
-               // location.reload();
-               this.openTab('tab-plugins', 'reload_page');
-            }
-         });
-
-      function switchClass({ remove_to_selector, add_to_selector, class_name = required() }) {
+      function switchClass({
+         remove_to_selector,
+         add_to_selector,
+         class_name = required(),
+      }) {
          // console.debug('switchClass:', ...arguments);
          // hide all
-         if (remove_to_selector) document.body.querySelectorAll(remove_to_selector).forEach(i => i.classList.remove(class_name));
+         if (remove_to_selector) {
+            document.body.querySelectorAll(remove_to_selector).forEach(i => i.classList.remove(class_name));
+         }
          // target show
-         if (add_to_selector) document.body.querySelectorAll(add_to_selector).forEach(i => i.classList.add(class_name));
+         if (add_to_selector) {
+            document.body.querySelectorAll(add_to_selector).forEach(i => i.classList.add(class_name));
+         }
       }
    },
 
@@ -439,15 +456,11 @@ const Opt = {
    },
 };
 
-
-window.addEventListener('load', () => {
-   // tab selector
-   if (tabId = new URLSearchParams(location.search).get('tabs')) Opt.openTab(tabId);
-
-   // load
+document.addEventListener('settings-sync', () => {
+   Opt.init();
+   // load settings
    Storage.getParams(settings => {
       if (settings?.lang_code) Opt.lang_code = settings.lang_code; // locale predefinitions
-      Opt.init();
       PopulateForm.init();
       // remove api warn if has api
       if (settings && settings['user-api-key']) {
@@ -455,38 +468,6 @@ window.addEventListener('load', () => {
       }
       pluginConflictDisable();
    }, storageMethod);
-
-   // search bar
-   const searchInput = document.body.querySelector('form input[type=search]');
-   ['change', 'keyup'].forEach(evt => {
-      searchInput
-         .addEventListener(evt, function () {
-            searchFilterHTML({
-               'keyword': this.value,
-               'filter_selectors': `${Opt.UI.pluginsContainer} li.item`,
-               'highlight_selector': 'label',
-               // 'highlight_class': 'nova-mark-text',
-            });
-         });
-      document.getElementById('search_clear')
-         .addEventListener('click', () => {
-            searchInput.value = '';
-            searchInput.dispatchEvent(new Event('change')); // run searchFilterHTML
-         });
-   });
-
-   // reload page after localization change
-   document.addEventListener('submit', evt => {
-      if (evt.target?.lang_code.value != Opt.lang_code) Opt.openTab('tab-plugins', 'reload_page');
-   });
-
-   if (typeof chrome !== 'undefined') {
-      // add script info to open issues link
-      document.body.querySelector('a[href$="issues/new"]')
-         .addEventListener('click', ({ target }) => {
-            target.href += '?body=' + encodeURIComponent(browser.runtime.getManifest().version + ' | ' + navigator.userAgent) + '&labels=bug&template=bug_report.md';
-         });
-   }
 
    function pluginConflictDisable() {
       const attributeName = 'plugins-conflict';
@@ -529,48 +510,4 @@ window.addEventListener('load', () => {
             });
          });
    }
-
-   function searchFilterHTML({ keyword = required(), filter_selectors = required(), highlight_selector, highlight_class }) {
-      // console.debug('searchFilterHTML:', ...arguments);
-      keyword = keyword.toString().toLowerCase();
-
-      document.body.querySelectorAll(filter_selectors)
-         .forEach(item => {
-            const
-               text = item.textContent,
-               // text = item.getAttribute('tooltip'),
-               hasText = text?.toLowerCase().includes(keyword),
-               highlight = el => {
-                  if (el.innerHTML.includes('<mark ')) {
-                     // el.innerHTML = el.textContent
-                     el.innerHTML = el.innerHTML
-                        .replace(/<\/?mark[^>]*>/g, ''); // clear highlight tags
-                  }
-                  item.style.display = hasText ? '' : 'none'; // hide el out of search
-                  if (hasText && keyword) {
-                     highlightTerm({
-                        'target': el,
-                        'keyword': keyword,
-                        'highlightClass': highlight_class,
-                     });
-                  }
-               };
-
-            (highlight_selector ? item.querySelectorAll(highlight_selector) : [item])
-               .forEach(highlight);
-         });
-
-      function highlightTerm({ target = required(), keyword = required(), highlightClass }) {
-         // console.debug('highlightTerm:', ...arguments);
-         const
-            // content = target.innerHTML,
-            content = target.textContent,
-            pattern = new RegExp('(>[^<.]*)?(' + keyword + ')([^<.]*)?', 'gi'),
-            highlightStyle = highlightClass ? `class="${highlightClass}"` : 'style="background-color:#afafaf"',
-            replaceWith = `$1<mark ${highlightStyle}>$2</mark>$3`,
-            marked = content.replaceAll(pattern, replaceWith);
-
-         return (target.innerHTML = marked) !== content;
-      }
-   }
-});
+}, { capture: true, once: true });

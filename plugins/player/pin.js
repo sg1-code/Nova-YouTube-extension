@@ -42,8 +42,8 @@ window.nova_plugins.push({
    // 'plugins-conflict': 'player-pip',
    _runtime: user_settings => {
 
-      // alt1 - https://chrome.google.com/webstore/detail/aeilijiaejfdnbagnpannhdoaljpkbhe
-      // alt2 - https://chrome.google.com/webstore/detail/mcodbccegmndmnbpbgkpdkoleoagjpgk
+      // alt1 - https://chromewebstore.google.com/detail/aeilijiaejfdnbagnpannhdoaljpkbhe
+      // alt2 - https://chromewebstore.google.com/detail/mcodbccegmndmnbpbgkpdkoleoagjpgk
       // alt3 - https://greasyfork.org/en/scripts/444382-youtube-mini-player
       // alt4 - https://greasyfork.org/en/scripts/472053-video-popout-and-no-scroll-on-click-timestamps
       // alt5 - https://greasyfork.org/en/scripts/484817-youtube-video-auto-pop-out
@@ -115,7 +115,7 @@ window.nova_plugins.push({
             document.addEventListener('fullscreenchange', () =>
                document.fullscreenElement && movie_player.classList.remove(CLASS_VALUE)
             );
-            // ytd-watch-flexy:not([fullscreen])
+            // .ytd-page-manager[video-id]:not([fullscreen])
 
             // resize on video change
             NOVA.waitSelector('#movie_player video')
@@ -161,14 +161,14 @@ window.nova_plugins.push({
                   }
                }, { capture: false });
                // save scroll pos
-               // Strategy 1
+               // Solution 1
                document.addEventListener('fullscreenchange', () => {
                   if (document.fullscreenElement) {
                      scrollPos = document.documentElement.scrollTop;
                      // console.debug('scrollPos:', scrollPos, document.documentElement.scrollTop);
                   }
                }, { capture: true });
-               // Strategy 2
+               // Solution 2
                // document.addEventListener('yt-action', evt => {
                //    // console.debug(evt.detail?.actionName);
                //    switch (evt.detail?.actionName) {
@@ -195,12 +195,12 @@ window.nova_plugins.push({
       function initMiniStyles() {
          const scrollbarWidth = (window.innerWidth - document.documentElement.clientWidth || 0) + 'px';
          const miniSize = NOVA.aspectRatio.sizeToFit({
-            // 'srcWidth': movie_player.clientWidth,
-            // 'srcHeight': movie_player.clientHeight,
-            'srcWidth': NOVA.videoElement.videoWidth,
-            'srcHeight': NOVA.videoElement.videoHeight,
-            'maxWidth': (window.innerWidth / user_settings.player_float_scroll_size_ratio),
-            'maxHeight': (window.innerHeight / user_settings.player_float_scroll_size_ratio),
+            // 'src_width': movie_player.clientWidth,
+            // 'src_height': movie_player.clientHeight,
+            'src_width': NOVA.videoElement.videoWidth,
+            'src_height': NOVA.videoElement.videoHeight,
+            'max_width': (window.innerWidth / user_settings.player_float_scroll_size_ratio),
+            'max_height': (window.innerHeight / user_settings.player_float_scroll_size_ratio),
          });
 
          let initcss = {
@@ -266,7 +266,7 @@ window.nova_plugins.push({
                NOVA.css.get('.ytp-chrome-top .ytp-cards-button', 'z-index'),
                NOVA.css.get('#chat', 'z-index'),
                NOVA.css.get('ytrb-bar', 'z-index'), // update. fix conflict with https://github.com/elliotwaite/thumbnail-rating-bar-for-youtube
-               // NOVA.css.get('#description.ytd-watch-metadata', 'z-index'), // consider plugin [description-popup]
+               // NOVA.css.get('#description.ytd-watch-metadata', 'z-index'), // consider plugin [description-dropdown]
                601)};
             }
             ${PINNED_SELECTOR} video {

@@ -19,7 +19,7 @@ browser.runtime.onInstalled.addListener(details => {
             // Default options
             // if (confirm(`${manifest.short_name}: no configuration data found!\nActivate default plugins and settings?`)) {
             //    const defaultSettings = { };
-            //    Storage.setParams(defaultSettings, 'sync');
+            //    Storage.setParams(defaultSettings, storageMethod);
             //    console.debug('Apply default configuration');
 
             // } else {
@@ -106,6 +106,12 @@ browser.runtime.onInstalled.addListener(details => {
                   'comments_sort_words_blocklist': 'comments_sort_blocklist',
                   'thumbnails-title-normalize': 'thumbs-title-normalize',
                   'time_remaining_mode': 'time_remaining_format',
+                  'player_buttons_custom_screenshot': 'player_buttons_custom_screenshot_format',
+                  'description-popup': 'description-dropdown',
+                  'comments-popup': 'comments-dropdown',
+                  'comments_popup_width': 'comments_dropdown_width',
+                  'comments_popup_hide_textarea': 'comments_dropdown_hide_textarea',
+                  'thumbs_title_show_full': 'thumbs-title-show-full',
                };
                for (const oldKey in settings) {
                   if (newKey = keyRenameTemplate[oldKey]) {

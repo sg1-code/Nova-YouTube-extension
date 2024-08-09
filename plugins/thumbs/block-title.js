@@ -19,7 +19,9 @@ window.nova_plugins.push({
    // desc: '',
    _runtime: user_settings => {
 
-      // alt - https://github.com/amitbl/blocktube
+      // alt1 - https://github.com/amitbl/blocktube
+      // alt2 - https://greasyfork.org/en/scripts/419657-youtube-filter-subscriptions-page
+      // alt3 - https://greasyfork.org/en/scripts/500798-youtube-filter-channel-comment-video
 
       // textarea to array
       const BLOCK_KEYWORDS = NOVA.strToArray(user_settings.thumbs_filter_title_blocklist?.toLowerCase());
@@ -37,7 +39,7 @@ window.nova_plugins.push({
          .join(',');
 
       if (NOVA.isMobile) {
-         // Strategy 1. Slowdown but work in mobile and desktop
+         // Solution 1. Slowdown but work in mobile and desktop
          NOVA.watchElements({
             selectors: ['#video-title:not(:empty)'],
             attr_mark: 'nova-thumb-title-filtered',
@@ -55,7 +57,14 @@ window.nova_plugins.push({
          });
       }
       else {
-         // Strategy 2 (optimized but doesn't work in mobile)
+         // Solution 1 (HTML5). page update event
+         document.addEventListener('scrollend', function self() {
+            if (typeof self.timeout === 'number') clearTimeout(self.timeout);
+            self.timeout = setTimeout(hideThumb, 50); // 50ms
+         });
+
+         // Solution 2 (API). page update event
+         // Solution 2 (optimized but doesn't work in mobile)
          // page update event
          document.addEventListener('yt-action', evt => {
             // console.debug(evt.detail?.actionName);
@@ -75,9 +84,6 @@ window.nova_plugins.push({
                   // console.debug(evt.detail?.actionName); // flltered
                   hideThumb();
                   break;
-
-               // default:
-               //    break;
             }
          });
 

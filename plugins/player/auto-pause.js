@@ -42,7 +42,14 @@ window.nova_plugins.push({
       // conflict with plugin [user_settings.player_buttons_custom_items?.indexOf('popup')], [embed-redirect-popup]
       if (NOVA.queryURL.has('popup')) return;
 
-      if (user_settings.video_autopause_embed && NOVA.currentPage != 'embed') return;
+      if (user_settings.video_autopause_embed && NOVA.currentPage != 'embed'
+         // for video_autopause_comment_link
+         && (!user_settings.video_autopause_comment_link
+            || (user_settings.video_autopause_comment_link && !NOVA.queryURL.has('lc')) //!location.search.includes('$lc=')
+         )
+      ) {
+         return;
+      }
 
       // skip stoped embed - https://www.youtube.com/embed/668nUCeBHyY?autoplay=1
       if (NOVA.currentPage == 'embed'
@@ -52,10 +59,12 @@ window.nova_plugins.push({
          return;
       }
 
-      // Strategy 1
+      // Solution 1
       NOVA.waitSelector('#movie_player video')
          .then(video => {
-            if (user_settings.video_autopause_ignore_live && movie_player.getVideoData().isLive) return;
+            if (!user_settings.video_autostop_comment_link || (user_settings.video_autostop_comment_link && !NOVA.queryURL.has('lc'))) {
+               if (user_settings.video_autopause_ignore_live && movie_player.getVideoData().isLive) return;
+            }
 
             pauseVideo.apply(video); // init
             // video.addEventListener('canplay', pauseVideo, { capture: true, once: true }); // update
@@ -100,9 +109,9 @@ window.nova_plugins.push({
             navigator.mediaSession.setActionHandler('play', restorePlayFn); // add Media hotkeys support
             document.addEventListener('click', evt => {
                if (evt.isTrusted
-                  // Strategy 1. Universal, click is inside the player
+                  // Solution 1. Universal, click is inside the player
                   && evt.target.closest('#movie_player') // movie_player.contains(document.activeElement)
-                  // Strategy 2. Click from some elements
+                  // Solution 2. Click from some elements
                   // && ['button[class*="play-button"]',
                   //    '.ytp-cued-thumbnail-overlay-image',
                   //    '.ytp-player-content'
@@ -126,7 +135,7 @@ window.nova_plugins.push({
             }
          });
 
-      // Strategy 2. Doesn't work (https://github.com/raingart/Nova-YouTube-extension/issues/123)
+      // Solution 2. Doesn't work (https://github.com/raingart/Nova-YouTube-extension/issues/123)
       // // NOVA.waitSelector('video')
       // NOVA.waitSelector('#movie_player video')
       //    .then(video => {
@@ -168,9 +177,9 @@ window.nova_plugins.push({
       //    navigator.mediaSession.setActionHandler('play', stopForceHoldPause); // add Media hotkeys support
       //    document.addEventListener('click', evt => {
       //       if (evt.isTrusted
-      //          // Strategy 1. Universal, click is inside the player
+      //          // Solution 1. Universal, click is inside the player
       //          && evt.target.closest('#movie_player') // movie_player.contains(document.activeElement)
-      //          // Strategy 2. Click from some elements
+      //          // Solution 2. Click from some elements
       //          // && ['button[class*="play-button"]',
       //          //    '.ytp-cued-thumbnail-overlay-image',
       //          //    '.ytp-player-content'
@@ -188,9 +197,57 @@ window.nova_plugins.push({
 
    },
    options: {
+      video_autopause_embed: {
+         _tagName: 'select',
+         label: 'Apply to video type',
+         // 'label:zh': '',
+         // 'label:ja': '',
+         // 'label:ko': '',
+         // 'label:id': '',
+         // 'label:es': '',
+         // 'label:pt': '',
+         // 'label:fr': '',
+         // 'label:it': '',
+         // 'label:tr': '',
+         // 'label:de': '',
+         // 'label:pl': '',
+         // 'label:ua': 'Застосувати до відео',
+         options: [
+            {
+               label: 'all', value: false, selected: true,
+               // 'label:zh': '',
+               // 'label:ja': '',
+               // 'label:ko': '',
+               // 'label:id': '',
+               // 'label:es': '',
+               // 'label:pt': '',
+               // 'label:fr': '',
+               // 'label:it': '',
+               // 'label:tr': '',
+               // 'label:de': '',
+               // 'label:pl': '',
+               // 'label:ua': 'всіх',
+            },
+            {
+               label: 'embed', value: 'on',
+               // 'label:zh': '',
+               // 'label:ja': '',
+               // 'label:ko': '',
+               // 'label:id': '',
+               // 'label:es': '',
+               // 'label:pt': '',
+               // 'label:fr': '',
+               // 'label:it': '',
+               // 'label:tr': '',
+               // 'label:de': '',
+               // 'label:pl': '',
+               // 'label:ua': 'вбудованих',
+            },
+         ],
+      },
       video_autopause_ignore_playlist: {
          _tagName: 'input',
-         label: 'Ignore playlist',
+         label: 'Ignore in playlist',
          'label:zh': '忽略播放列表',
          'label:ja': 'プレイリストを無視する',
          'label:ko': '재생목록 무시',
@@ -241,12 +298,13 @@ window.nova_plugins.push({
       //    // 'label:ua': 'Тільки для вбудованих відео',
       //    type: 'checkbox',
       // },
-      video_autopause_embed: {
-         _tagName: 'select',
-         label: 'Apply to video type',
+      video_autopause_comment_link: {
+         _tagName: 'input',
+         label: 'Apply if URL has link to comment',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',
+         // 'label:vi': '',
          // 'label:id': '',
          // 'label:es': '',
          // 'label:pt': '',
@@ -255,39 +313,22 @@ window.nova_plugins.push({
          // 'label:tr': '',
          // 'label:de': '',
          // 'label:pl': '',
-         // 'label:ua': 'Застосувати до відео',
-         options: [
-            {
-               label: 'all', value: false, selected: true,
-               // 'label:zh': '',
-               // 'label:ja': '',
-               // 'label:ko': '',
-               // 'label:id': '',
-               // 'label:es': '',
-               // 'label:pt': '',
-               // 'label:fr': '',
-               // 'label:it': '',
-               // 'label:tr': '',
-               // 'label:de': '',
-               // 'label:pl': '',
-               // 'label:ua': 'всіх',
-            },
-            {
-               label: 'embed', value: 'on',
-               // 'label:zh': '',
-               // 'label:ja': '',
-               // 'label:ko': '',
-               // 'label:id': '',
-               // 'label:es': '',
-               // 'label:pt': '',
-               // 'label:fr': '',
-               // 'label:it': '',
-               // 'label:tr': '',
-               // 'label:de': '',
-               // 'label:pl': '',
-               // 'label:ua': 'вбудованих',
-            },
-         ],
+         // 'label:ua': '',
+         type: 'checkbox',
+         title: 'Pause playback if you have opened the url with link to comment',
+         // 'title:zh': '',
+         // 'title:ja': '',
+         // 'title:ko': '',
+         // 'label:vi': '',
+         // 'label:id': '',
+         // 'title:es': '',
+         // 'title:pt': '',
+         // 'title:fr': '',
+         // 'title:it': '',
+         // 'title:tr': '',
+         // 'title:de': '',
+         // 'title:pl': '',
+         // 'label:ua': '',
       },
    }
 });

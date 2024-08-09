@@ -1,7 +1,9 @@
 // https://www.youtube.com/watch?v=9EvbqxBUG_c - great for testing
 // https://www.youtube.com/watch?v=Il0S8BoucSA&t=99 - subtitle alignment bug
-// https://youtu.be/XvJRE6Sm-lM - has sub
+// https://www.youtube.com/watch?v=XvJRE6Sm-lM - has sub
 // https://www.youtube.com/watch?v=s1ipx-4oTKA - color (red) subtitles
+// https://youtu.be/Tr9d2pDvk88?t=163 - multi sub
+// https://www.youtube.com/watch?v=fPl6_0QnGz8- multi sub
 
 window.nova_plugins.push({
    id: 'subtitle-style',
@@ -25,7 +27,7 @@ window.nova_plugins.push({
    _runtime: async user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/458161-youtube-subtitle-caption-stylish
-      // alt2 - https://chrome.google.com/webstore/detail/oanhbddbfkjaphdibnebkklpplclomal
+      // alt2 - https://chromewebstore.google.com/detail/oanhbddbfkjaphdibnebkklpplclomal
 
       // under video
       // alt1 - https://greasyfork.org/en/scripts/433440-youtube-subtitles-under-video-frame
@@ -115,10 +117,10 @@ window.nova_plugins.push({
       }
 
       if (+user_settings.subtitle_font_size) {
-         // Strategy 1. CSS
+         // Solution 1. CSS
          NOVA.css.push(
             `${SELECTOR} { font-size: calc(32px * ${+user_settings.subtitle_font_size || 1}) !important; }`);
-         // Strategy 2. API
+         // Solution 2. API
          // NOVA.waitUntil(() => typeof movie_player === 'object' && typeof movie_player.getSubtitlesUserSettings === 'function', 1000) // 1sec
          //    .then(() => {
          //       // settings = {

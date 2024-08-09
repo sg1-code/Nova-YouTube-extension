@@ -74,6 +74,7 @@ window.nova_plugins.push({
       if (user_settings.header_unfixed_scroll) {
          // alt1 - https://greasyfork.org/en/scripts/414234-youtube-auto-hide-header
          // alt2 - https://greasyfork.org/en/scripts/405614-youtube-polymer-engine-fixes (Unstick header bar from top of the screen)
+         // alt3 - https://greasyfork.org/en/scripts/399404-scroll-theater-mode-video
          createArrowButton();
          // scroll
          document.addEventListener('yt-action', evt => {
@@ -84,9 +85,6 @@ window.nova_plugins.push({
                   // console.debug(evt.detail?.actionName);
                   scrollAfter();
                   break;
-
-               // default:
-               //    break;
             }
          });
 
@@ -105,12 +103,31 @@ window.nova_plugins.push({
          function createArrowButton() {
             const scrollDownButton = document.createElement('button');
             // scrollDownButton.textContent = '▼';
-            scrollDownButton.innerHTML =
-               `<svg viewBox="0 0 16 16" height="100%" width="100%">
-                  <g fill="currentColor">
-                     <path d="M3.35 4.97 8 9.62 12.65 4.97l.71.71L8 11.03l-5.35-5.35.7-.71z" />
-                  </g>
-               </svg>`;
+            // scrollDownButton.innerHTML = NOVA.createSafeHTML(
+            //    `<svg viewBox="0 0 16 16" height="100%" width="100%">
+            //       <g fill="currentColor">
+            //          <path d="M3.35 4.97 8 9.62 12.65 4.97l.71.71L8 11.03l-5.35-5.35.7-.71z" />
+            //       </g>
+            //    </svg>`);
+            // fix - This document requires 'TrustedHTML' assignment.
+            scrollDownButton.append((function createSvgIcon() {
+               const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+               svg.setAttribute('viewBox', '0 0 16 16');
+               svg.setAttribute('height', '100%');
+               svg.setAttribute('width', '100%');
+
+               const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+               g.setAttribute('fill', 'currentColor');
+
+               const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+               path.setAttribute('d', 'M3.35 4.97 8 9.62 12.65 4.97l.71.71L8 11.03l-5.35-5.35.7-.71z');
+
+               g.append(path);
+               svg.append(g);
+
+               return svg;
+            })());
+
             scrollDownButton.title = 'Scroll down';
             // scrollDownButton.style.cssText = '';
             Object.assign(scrollDownButton.style, {

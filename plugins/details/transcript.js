@@ -128,11 +128,11 @@ window.nova_plugins.push({
       }
 
       function transcriptExpand() {
-         // Strategy 1
+         // Solution 1
          if (btn = document.body.querySelector('#description ytd-video-description-transcript-section-renderer button')) {
             btn.click()
          }
-         // Strategy 2
+         // Solution 2
          else if (transcriptEl = document.body.querySelector('[target-id="engagement-panel-searchable-transcript"][visibility="ENGAGEMENT_PANEL_VISIBILITY_HIDDEN"]')) {
             transcriptEl.setAttribute('visibility', 'ENGAGEMENT_PANEL_VISIBILITY_EXPANDED');
          }
@@ -171,8 +171,8 @@ window.nova_plugins.push({
             //   }`);
 
             // add fix compare [user_settings.details_buttons_label_hide]
-            // container.insertAdjacentHTML('afterbegin', // for ytd-menu-renderer
-            container.insertAdjacentHTML(position,
+            // container.insertAdjacentHTML('afterbegin', NOVA.createSafeHTML( // for ytd-menu-renderer
+            container.insertAdjacentHTML(position, NOVA.createSafeHTML(
                `<button id="${BTN_SELECTOR_ID}" style="display:flex" title="Show Transcript" class="style-scope yt-formatted-string bold yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m">
                   <span class="yt-spec-button-shape-next__icon" style="height:100%">
                      <svg viewBox="0 0 24 24" height="100%" width="100%">
@@ -182,7 +182,7 @@ window.nova_plugins.push({
                      </svg>
                   </span>
                   <span class="yt-spec-button-shape-next__button-text-content" style="align-self:center;">Transcript</span>
-               </button>`);
+               </button>`));
             return document.getElementById(BTN_SELECTOR_ID);
          })());
       }

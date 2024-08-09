@@ -10,7 +10,10 @@
 // https://www.youtube.com/watch?v=IUWJ8_lkFAA - hd2880
 // https://www.youtube.com/watch?v=Hf5enZVznC4 - highres
 // https://www.youtube.com/watch?v=5USuekk16e0 - highres
-// https://www.youtube.com/watch?v=yK4mTN3B1d8 - Premium bitrate
+// https://www.youtube.com/watch?v=yK4mTN3B1d8 - premium bitrate
+// https://www.youtube.com/watch?v=QbFx9_dH4DY - premium bitrate
+// https://www.youtube.com/watch?v=QSyimjkM1I4 - premium bitrate
+// https://www.youtube.com/channel/UCKKKYE55BVswHgKihx5YXew/videos (https://www.youtube.com/watch?v=QSyimjkM1I4)- premium bitrate
 
 window.nova_plugins.push({
    id: 'video-quality',
@@ -64,7 +67,7 @@ window.nova_plugins.push({
          .then(movie_player => {
             // keep save manual quality in the session
             if (user_settings.video_quality_manual_save_in_tab
-               && NOVA.currentPage == 'watch' // no sense if in the embed
+               && NOVA.currentPage == 'watch' // no sense in the embed
             ) {
                movie_player.addEventListener('onPlaybackQualityChange', quality => {
                   // console.debug('document.activeElement,',document.activeElement);
@@ -84,9 +87,9 @@ window.nova_plugins.push({
             if (user_settings['save-channel-state']) {
                NOVA.runOnPageLoad(async () => {
                   if ((NOVA.currentPage == 'watch' || NOVA.currentPage == 'embed')
-                     && (userQuality = await NOVA.storage_obj_manager.getParam('quality'))
+                     && (customQuality = await NOVA.storage_obj_manager.getParam('quality'))
                   ) {
-                     selectedQuality = userQuality; // rewrite
+                     selectedQuality = customQuality; // rewrite
                   }
                });
             }
@@ -132,8 +135,8 @@ window.nova_plugins.push({
          if ((1 == state || 3 == state) && !this.quality_lock) {
             this.quality_lock = true;
 
-            let availableQualityLevels;
-            await NOVA.waitUntil(() => (availableQualityLevels = movie_player.getAvailableQualityLevels()) && availableQualityLevels.length, 50); // 50ms
+            let availableQualityList;
+            await NOVA.waitUntil(() => (availableQualityList = movie_player.getAvailableQualityLevels()) && availableQualityList.length, 50); // 50ms
 
             // premium support
             if (user_settings.video_quality_premium
@@ -149,32 +152,32 @@ window.nova_plugins.push({
             // incorrect window size definition in embed
             // set max quality limit (screen resolution (not viewport) + 30%)
             const maxWidth = (NOVA.currentPage == 'watch') ? screen.width : window.innerWidth;
-            const maxQualityIdx = availableQualityLevels.findIndex(i => qualityFormatListWidth[i] <= (maxWidth * 1.3));
-            availableQualityLevels = availableQualityLevels.slice(maxQualityIdx);
+            const maxQualityIdx = availableQualityList.findIndex(i => qualityFormatListWidth[i] <= (maxWidth * 1.3));
+            availableQualityList = availableQualityList.slice(maxQualityIdx);
 
-            // const maxAvailableQualityIdx = Math.max(availableQualityLevels.indexOf(selectedQuality), 0);
+            // const maxAvailableQualityIdx = Math.max(availableQualityList.indexOf(selectedQuality), 0);
             const availableQualityIdx = function () {
-               let i = availableQualityLevels.indexOf(selectedQuality);
-               if (i === -1) { // get closest
+               let idx = availableQualityList.indexOf(selectedQuality);
+               if (idx === -1) { // get closest
                   const
                      availableQuality = Object.keys(qualityFormatListWidth)
-                        .filter(v => availableQualityLevels.includes(v) || (v == selectedQuality)), // filter same item + selectedQuality
-                     // nearestQualityIdx = availableQuality.findIndex(q => q === selectedQuality); // hight quality item
-                     nearestQualityIdx = availableQuality.findIndex(q => q === selectedQuality) - 1; // lower quality item
+                        .filter(v => availableQualityList.includes(v) || (v == selectedQuality)), // filter available and selectedQuality
+                     // nearestQualityIdx = availableQuality.findIndex(q => q === selectedQuality); // hight quality idx
+                     nearestQualityIdx = availableQuality.findIndex(q => q === selectedQuality) - 1; // lower quality idx
 
-                  i = availableQualityLevels[nearestQualityIdx] ? nearestQualityIdx : 0;
+                     idx = availableQualityList[nearestQualityIdx] ? nearestQualityIdx : 0;
                }
-               return i;
+               return idx;
 
             }();
-            const newQuality = availableQualityLevels[availableQualityIdx];
+            const newQuality = availableQualityList[availableQualityIdx];
 
             // if (!newQuality || movie_player.getPlaybackQuality() == selectedQuality) {
             //    return console.debug('skip set quality');
             // }
 
-            // if (!availableQualityLevels.includes(selectedQuality)) {
-            //    console.info(`no has selectedQuality: "${selectedQuality}". Choosing instead the top-most quality available "${newQuality}" of ${JSON.stringify(availableQualityLevels)}`);
+            // if (!availableQualityList.includes(selectedQuality)) {
+            //    console.info(`no has selectedQuality: "${selectedQuality}". Choosing instead the top-most quality available "${newQuality}" of ${JSON.stringify(availableQualityList)}`);
             // }
 
             if (typeof movie_player.setPlaybackQuality === 'function') {
@@ -188,7 +191,7 @@ window.nova_plugins.push({
                movie_player.setPlaybackQualityRange(newQuality, newQuality);
             }
 
-            // console.debug('availableQualityLevels:', availableQualityLevels);
+            // console.debug('availableQualityList:', availableQualityList);
             // console.debug("try set quality:", newQuality);
             // console.debug('current quality:', movie_player.getPlaybackQuality());
          }
@@ -198,7 +201,8 @@ window.nova_plugins.push({
          }
       }
 
-      // alt - https://openuserjs.org/scripts/adisib/Youtube_HD
+      // alt1 - https://openuserjs.org/scripts/adisib/Youtube_HD
+      // alt2 - https://greasyfork.org/en/scripts/498145-youtube-hd-premium
       async function setPremium(qualityLabel = required()) {
          // premium clicker
          // NOVA.waitSelector('#movie_player')
@@ -217,12 +221,12 @@ window.nova_plugins.push({
          const qualityMenuButton = [...document.body.querySelectorAll(`${SELECTOR_CONTAINER} .ytp-settings-menu [role="menuitem"] .ytp-menuitem-content`)]
             .find(menuItem => menuItem.textContent.toLocaleLowerCase().includes('auto') || (NOVA.extractAsNum.int(menuItem.textContent) >= 144));
          qualityMenuButton.click(); // open
-         // Strategy 1
+         // Solution 1
          // const qualityItem = [...document.body.querySelector('.ytp-quality-menu .ytp-panel-menu').children]
          // const qualityItem = [...document.body.querySelectorAll('.ytp-quality-menu .ytp-menuitem[role="menuitemradio"]:has(.ytp-premium-label)')]
          const qualityItem = [...document.body.querySelectorAll('.ytp-quality-menu [role="menuitemradio"]')]
             .find(menuItem => menuItem.textContent.includes(qualityLabel));
-         // Strategy 2
+         // Solution 2
          // const qualityItem = await NOVA.waitSelector(`${SELECTOR_CONTAINER} .ytp-settings-menu .ytp-quality-menu .ytp-premium-label`);
 
          await NOVA.delay(1500);
@@ -242,16 +246,16 @@ window.nova_plugins.push({
       }
 
       // error detector
-      NOVA.waitSelector('.ytp-error [class*="reason"]', { destroy_after_page_leaving: true })
-         .then(error_reason_el => {
-            if (alertText = error_reason_el.textContent) {
-               // err ex:
-               // This video isn't available at the selected quality. Please try again later.
-               // An error occurred. Please try again later. (Playback ID: Ame9qzOk-p5tXqLS) Learn More
-               // alert(alertText);
-               throw alertText; // send to _pluginsCaptureException
-            }
-         });
+      // NOVA.waitSelector('.ytp-error [class*="reason"]', { destroy_after_page_leaving: true })
+      //    .then(error_reason_el => {
+      //       if (alertText = error_reason_el.textContent) {
+      //          // err ex:
+      //          // This video isn't available at the selected quality. Please try again later.
+      //          // An error occurred. Please try again later. (Playback ID: Ame9qzOk-p5tXqLS) Learn More
+      //          // alert(alertText);
+      //          throw alertText; // send to _pluginsCaptureException
+      //       }
+      //    });
 
    },
    options: {
@@ -290,7 +294,7 @@ window.nova_plugins.push({
       },
       video_quality_premium: {
          _tagName: 'input',
-         label: 'Use Premium bitrate if available',
+         label: 'Use Premium bitrate when available',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',

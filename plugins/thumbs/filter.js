@@ -41,7 +41,13 @@ window.nova_plugins.push({
             .map(i => `${i}:not(.${SELECTOR_THUMBS_HIDE_CLASS_NAME})`)
             .join(',');
 
-      // page update event
+      // Solution 1 (HTML5). page update event
+      document.addEventListener('scrollend', function self() {
+         if (typeof self.timeout === 'number') clearTimeout(self.timeout);
+         self.timeout = setTimeout(hideThumb, 50); // 50ms
+      });
+
+      // Solution 2 (API). page update event
       document.addEventListener('yt-action', evt => {
          // console.debug(evt.detail?.actionName);
          switch (evt.detail?.actionName) {
@@ -58,56 +64,57 @@ window.nova_plugins.push({
                // case 'yt-service-request': // results, watch
 
                // console.debug(evt.detail?.actionName); // flltered
-               switch (NOVA.currentPage) {
-                  case 'home':
-                     thumbRemove.live();
-                     thumbRemove.mix();
-                     thumbRemove.watched();
-                     break;
-
-                  case 'results':
-                     thumbRemove.live();
-                     thumbRemove.shorts();
-                     // thumbRemove.durationLimits();
-                     thumbRemove.mix();
-                     // thumbRemove.watched();
-                     break;
-
-                  case 'feed':
-                     thumbRemove.live();
-                     thumbRemove.streamed();
-                     thumbRemove.shorts();
-                     thumbRemove.durationLimits();
-                     thumbRemove.premieres();
-                     thumbRemove.mix();
-                     thumbRemove.watched();
-                     break;
-
-                  // case 'channel':
-                  //    thumbRemove.live();
-                  //    thumbRemove.streamed();
-                  //    // thumbRemove.shorts();
-                  //    thumbRemove.premieres();
-                  //    thumbRemove.watched();
-                  //    break;
-
-                  case 'watch':
-                     thumbRemove.live();
-                     thumbRemove.mix();
-                     thumbRemove.watched();
-                     break;
-
-                  // default:
-                  //    thumbRemove.live();
-                  //    break;
-               }
+               hideThumb();
                break;
-
-            // default:
-            //    break;
          }
       });
       // }, { capture: true }); // before all events. Possible loading slowdown
+
+      function hideThumb() {
+         switch (NOVA.currentPage) {
+            case 'home':
+               thumbRemove.live();
+               thumbRemove.mix();
+               thumbRemove.watched();
+               break;
+
+            case 'results':
+               thumbRemove.live();
+               thumbRemove.shorts();
+               // thumbRemove.durationLimits();
+               thumbRemove.mix();
+               // thumbRemove.watched();
+               break;
+
+            case 'feed':
+               thumbRemove.live();
+               thumbRemove.streamed();
+               thumbRemove.shorts();
+               thumbRemove.durationLimits();
+               thumbRemove.premieres();
+               thumbRemove.mix();
+               thumbRemove.watched();
+               break;
+
+            // case 'channel':
+            //    thumbRemove.live();
+            //    thumbRemove.streamed();
+            //    // thumbRemove.shorts();
+            //    thumbRemove.premieres();
+            //    thumbRemove.watched();
+            //    break;
+
+            case 'watch':
+               thumbRemove.live();
+               thumbRemove.mix();
+               thumbRemove.watched();
+               break;
+
+            // default:
+            //    thumbRemove.live();
+            //    break;
+         }
+      }
 
       // switch grid/list mode
       document.addEventListener('yt-navigate-finish', () => NOVA.queryURL.has('flow') && insertButton());
@@ -119,16 +126,40 @@ window.nova_plugins.push({
          NOVA.waitSelector('#filter-button, ytd-shelf-renderer #title-container a[href="/feed/channels"]', { destroy_after_page_leaving: true })
             .then(container => {
                const filterBtn = document.createElement('button');
-               filterBtn.className = 'style-scope yt-formatted-string bold yt-spec-button-shape-next--tonal yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m yt-spec-button-shape-next--text';
-               // filterBtn.textContent = 'Filter Switch';
-               filterBtn.innerHTML =
-                  `<span class="yt-spec-button-shape-next__icon" style="height:100%">
-                  <svg viewBox="-50 -50 400 400" height="100%" width="100%">
-                     <g fill="currentColor">
-                        <path d="M128.25,175.6c1.7,1.8,2.7,4.1,2.7,6.6v139.7l60-51.3v-88.4c0-2.5,1-4.8,2.7-6.6L295.15,65H26.75L128.25,175.6z" />
-                     </g>
-                  </svg>
-               </span>`;
+               filterBtn.classList.add('style-scope', 'yt-formatted-string', 'bold', 'yt-spec-button-shape-next--tonal', 'yt-spec-button-shape-next--mono', 'yt-spec-button-shape-next--size-m', 'yt-spec-button-shape-next--text');
+               // // filterBtn.textContent = 'Filter Switch';
+               // filterBtn.innerHTML = NOVA.createSafeHTML(
+               //    `<span class="yt-spec-button-shape-next__icon" style="height:100%">
+               //    <svg viewBox="-50 -50 400 400" height="100%" width="100%">
+               //       <g fill="currentColor">
+               //          <path d="M128.25,175.6c1.7,1.8,2.7,4.1,2.7,6.6v139.7l60-51.3v-88.4c0-2.5,1-4.8,2.7-6.6L295.15,65H26.75L128.25,175.6z" />
+               //       </g>
+               //    </svg>
+               // </span>`);
+               // fix - This document requires 'TrustedHTML' assignment.
+               filterBtn.append((function createFilterIcon() {
+                  const span = document.createElement('span');
+                  span.className = 'yt-spec-button-shape-next__icon';
+                  span.style.height = '100%';
+
+                  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                  svg.setAttribute('viewBox', '-50 -50 400 400');
+                  svg.setAttribute('height', '100%');
+                  svg.setAttribute('width', '100%');
+
+                  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                  g.setAttribute('fill', 'currentColor');
+
+                  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                  path.setAttribute('d', 'M128.25,175.6c1.7,1.8,2.7,4.1,2.7,6.6v139.7l60-51.3v-88.4c0-2.5,1-4.8,2.7-6.6L295.15,65H26.75L128.25,175.6z');
+
+                  g.append(path);
+                  svg.append(g);
+                  span.append(svg);
+
+                  return span;
+               })());
+
                filterBtn.title = 'Toggle NOVA plugin [thumbs-hide]';
                // filterBtn.style.cssText = '';
                Object.assign(filterBtn.style, {
@@ -138,6 +169,8 @@ window.nova_plugins.push({
                });
                filterBtn.addEventListener('click', () => {
                   document.body.classList.toggle('nova-thumbs-unhide');
+                  // filterBtn opacity
+                  filterBtn.style.opacity = document.body.classList.contains('nova-thumbs-unhide') ? .3 : 1;
                });
                container.after(filterBtn);
             });
@@ -200,7 +233,7 @@ window.nova_plugins.push({
             // exclude "" tab in channel
             // if (NOVA.currentPage == 'channel' && NOVA.channelTab != 'video') return;
 
-            // Strategy 1 (API)
+            // Solution 1 (API)
             // // document.body.querySelector('ytd-grid-video-renderer').data - feed page
             // document.body.querySelectorAll(thumbsSelectors)
             //    .forEach(thumb => {
@@ -216,7 +249,7 @@ window.nova_plugins.push({
             //       }
             //    });
 
-            // Strategy 2. HTML
+            // Solution 2. HTML
             // const OVERLAYS_TIME_SELECTOR = '#thumbnail #overlays ytd-thumbnail-overlay-time-status-renderer:not(:empty)';
             const OVERLAYS_TIME_SELECTOR = '#thumbnail #overlays #text:not(:empty)';
             // wait load overlays-time
@@ -259,25 +292,6 @@ window.nova_plugins.push({
                      // thumb.style.border = '2px solid red'; // mark for test
                   }
                });
-
-            // streaming
-            // #thumbnail #overlays > :not(ytd-thumbnail-overlay-time-status-renderer)
-            // #thumbnail #overlays > :not(#text)
-            // #video-badges > .badge-style-type-live-now-alternate // old
-            // .badge-style-type-live-now-alternate .ytd-badge-supported-renderer svg
-            // document.body.querySelectorAll('#video-badges > [class*="live-now"]') // old
-            document.body.querySelectorAll('[class*="badge"] [class*="live-now"]')
-               // .forEach(el => el.closest(thumbsSelectors)?.remove());
-               .forEach(el => {
-                  if (thumb = el.closest(thumbsSelectors)) {
-                     thumb.classList.add(SELECTOR_THUMBS_HIDE_CLASS_NAME);
-                     // thumb.remove();
-                     // thumb.style.display = 'none';
-
-                     // console.debug('Premieres:', thumb);
-                     // thumb.style.border = '2px solid violet'; // mark for test
-                  }
-               });
          },
 
          live() {
@@ -288,6 +302,13 @@ window.nova_plugins.push({
             // textarea to array
             const BLOCK_KEYWORDS = NOVA.strToArray(user_settings.thumbs_hide_live_channels_exception?.toLowerCase());
 
+            // streaming
+            // #thumbnail #overlays > :not(ytd-thumbnail-overlay-time-status-renderer)
+            // #thumbnail #overlays > :not(#text)
+            // #video-badges > .badge-style-type-live-now-alternate // old
+            // .badge-style-type-live-now-alternate .ytd-badge-supported-renderer svg
+            // document.body.querySelectorAll('#video-badges > [class*="live-now"]') // old
+            // document.body.querySelectorAll('[class*="badge"] [class*="live-now"]')
             // #thumbnail #overlays [overlay-style="LIVE"],
             document.body.querySelectorAll('#thumbnail img[src*="_live.jpg"]')
                // .forEach(el => el.closest(thumbsSelectors)?.remove());
@@ -326,9 +347,11 @@ window.nova_plugins.push({
             // document.body.querySelectorAll('#metadata-line > span:last-of-type')
             document.body.querySelectorAll('#metadata')
                .forEach(el => {
-                  if (el.querySelector('#metadata-line > span:last-of-type')?.textContent?.split(' ').length === 4 // "Streamed 5 days ago"
+                  if (// "Streamed 5 days ago" and "Scheduled for 6/9/24, 7:30 PM"
+                     el.querySelector('#metadata-line > span:last-of-type')?.textContent?.split(' ').length === 4
                      && (thumb = el.closest(thumbsSelectors))
                      // && thumb.classList.contains(SELECTOR_THUMBS_HIDE_CLASS_NAME)
+                     && thumb.querySelector('#meta > #buttons:empty') // exclude premieres "Notify me" button
                   ) {
                      // filter channel
                      if (BLOCK_KEYWORDS?.includes(thumb.querySelector('#channel-name a')?.textContent.trim().toLowerCase())) {
@@ -350,6 +373,7 @@ window.nova_plugins.push({
                });
          },
 
+         // alt - https://greasyfork.org/en/scripts/496728-youtube-awesome
          mix() {
             if (!user_settings.thumbs_hide_mix) return;
 
@@ -383,7 +407,7 @@ window.nova_plugins.push({
                      // thumb.style.display = 'none';
 
                      // console.debug('has Mix:', thumb);
-                     // thumb.style.border = '2px solid red'; // mark for test
+                     // thumb.style.border = '2px solid violet'; // mark for test
                   }
                });
          },
@@ -397,7 +421,7 @@ window.nova_plugins.push({
 
             const PERCENT_COMPLETE = +user_settings.thumbs_hide_watched_percent_complete || 90;
 
-            // Strategy 1 (API)
+            // Solution 1 (API)
             // document.body.querySelectorAll(thumbsSelectors)
             //    .forEach(thumb => {
             //       if ((to = thumb.data?.thumbnailOverlays)?.length) {
@@ -410,7 +434,7 @@ window.nova_plugins.push({
             //          }
             //       }
             //    });
-            // Strategy 2 (HTML)
+            // Solution 2 (HTML)
             document.body.querySelectorAll('#thumbnail #overlays #progress[style*="width"]')
                .forEach(el => {
                   // if (parseInt(el.style.width) > PERCENT_COMPLETE) {

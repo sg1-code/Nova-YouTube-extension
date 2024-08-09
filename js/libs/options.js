@@ -1,7 +1,5 @@
 console.debug('init options.js');
 
-// window.addEventListener('load', () => {
-
 const PopulateForm = {
    fill(settings, container) {
       // console.debug("Load from Storage: %s=>%s", container?.id, JSON.stringify(settings));
@@ -231,5 +229,4 @@ const PopulateForm = {
    },
 }
 
-//    PopulateForm.init();
-// });
+// window.addEventListener('load', PopulateForm.init, { capture: true, once: true });

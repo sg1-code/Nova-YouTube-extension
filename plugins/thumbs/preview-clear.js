@@ -39,45 +39,10 @@ window.nova_plugins.push({
    // 'desc:ua': 'Замінює попередньо визначені мініатюри клікбейти',
    _runtime: user_settings => {
 
-      // alt1 - https://chrome.google.com/webstore/detail/omoinegiohhgbikclijaniebjpkeopip
-      // alt2 - https://greasyfork.org/en/scripts/481732-youtube-blur-no-more
+      // alt1 - https://dearrow.ajay.app/
+      // alt2 - https://chromewebstore.google.com/detail/omoinegiohhgbikclijaniebjpkeopip
+      // alt3 - https://greasyfork.org/en/scripts/481732-youtube-blur-no-more
 
-      // Strategy 1 (API). Doesn't work
-      // when thums update
-      // document.addEventListener('yt-action', evt => {
-      //    // console.debug(evt.detail?.actionName);
-      //    switch (evt.detail?.actionName) {
-      //       case 'yt-append-continuation-items-action': // home, results, feed, channel, watch
-      //       case 'ytd-update-grid-state-action': // feed, channel
-      //       case 'yt-rich-grid-layout-refreshed': // feed
-      //       // case 'ytd-rich-item-index-update-action': // home, channel
-      //       case 'yt-store-grafted-ve-action': // results, watch
-      //          // case 'ytd-update-elements-per-row-action': // feed
-
-      //          // universal
-      //          // case 'ytd-update-active-endpoint-action':
-      //          // case 'yt-window-scrolled':
-      //          // case 'yt-service-request': // results, watch
-
-      //          // console.debug(evt.detail?.actionName); // flltered
-
-      //          patchThumb();
-      //          break;
-
-      //       // default:
-      //       //    break;
-      //    }
-      // });
-
-      // function patchThumb() {
-      //    document.body.querySelectorAll(`#thumbnail:not(.ytd-playlist-thumbnail) img[src]:not([src*="_live.jpg"]):not([${ATTR_MARK}])`)
-      //       .forEach(img => {
-      //          img.setAttribute(ATTR_MARK, true);
-      //          img.src = patchImg(img.src);
-      //       });
-      // }
-
-      // Strategy 1
       const
          ATTR_MARK = 'nova-thumb-preview-cleared',
          thumbsSelectors = [
@@ -91,49 +56,6 @@ window.nova_plugins.push({
             'ytm-item-section-renderer' // mobile /subscriptions page
          ];
 
-      let DISABLE_YT_IMG_DELAY_LOADING_default = false; // fix conflict with yt-flags
-
-      // Strategy 2
-      // dirty fix bug with not updating thumbnails
-      // document.addEventListener('yt-navigate-finish', () =>
-      //    document.body.querySelectorAll(`[${ATTR_MARK}]`).forEach(e => e.removeAttribute(ATTR_MARK)));
-
-      NOVA.watchElements({
-         selectors: [
-            '#thumbnail:not(.ytd-playlist-thumbnail):not([class*=markers]):not([href*="/shorts/"]) img[src]:not([src*="_live.jpg"])',
-            'a:not([href*="/shorts/"]) img.video-thumbnail-img[src]:not([src*="_live.jpg"])'
-         ],
-         attr_mark: ATTR_MARK,
-         callback: async img => {
-            if (NOVA.currentPage == 'results') return;
-
-            // fix conflict with yt-flags
-            if (window.yt?.config_?.DISABLE_YT_IMG_DELAY_LOADING
-               && DISABLE_YT_IMG_DELAY_LOADING_default !== window.yt?.config_?.DISABLE_YT_IMG_DELAY_LOADING
-            ) {
-               // alert('Plugin [Clear thumbnails] not available with current page config');
-               DISABLE_YT_IMG_DELAY_LOADING_default = window.yt?.config_?.DISABLE_YT_IMG_DELAY_LOADING;
-
-               await NOVA.delay(100); // dirty fix.
-               // Hard reset fn
-               document.body.querySelectorAll(`[${ATTR_MARK}]`).forEach(e => e.removeAttribute(ATTR_MARK));
-            }
-
-            // skip "premiere", "live now"
-            if ((thumb = img.closest(thumbsSelectors))
-               && thumb.querySelector(
-                  `#badges [class*="live-now"],
-                  #overlays [aria-label="PREMIERE"],
-                  #overlays [overlay-style="UPCOMING"]`)
-            ) {
-               // console.debug('skiped thumbnails-preview-cleared', parent);
-               return;
-            }
-
-            if (src = patchImg(img.src)) img.src = patchImg(src);
-         },
-      });
-
       // alt - https://greasyfork.org/en/scripts/422843-youtube-remove-clickable-labels-on-watch-later-and-add-to-queue-buttons
       if (user_settings.thumbs_clear_overlay) {
          NOVA.css.push(
@@ -142,45 +64,49 @@ window.nova_plugins.push({
             }`);
       }
 
-      // if (user_settings.thumbs_overlay_playing) {
-      //    // alt - https://greasyfork.org/en/scripts/454694-disable-youtube-inline-playback-on-all-pages
+      // Solution 1 (HTML5). page update event
+      document.addEventListener('scrollend', function self () {
+         if (typeof self.timeout === 'number') clearTimeout(self.timeout);
+         self.timeout = setTimeout(patchThumb, 50); // 50ms
+      });
 
-      //    // Strategy 1 (API)
-      // document.addEventListener('yt-action', evt => {
-      //    // console.debug(evt.detail?.actionName);
-      //    switch (evt.detail?.actionName) {
-      //       case 'yt-append-continuation-items-action': // home, results, feed, channel, watch
-      //       case 'ytd-update-grid-state-action': // feed, channel
-      //       case 'yt-rich-grid-layout-refreshed': // feed
-      //       // case 'ytd-rich-item-index-update-action': // home, channel
-      //       case 'yt-store-grafted-ve-action': // results, watch
-      //          // case 'ytd-update-elements-per-row-action': // feed
+      // Solution 2 (API). page update event
+      // when thums update
+      document.addEventListener('yt-action', evt => {
+         // console.debug(evt.detail?.actionName);
+         switch (evt.detail?.actionName) {
+            case 'yt-append-continuation-items-action': // home, results, feed, channel, watch
+            case 'ytd-update-grid-state-action': // feed, channel
+            case 'yt-rich-grid-layout-refreshed': // feed
+            // case 'ytd-rich-item-index-update-action': // home, channel
+            case 'yt-store-grafted-ve-action': // results, watch
+               // case 'ytd-update-elements-per-row-action': // feed
 
-      //          // universal
-      //          // case 'ytd-update-active-endpoint-action':
-      //          // case 'yt-window-scrolled':
-      //          // case 'yt-service-request': // results, watch
+               // universal
+               // case 'ytd-update-active-endpoint-action':
+               // case 'yt-window-scrolled':
+               // case 'yt-service-request': // results, watch
 
-      //          // console.debug(evt.detail?.actionName); // flltered
-      //          document.body.querySelectorAll('#mouseover-overlay')
-      //             .forEach(el => el.remove());
-      //          break;
+               // console.debug(evt.detail?.actionName); // flltered
 
-      //       // default:
-      //       //    break;
-      //    }
+               patchThumb();
+               break;
+         }
+      });
+      // Solution 3 (NOVA API). universal overloaded
+      // NOVA.watchElements({
+      //    selectors: [
+      //       '#thumbnail:not(.ytd-playlist-thumbnail):not([class*=markers]):not([href*="/shorts/"]) img[src]:not([src*="_live.jpg"])',
+      //       'a:not([href*="/shorts/"]) img.video-thumbnail-img[src]:not([src*="_live.jpg"])'
+      //    ],
+      //    attr_mark: ATTR_MARK,
+      //    callback: img => passImg(img),
       // });
-      //    // Strategy 2
-      //    // NOVA.watchElements({
-      //    //    selectors: ['#mouseover-overlay'],
-      //    //    // attr_mark: 'nova-disable-thumb-inline-playback',
-      //    //    callback: el => {
-      //    //       el.remove();
-      //    //       // console.debug('thumb-inline-playback:', el);
-      //    //       // el.style.border = '2px solid green'; // mark for test
-      //    //    }
-      //    // });
-      // }
+
+
+      // // dirty fix bug with not updating thumbnails
+      // // document.addEventListener('yt-navigate-finish', () =>
+      // //    document.body.querySelectorAll(`[${ATTR_MARK}]`).forEach(e => e.removeAttribute(ATTR_MARK)));
 
       // patch end card
       // if (user_settings.thumbs_clear_videowall && !user_settings['pages-clear']) {
@@ -219,15 +145,63 @@ window.nova_plugins.push({
       //    //    });
       // }
 
-      function patchImg(str) {
+      function patchThumb() {
+         document.body.querySelectorAll(
+            `#thumbnail:not(.ytd-playlist-thumbnail):not([class*=markers]):not([href*="/shorts/"]) img[src]:not([src*="_live.jpg"]):not([${ATTR_MARK}]),
+            a:not([href*="/shorts/"]) img.video-thumbnail-img[src]:not([src*="_live.jpg"]):not([${ATTR_MARK}])`
+         )
+            .forEach(img => {
+               img.setAttribute(ATTR_MARK, true);
+               // img.src = patchImg(img.src);
+               passImg(img);
+            });
+
+         // if (user_settings.thumbs_overlay_playing) {
+         //    // alt - https://greasyfork.org/en/scripts/454694-disable-youtube-inline-playback-on-all-pages
+         //    document.body.querySelectorAll('#mouseover-overlay')
+         //       .forEach(el => el.remove());
+         // }
+      }
+
+      let DISABLE_YT_IMG_DELAY_LOADING_default = false; // fix conflict with yt-flags
+      async function passImg(img = required()) {
+         if (NOVA.currentPage == 'results') return;
+
+         // fix conflict with yt-flags "DISABLE_YT_IMG_DELAY_LOADING"
+         if (window.yt?.config_?.DISABLE_YT_IMG_DELAY_LOADING
+            && DISABLE_YT_IMG_DELAY_LOADING_default !== window.yt?.config_?.DISABLE_YT_IMG_DELAY_LOADING
+         ) {
+            // alert('Plugin [Clear thumbnails] not available with current page config');
+            DISABLE_YT_IMG_DELAY_LOADING_default = window.yt?.config_?.DISABLE_YT_IMG_DELAY_LOADING;
+
+            await NOVA.delay(100); // dirty fix.
+            // Hard reset fn
+            document.body.querySelectorAll(`[${ATTR_MARK}]`).forEach(e => e.removeAttribute(ATTR_MARK));
+         }
+
+         // skip "premiere", "live now"
+         if ((thumb = img.closest(thumbsSelectors))
+            && thumb.querySelector(
+               `#badges [class*="live-now"],
+                  #overlays [aria-label="PREMIERE"],
+                  #overlays [overlay-style="UPCOMING"]`)
+         ) {
+            // console.debug('skiped thumbnails-preview-cleared', parent);
+            return;
+         }
+
+         if (url = patchImg(img.src)) img.src = url;
+      }
+
+      function patchImg(url = required()) {
          // hq1,hq2,hq3,hq720,default,sddefault,mqdefault,hqdefault,maxresdefault(excluding for thumbs)
          // /(hq(1|2|3|720)|(sd|mq|hq|maxres)?default)/i - unnecessarily exact
-         // if ((re = /(\w{1}qdefault|hq\d+).jpg/i) && re.test(str)) { // for pc
-         //    return str.replace(re, (user_settings.thumbs_clear_preview_timestamp || 'hq2') + '.jpg');
+         // if ((re = /(\w{1}qdefault|hq\d+).jpg/i) && re.test(url)) { // for pc
+         //    return url.replace(re, (user_settings.thumbs_clear_preview_timestamp || 'hq2') + '.jpg');
          // }
          // https://i.ytimg.com/vi/ir6nk2zrMG0/sddefault.jpg
-         if ((re = /(\w{2}default|hq\d+)./i) && re.test(str)) { // for mobile and pc
-            return str.replace(re, (user_settings.thumbs_clear_preview_timestamp || 'hq2') + '.');
+         if ((re = /(\w{2}default|hq\d+)./i) && re.test(url)) { // for mobile and pc
+            return url.replace(re, (user_settings.thumbs_clear_preview_timestamp || 'hq2') + '.');
          }
       }
 

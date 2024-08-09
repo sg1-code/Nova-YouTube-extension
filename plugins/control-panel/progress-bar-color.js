@@ -19,7 +19,7 @@ window.nova_plugins.push({
 
    _runtime: user_settings => {
 
-      // alt - https://chrome.google.com/webstore/detail/nbkomboflhdlliegkaiepilnfmophgfg
+      // alt - https://chromewebstore.google.com/detail/nbkomboflhdlliegkaiepilnfmophgfg
       NOVA.css.push(
          `.ytp-swatch-background-color {
             background-color: ${user_settings.player_progress_bar_color || '#f00'} !important;

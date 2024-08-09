@@ -43,8 +43,8 @@ window.nova_plugins.push({
       // alt2 - https://greasyfork.org/en/scripts/376155-youtube-scroll-volume
       // alt3 - https://greasyfork.org/en/scripts/376002-youtube-volume-mouse-controller
       // alt4 - https://greasyfork.org/en/scripts/381929-youtube-mousewheel-volume-control
-      // alt5 - https://chrome.google.com/webstore/detail/agadcopafaojndinhloilcanpfpbonbk
-      // alt6 - https://chrome.google.com/webstore/detail/piklelgilkpgdfohojnbkfheigoglokn
+      // alt5 - https://chromewebstore.google.com/detail/agadcopafaojndinhloilcanpfpbonbk
+      // alt6 - https://chromewebstore.google.com/detail/piklelgilkpgdfohojnbkfheigoglokn
 
       // hotkey
       // alt - https://greasyfork.org/en/scripts/418121-yt-fixed
@@ -55,8 +55,8 @@ window.nova_plugins.push({
       // alt3 - https://greasyfork.org/en/scripts/397686-youtube-music-fix-volume-ratio
 
       // max level
-      // alt1 - https://chrome.google.com/webstore/detail/nnocenjojjcnlijjjikhehebkbgbmmep
-      // alt2 - https://chrome.google.com/webstore/detail/oggiagogblgafoilijjdhcmflgekfmja
+      // alt1 - https://chromewebstore.google.com/detail/nnocenjojjcnlijjjikhehebkbgbmmep
+      // alt2 - https://chromewebstore.google.com/detail/oggiagogblgafoilijjdhcmflgekfmja
       // alt3 - https://greasyfork.org/en/scripts/427173-maximum-audio-output-for-youtube
 
       // volume normalization
@@ -163,9 +163,9 @@ window.nova_plugins.push({
             if (user_settings['save-channel-state']) {
                NOVA.runOnPageLoad(async () => {
                   if ((NOVA.currentPage == 'watch' || NOVA.currentPage == 'embed')
-                     && (userVolume = await NOVA.storage_obj_manager.getParam('volume'))
+                     && (customVolume = await NOVA.storage_obj_manager.getParam('volume'))
                   ) {
-                     video.addEventListener('playing', () => playerVolume.set(userVolume), { capture: true, once: true });
+                     video.addEventListener('playing', () => playerVolume.set(customVolume), { capture: true, once: true });
                   }
                });
             }
@@ -181,7 +181,7 @@ window.nova_plugins.push({
          },
 
          set(level = 50) {
-            if (typeof movie_player !== 'object' || !movie_player.hasOwnProperty('getVolume')) return console.error('Error getVolume');
+            if (typeof movie_player !== 'object' || typeof movie_player.getVolume !== 'function') return console.error('Error getVolume');
 
             const newLevel = Math.max(0, Math.min(100, +level));
 
@@ -238,7 +238,14 @@ window.nova_plugins.push({
                // if (this.node.gain.value < 6) this.node.gain.value += .5; // max 600%
                if (this.node.gain.value < 6) this.node.gain.value += 1; // max 600%
 
-               NOVA.showOSD(movie_player.getVolume() * this.node.gain.value + '%');
+               NOVA.showOSD({
+                  'message': movie_player.getVolume() * this.node.gain.value + '%',
+                  'ui_value': movie_player.getVolume() * this.node.gain.value,
+                  'ui_max': 600,
+                  'source': 'volume',
+                  // 'timeout_ms': null,
+                  // 'clear_previous_text': true,
+               });
                // this.buildVolumeSlider();
             }
             else {
@@ -294,7 +301,7 @@ window.nova_plugins.push({
                   // container.insertAdjacentElement('beforeend', el);
                   // return el;
                   // 62.88 % slower
-                  // container.insertAdjacentHTML('beforeend', `<span id="${SELECTOR_ID}">${text}</span>`);
+                  // container.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(`<span id="${SELECTOR_ID}">${text}</span>`));
                   // return document.getElementById(SELECTOR_ID);
                })())
                   .textContent = text;
@@ -554,8 +561,8 @@ window.nova_plugins.push({
       volume_loudness_normalization: {
          _tagName: 'input',
          // label: 'Disable YouTube's audio loudness normalization',
-         // label: 'Disable audio loudness normalization',
-         label: 'Stable volume level',
+         // label: 'Stable volume level',
+         label: 'Disable audio loudness normalization',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',

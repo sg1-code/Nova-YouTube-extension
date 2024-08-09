@@ -12,7 +12,7 @@
 
 window.nova_plugins.push({
    id: 'channel-default-tab',
-   title: 'Default tab on channel page',
+   title: 'Default tab (for channel page)',
    'title:zh': '频道页默认选项卡',
    'title:ja': 'チャンネルページのデフォルトタブ',
    // 'title:ko': '채널 페이지의 기본 탭',
@@ -41,6 +41,8 @@ window.nova_plugins.push({
       // alt2 - https://greasyfork.org/en/discussions/requests/56798-request-make-videoes-the-default-tab-on-youtube-channels
       // alt3 - https://greasyfork.org/en/scripts/466003-e-youtube-channel-page-auto-click-videos-and-then-latest-may-2023
       // alt4 - https://greasyfork.org/en/scripts/407945-youtube-2020-improvements
+      // alt5 - https://greasyfork.org/en/scripts/500460-redirect-youtube-channel-to-videos
+      // alt6 - https://greasyfork.org/en/scripts/445640-yt-video-tab-by-default
 
       // if (NOVA.currentPage == 'watch') {
       //    // mouse left click
@@ -122,10 +124,10 @@ window.nova_plugins.push({
                tabActive?.click();
 
                // (dirty fix) refresh paddingTop
-               // Strategy 1
+               // Solution 1
                document.addEventListener('yt-navigate-finish', () => window.dispatchEvent(new Event('resize'))
                   , { capture: true, once: true });
-               // Strategy 2
+               // Solution 2
                // const elToFix = document.body.querySelector('#wrapper > #contentContainer');
                // // if ((phead = parseInt(NOVA.css.get('#wrapper > #header > #contentContainer, #wrapper > #header', 'height')))
                // if ((correctHeight = +document.body.querySelector('#wrapper > #header > #contentContainer, #wrapper > #header')?.clientHeight)
@@ -401,7 +403,7 @@ window.nova_plugins.push({
       },
       channel_default_tab_thumbs_sort: {
          _tagName: 'select',
-         label: 'Sort',
+         label: 'Sort by',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',

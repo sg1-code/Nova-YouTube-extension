@@ -31,13 +31,14 @@ window.nova_plugins.push({
    // 'desc:de': '',
    // 'desc:pl': '',
    // 'desc:ua': '',
-   'plugins-conflict': 'description-popup, comments-sidebar-position-exchange',
+   'plugins-conflict': 'description-dropdown, comments-sidebar-position-exchange',
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/452405-youtube-scrollable-right-side-description
       // alt2 - https://greasyfork.org/en/scripts/471873-youtube-large-show-less-button
+      // alt3 - https://greasyfork.org/en/scripts/485309-youtube-auto-expand-video-description
 
-      if (user_settings['description-popup']) return; // conflict with [description-popup] plugin
+      if (user_settings['description-dropdown']) return; // conflict with [description-dropdown] plugin
       if (user_settings['comments-sidebar-position-exchange']) return; // conflict with [comments-sidebar-position-exchange] plugin
 
       // NOVA.waitSelector(`[description-collapsed] #description ${user_settings.description_expand_mode == 'onhover' ? '' : '#expand'}`)

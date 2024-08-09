@@ -75,6 +75,10 @@ input[type=search]:placeholder-shown+#search_clear {
    visibility: hidden;
 }
 
+input[type=text]:focus {
+   width: 17em;
+}
+
 .container {
    display: grid;
    grid-gap: 15px;
@@ -248,6 +252,7 @@ input[type=search]:focus, input[type=text]:focus {
 
 #plugins ul {
    padding: 0;
+   height: fit-content;
 }
 
 #plugins>* {
@@ -286,6 +291,14 @@ li>label+* {
    grid-column: input;
    align-self: center;
    justify-self: center;
+}
+
+li:not(:hover):has(input[type="checkbox"]:not(:checked)) {
+   opacity: .5 !important;
+}
+
+li:not(:hover):has(input[type="checkbox"]:checked) {
+   opacity: 1 !important;
 }
 
 .info>label {

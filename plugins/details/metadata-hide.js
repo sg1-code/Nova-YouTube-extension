@@ -38,6 +38,7 @@ window.nova_plugins.push({
          'ytd-merch-shelf-renderer, #infocards-section', // merch
       ];
 
+      // ['player-float-progress-bar'] plugin dependency for "Key moments"
       if (user_settings.description_card_list) {
          // https://www.youtube.com/watch?v=A3dRmge9XFI - key_moments
          // https://www.youtube.com/watch?v=KNtJGQkC-WI - music
@@ -66,7 +67,7 @@ window.nova_plugins.push({
    options: {
       description_card_list: {
          _tagName: 'input',
-         label: 'Chapters/Key moments/Music info',
+         label: 'Chapters/key moments/music info',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',
@@ -82,6 +83,7 @@ window.nova_plugins.push({
          // 'label:ua': '',
          type: 'checkbox',
          // title: '',
+         'data-dependent': { 'player-float-progress-bar': true },
       },
       description_shorts_remixing: {
          _tagName: 'input',
@@ -104,7 +106,7 @@ window.nova_plugins.push({
       },
       description_transcript: {
          _tagName: 'input',
-         label: 'Transcript',
+         label: 'Transcript button',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',

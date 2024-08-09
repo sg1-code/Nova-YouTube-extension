@@ -19,12 +19,14 @@
 
 // timestamp in description
 // https://www.youtube.com/watch?v=hLXIK9DBxAo - title of chapters before timestamp. very long text line of timestamp
+// https://www.youtube.com/watch?v=LgoEyjQud5I - all chaps in one line
 
 // CORRECT CHAPTERS + description:
 // https://www.youtube.com/watch?v=egAB2qtVWFQ - title of chapters before timestamp.
 // https://www.youtube.com/watch?v=t_fbcgzmxHs - title of chapters before timestamp.
 // https://www.youtube.com/watch?v=IR0TBQV147I - lots 3-digit timestamp
-// https://www.youtube.com/watch?v=5Do_0aWpYeo - brackets
+// https://www.youtube.com/watch?v=4LL6w0Dwll0 - brackets at the start
+// https://www.youtube.com/watch?v=5Do_0aWpYeo - brackets at the end
 // https://www.youtube.com/embed/JxTyMVPaOXY?autoplay=1 - embed
 
 // false detect:
@@ -67,7 +69,7 @@ window.nova_plugins.push({
 
       // https://github.com/raingart/Nova-YouTube-extension/issues/147
       // NOVA.css.push(
-      //    `.html5-video-player > [aria-live="polite"] {
+      //    `#movie_player > [aria-live="polite"] {
       //       display: block !important;
       //       z-index: 99999;
       //    }
@@ -75,7 +77,7 @@ window.nova_plugins.push({
       //       display: none !important;
       //    }`);
 
-      // NOVA.waitSelector('.html5-video-player > [aria-live="polite"]')
+      // NOVA.waitSelector('#movie_player > [aria-live="polite"]')
       //    .then(container => {
       //       container.addEventListener('click', () => {
       //          alert(1)
@@ -172,7 +174,7 @@ window.nova_plugins.push({
          });
 
 
-      // Strategy 2. Alt
+      // Solution 2. Alt
       // NOVA.waitSelector('video')
       //    .then(video => {
       //       doubleKeyPressListener(timeLeap.bind(video), user_settings.time_jump_hotkey);
@@ -196,7 +198,7 @@ window.nova_plugins.push({
       //          // console.debug('seekTo', sec);
       //          this.currentTime = sec;
 
-      //          // Strategy 1 (API)
+      //          // Solution 1 (API)
       //          function seekToNextChapter() {
       //             return Object.values((
       //                ytPubsubPubsubInstance.i // embed
@@ -216,7 +218,7 @@ window.nova_plugins.push({
       //                   (c.chapterRenderer.timeRangeStartMillis / 1000) > movie_player.getCurrentTime()
       //                );
       //          }
-      //          // Strategy 2 (HTML)
+      //          // Solution 2 (HTML)
       //          // function seekToNextChapter() {
       //          //    if ((chaptersContainer = document.body.querySelector('.ytp-chapters-container'))
       //          //       && chaptersContainer?.children.length > 1
@@ -244,7 +246,8 @@ window.nova_plugins.push({
       //       }
       //    });
 
-      // alt - https://chrome.google.com/webstore/detail/ofbfdabicijcdjoeemcgabeeapciibbf
+      // alt1 - https://chromewebstore.google.com/detail/ofbfdabicijcdjoeemcgabeeapciibbf
+      // alt2 - https://chromewebstore.google.com/detail/hbemnhlgojimlabcpjapanlopoekdhme
       function addTitleOffset() {
          NOVA.css.push(
             `.ytp-tooltip-text:after {
@@ -314,15 +317,15 @@ window.nova_plugins.push({
 
                   if ((NOVA.currentPage == 'watch' || NOVA.currentPage == 'embed')
                      && !+sessionStorage.getItem(getCacheName())  // conflict with [player-resume-playback] plugin
-                     && (!NOVA.queryURL.has('t') && !NOVA.queryURL.getHashParam('t')) // fix conflict
-                     && (userSeek = await NOVA.storage_obj_manager.getParam('skip-into')) // check param name in [save-channel-state] plugin
+                     && (!NOVA.queryURL.has('t') && !NOVA.queryURL.getFromHash('t')) // fix conflict
+                     && (customSeek = await NOVA.storage_obj_manager.getParam('skip-into')) // check param name in [save-channel-state] plugin
                   ) {
-                     video.addEventListener('playing', timeLeapInto.apply(video, [userSeek]), { capture: true, once: true });
+                     video.addEventListener('playing', timeLeapInto.apply(video, [customSeek]), { capture: true, once: true });
                   }
                });
             });
       }
-      else if (+user_settings.skip_into_sec && (!NOVA.queryURL.has('t') && !NOVA.queryURL.getHashParam('t'))) {
+      else if (+user_settings.skip_into_sec && (!NOVA.queryURL.has('t') && !NOVA.queryURL.getFromHash('t'))) {
          NOVA.waitSelector('#movie_player video')
             .then(video => {
                NOVA.runOnPageLoad(() => {

@@ -46,10 +46,12 @@ window.nova_plugins.push({
 
                case 'channel':
                   url = (channelId = NOVA.getChannelId(user_settings['user-api-key']))
-                     ? `https://${location.host}/channel/` + channelId
+                     ? user_settings['channel-play-all']
+                        ? `https://${location.host}/playlist?list=UULF` + channelId.substring(2)
+                        : `https://${location.host}/channel/` + channelId
                      : location.href;
-
                   break
+
                case 'results':
                case 'playlist':
                   url = location.href;

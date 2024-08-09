@@ -1,5 +1,6 @@
 // for test:
 // https://www.youtube.com/channel/UCV89PIJRsTLAOMQUdFmo--g/videos
+// https://www.youtube.com/channel/UCKSpe0bX39VZQtRcaQcJ9RQ/videos
 
 window.nova_plugins.push({
    id: 'thumbs-title-lang',
@@ -67,7 +68,13 @@ window.nova_plugins.push({
          newCacheItem = {},
          timeout;
 
-      // page update event
+      // Solution 1 (HTML5). page update event
+      // document.addEventListener('scrollend', function self() {
+      //    if (typeof self.timeout === 'number') clearTimeout(self.timeout);
+      //    self.timeout = setTimeout(patchThumb, 50); // 50ms
+      // });
+
+      // // Solution 2 (API). page update event
       // document.addEventListener('yt-action', evt => {
       //    // console.debug(evt.detail?.actionName);
       //    switch (evt.detail?.actionName) {
@@ -90,6 +97,7 @@ window.nova_plugins.push({
       //             case 'feed':
       //             // case 'channel':
       //             case 'watch':
+      //                patchThumb;
       //                break;
 
       //             // default:
@@ -97,11 +105,9 @@ window.nova_plugins.push({
       //             //    break;
       //          }
       //          break;
-
-      //       // default:
-      //       //    break;
       //    }
       // });
+
       NOVA.watchElements({
          // selectors: '#video-title',
          selectors: 'a#thumbnail[href].ytd-thumbnail',
@@ -197,17 +203,17 @@ window.nova_plugins.push({
                // console.debug('videoTitleEl', videoTitleEl, videoTitleEl.textContent == text, `"${videoTitleEl.textContent}`, `"${text}"`);
                if (videoTitleEl.textContent?.trim() == text) return;
 
-               // Strategy 1
+               // Solution 1
                const newTitleEl = videoTitleEl.cloneNode(true);
                videoTitleEl.before(newTitleEl);
                newTitleEl.setAttribute(SELECTOR_THUMBS_PATCHED_ATTR, true); // for css hide
                newTitleEl.textContent = text;
 
-               // Strategy 2
+               // Solution 2
                // videoTitleEl.innerText += '\n' + text;
 
-               // a.insertAdjacentHTML('beforeend',
-               //    `<div></div>`);
+               // a.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(
+               //    `<div></div>`));
             });
       }
 

@@ -12,7 +12,7 @@ The extension is based on the plugin files themselves. The rest of the files onl
 
 ## Installation
 <!---
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/users/miiheelkbegpkflplpmmkidaklfgjecb?style=flat-square&label=Chrome%20Web%20Store)](https://chrome.google.com/webstore/detail/miiheelkbegpkflplpmmkidaklfgjecb)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/users/miiheelkbegpkflplpmmkidaklfgjecb?style=flat-square&label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/miiheelkbegpkflplpmmkidaklfgjecb)
 -->
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/users/miiheelkbegpkflplpmmkidaklfgjecb?style=flat-square&label=Chrome%20Web%20Store)](https://github.com/raingart/Nova-YouTube-extension/wiki/Stop-developing-NOVA-builds-as-extensions)
 [![openuserjs](https://img.shields.io/badge/dynamic/json?style=flat-square&color=eee&amp;label=OpenUserJS&amp;query=%24.OpenUserJS.installs%5B0%5D.value&amp;suffix=%20installs&amp;url=https%3A%2F%2Fopenuserjs.org%2Fmeta%2Fraingart%2FNova_YouTube.meta.json)](https://openuserjs.org/scripts/raingart/Nova_YouTube)
@@ -44,10 +44,10 @@ Only this versions allow you to override the setting to enforce the extension si
 
 **Extensions**: `$ ./package-extensions.sh`
 
-**Userscript**: `$ make`
+**Userscript**: `$ package-userscript.sh`
 
 ### Building WIndows
-**Userscript**: `makeUserscript.bat`
+**Userscript**: `package-userscript.bat`
 
 ### Making Plugin
 Please read [plugin document](https://github.com/raingart/Nova-YouTube-extension/wiki/Plugin)
@@ -61,7 +61,7 @@ Please read [plugin document](https://github.com/raingart/Nova-YouTube-extension
 * [/js/plugins.js](https://github.com/raingart/Nova-YouTube-extension/blob/master/js/plugins.js) - a list of all plugins and their module to run them.
 * [/js/optionsBilder.js](https://github.com/raingart/Nova-YouTube-extension/blob/master/js/optionsBilder.js) - generator of plugins configuration file.
 * [/js/libs/](https://github.com/raingart/Nova-YouTube-extension/blob/master/js/libs) - directory of internal components of the extension. Not used by plugins, only by the extension itself.
-* [/plugins/nova-api.js](https://github.com/raingart/Nova-YouTube-extension/blob/master/plugins/nova-api.js) - common library for all plugins.
+* [/plugins/common.js](https://github.com/raingart/Nova-YouTube-extension/blob/master/plugins/common.js) - common library for all plugins.
 * [/plugins/](https://github.com/raingart/Nova-YouTube-extension/tree/master/plugins) - directory of all plugins and files available for connection to the YouTube page.
   * [plugin example](https://github.com/raingart/Nova-YouTube-extension/blob/master/plugins/plugin_example.js) - file use to understand basic functions
 

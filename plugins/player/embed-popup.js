@@ -2,6 +2,8 @@
 // https://www.youtube.com/embed/u3JP5UzZbiI?enablejsapi=1&playerapiid=pljs_yt_YouTube10069&html5=1&start=0&disablekb=1&autohide=1&playsinline=1&iv_load_policy=3&controls=0&showinfo=0&modestbranding=1&rel=0&autoplay=0&loop=0&origin=https%3A%2F%2Fsmall-games.info&widgetid=1
 // https://lsgamedev.itch.io/ouija-rumours
 // https://www.youtube.com/embed/QQr3XlJQEgE - https://paymoneytomypain.com/
+// https://galengames.itch.io/academy-carols
+// https://www.youtube.com/embed/bA56gvFi878
 
 window.nova_plugins.push({
    // id: 'embed-redirect-watch',
@@ -59,7 +61,7 @@ window.nova_plugins.push({
       // alert(window.innerWidth)
       // alert(document.documentElement.clientWidth)
       // add emdeb popup only for small frame size
-      if (window.innerWidth > 720 && window.innerHeight > 480) return;
+      if (window.innerWidth > (+user_settings.embed_popup_min_width || 720) && window.innerHeight > 480) return;
 
       NOVA.waitSelector('#movie_player video')
          .then(video => {
@@ -74,11 +76,10 @@ window.nova_plugins.push({
 
          // this == NOVA.videoElement
          const { width, height } = NOVA.aspectRatio.sizeToFit({
-            // 'srcWidth': NOVA.videoElement.videoWidth,
-            // 'srcHeight': NOVA.videoElement.videoHeight,
-            'srcWidth': this.videoWidth,
-            'srcHeight': this.videoHeight,
-            // 'maxWidth': screen.width / (+user_settings.player_buttons_custom_popup_width || 4),
+            'src_width': this.videoWidth || NOVA.videoElement.videoWidth,
+            'src_height': this.videoHeight || NOVA.videoElement.videoHeight,
+            'max_width': Math.min(screen.width, this.videoWidth || NOVA.videoElement.videoWidth),
+            'max_height': Math.min(screen.height, this.videoHeight || NOVA.videoElement.videoHeight),
          });
 
          // stop playing in parent tab
@@ -99,4 +100,43 @@ window.nova_plugins.push({
       }
 
    },
+   options: {
+      embed_popup_min_width: {
+         _tagName: 'input',
+         label: 'Min iframe width',
+         // 'label:zh': '',
+         // 'label:ja': '',
+         // 'label:ko': '',
+         // 'label:vi': '',
+         // 'label:id': '',
+         // 'label:es': '',
+         // 'label:pt': '',
+         // 'label:fr': '',
+         // 'label:it': '',
+         // 'label:tr': '',
+         // 'label:de': '',
+         // 'label:pl': '',
+         // 'label:ua': '',
+         type: 'number',
+         title: 'in px',
+         // 'title:zh': '',
+         // 'title:ja': '',
+         // 'title:ko': '',
+         // 'title:vi': '',
+         // 'title:id': '',
+         // 'title:es': '',
+         // 'title:pt': '',
+         // 'title:fr': '',
+         // 'title:it': '',
+         // 'title:tr': '',
+         // 'title:de': '',
+         // 'title:pl': '',
+         // 'title:ua': '',
+         placeholder: '300-900',
+         step: 5,
+         min: 300,
+         max: 900,
+         value: 720,
+      },
+   }
 });

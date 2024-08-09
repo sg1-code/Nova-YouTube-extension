@@ -24,9 +24,10 @@ window.nova_plugins.push({
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/10523-youtube-always-theater-mode
-      // alt2 - https://chrome.google.com/webstore/detail/dgognhgbpdoeidccnbfhohblklhbbomh
+      // alt2 - https://chromewebstore.google.com/detail/dgognhgbpdoeidccnbfhohblklhbbomh
       // alt3 - https://greasyfork.org/en/scripts/480701-youtube-fullpage-theater
       // alt4 - https://chromewebstore.google.com/detail/gdkadbhiemijfpoochcieonikoaciapi
+      // alt5 - https://greasyfork.org/en/scripts/497131-youtube-auto-theater-mode
 
       if (user_settings.player_full_viewport_mode == 'redirect_watch_to_embed') {
          return location.assign(`https://www.youtube.com/embed/` + NOVA.queryURL.get('v'));
@@ -34,54 +35,67 @@ window.nova_plugins.push({
 
       if (user_settings.theater_mode_ignore_playlist && location.search.includes('list=')) return;
 
-      // Strategy 1
-      NOVA.waitSelector('ytd-watch-flexy:not([player-unavailable])')
+      // Solution 1
+      NOVA.waitSelector('.ytd-page-manager[video-id]:not([player-unavailable])')
          .then(el => {
             if (isTheaterMode()) return;
 
-            NOVA.waitUntil(() => isTheaterMode() ? true : toggleTheater(), 500); // 500ms
+            NOVA.waitUntil(() => isTheaterMode() || toggleTheater(), 1000);
 
             function isTheaterMode() {
-               return (el.hasAttribute('theater')
+               return (
+                  el.hasAttribute('theater')
                   || (typeof el.isTheater_ === 'function' && el.isTheater_())
-                  // || cookies.get('wide') === '1'
+                  || approximatelyEqual(movie_player.clientWidth, window.innerWidth, .05)
+                  // || (NOVA.cookies.get('wide') === '1') // unreliable inert method
                );
+
+               function approximatelyEqual(num1 = required(), num2 = required(), tolerance_pt = .05) {
+                  // Calculate the absolute difference between the numbers
+                  const absDiff = Math.abs(num1 - num2);
+                  // Get the larger number's absolute value
+                  const largerAbs = Math.max(Math.abs(num1), Math.abs(num2));
+                  // Check if the absolute difference is less than the tolerance (5%) times the larger number
+                  return absDiff < (tolerance_pt * largerAbs);
+               }
             }
 
             function toggleTheater() {
-               // Strategy 1 (API)
-               // document.body.querySelector('ytd-watch-flexy').setPlayerTheaterMode_(); // Doesn't work
+               // Solution 1 (API)
+               // document.body.querySelector('.ytd-page-manager[video-id]').setPlayerTheaterMode_(); // Doesn't work
                // el.updateTheaterModeState_(true);
 
-               // Strategy 2 (Hotkey)
-               (typeof movie_player === 'object' ? movie_player : document) // window.dispatchEvent - Doesn't work!
-                  .dispatchEvent(
-                     // Keyboard code - https://docs.microsoft.com/en-us/dotnet/api/android.views.keycode?view=xamarin-android-sdk-12
-                     new KeyboardEvent(
-                        'keydown',
-                        {
-                           keyCode: 84,
-                           key: 't',
-                           code: 'KeyT',
-                           which: 84,
-                           // target: document.body,
-                           bubbles: true,
-                           cancelable: false,
-                        }
-                     )
-                  );
-
-               // Strategy 3 (Emulate button press)
-               // document.body.querySelector('.ytp-chrome-bottom .ytp-size-button').click();
-
-               // Strategy 4 (Cookie) (Doesn't work without refreshing the page)
+               // Solution 2 (Emulate button press)
+               if (btn = document.body.querySelector('.ytp-chrome-bottom .ytp-size-button')) {
+                  btn.click();
+               }
+               else {
+                  // Solution 3 (Hotkey)
+                  (typeof movie_player === 'object' ? movie_player : document) // window.dispatchEvent - Doesn't work!
+                     .dispatchEvent(
+                        // Keyboard code - https://docs.microsoft.com/en-us/dotnet/api/android.views.keycode?view=xamarin-android-sdk-12
+                        new KeyboardEvent(
+                           'keydown',
+                           {
+                              keyCode: 84,
+                              key: 't',
+                              code: 'KeyT',
+                              which: 84,
+                              // target: document.body,
+                              bubbles: true,
+                              cancelable: false,
+                           }
+                        )
+                     );
+               }
+               // Solution 4 (Cookie) (Doesn't work without refreshing the page)
                // document.cookie = 'wide=1;domain=.youtube.com';
                // NOVA.cookie.set('wide', 1, 99);
             }
 
-            // fix broken offensive video
+            // fix blocked the wrapper offensive video
             if (!user_settings['video-unblock-warn-content']) {
-               NOVA.waitSelector('ytd-watch-flexy[player-unavailable] yt-player-error-message-renderer #button.yt-player-error-message-renderer button', { destroy_after_page_leaving: true })
+               NOVA.waitSelector('.ytd-page-manager[video-id][player-unavailable] yt-player-error-message-renderer #button.yt-player-error-message-renderer button', { destroy_after_page_leaving: true })
                   .then(btn => btn.click()); // click "I understand and wish to proceed"
             }
          });
@@ -98,14 +112,14 @@ window.nova_plugins.push({
       //    setTimeout(() => clearInterval(clickBtnRepeatly), 10000);
       // };
 
-      // Strategy 2. Doesn't work
+      // Solution 2. Doesn't work
       // NOVA.waitSelector('video')
       //    .then(video => {
       //       video.addEventListener('playing', setTheater, { capture: true, once: true });
 
       //       function setTheater() {
       //          // document.cookie = 'wide=1;';
-      //          document.body.querySelector('ytd-watch-flexy:not([theater]) #movie_player .ytp-chrome-bottom button.ytp-size-button')
+      //          document.body.querySelector('.ytd-page-manager[video-id]:not([theater]) #movie_player .ytp-chrome-bottom button.ytp-size-button')
       //             ?.click();
       //       }
       //    });
@@ -115,7 +129,7 @@ window.nova_plugins.push({
       // fix conflict with [player-fullscreen-mode] plugin
       if (user_settings['player-fullscreen-mode']
          && !user_settings.player_fullscreen_mode_embed
-         && user_settings.player_full_viewport_mode != 'cinema_mode'
+         && user_settings.player_full_viewport_mode != 'cinema'
       ) {
          return;
       }
@@ -124,13 +138,13 @@ window.nova_plugins.push({
          .then(movie_player => {
             // movie_player.addEventListener('SIZE_CLICKED', () => console.debug('SIZE_CLICKED'));
             const
-               PLAYER_CONTAINER_SELECTOR = 'ytd-watch-flexy[theater]:not([fullscreen]) #ytd-player', // fix for "player-pin-scroll" plugin
-               // PLAYER_CONTAINER_SELECTOR = 'ytd-watch-flexy[theater]:not([fullscreen]) #player-wide-container', // fix for "player-pin-scroll" plugin
-               // PLAYER_CONTAINER_SELECTOR = 'ytd-watch-flexy[theater]:not([fullscreen]) #player-container',
-               // fix for "player-pin-scroll" plugin
+               // the "#ytd-player" is more versatile than "#player-wide-container" or "#player-container",
+               PLAYER_CONTAINER_SELECTOR = '.ytd-page-manager[video-id][theater]:not([fullscreen]) #ytd-player', // fix for "player-pin-scroll" plugin
                PINNED_SELECTOR = '.nova-player-pin', // fix for "player-pin-scroll" plugin
                PLAYER_SCROLL_LOCK_CLASS_NAME = 'nova-lock-scroll',
-               PLAYER_SELECTOR = `${PLAYER_CONTAINER_SELECTOR} #movie_player:not(${PINNED_SELECTOR}):not(.${PLAYER_SCROLL_LOCK_CLASS_NAME})`, // fix for [player-pin-scroll] plugin
+               // fixOnSeeking = 'nova-lock-theater',
+               _PLAYER_SELECTOR = `#movie_player:not(${PINNED_SELECTOR}):not(.${PLAYER_SCROLL_LOCK_CLASS_NAME})`, // fix for [player-pin-scroll] plugin
+               PLAYER_SELECTOR = `${PLAYER_CONTAINER_SELECTOR} ${_PLAYER_SELECTOR}`, // fix for [player-pin-scroll] plugin
                zIndex = Math.max(getComputedStyle(movie_player)['z-index'], 2020); // remember update pkugin [player-control-below]
 
             addScrollDownBehavior();
@@ -139,26 +153,31 @@ window.nova_plugins.push({
                case 'offset':
                   // alt1 - https://greasyfork.org/en/scripts/436667-better-youtube-theatre-mode
                   // alt2 - https://greasyfork.org/en/scripts/16323-youtube-player-controls
+                  // alt3 - https://greasyfork.org/en/scripts/500946-youtube-theater-mode-zoom-in
                   NOVA.css.push(
-                     PLAYER_CONTAINER_SELECTOR + ` {
+                     // `${user_settings.player_full_viewport_mode_exit ? `${PLAYER_CONTAINER_SELECTOR}:has(${_PLAYER_SELECTOR}.paused-mode.ytp-progress-bar-hover.${fixOnSeeking}),` : ''}
+                     `${PLAYER_CONTAINER_SELECTOR}${user_settings.player_full_viewport_mode_exit ? `:has(${_PLAYER_SELECTOR}.playing-mode)` : ''} {
                         min-height: calc(100vh - ${user_settings['header-compact']
                         ? '36px'
                         : NOVA.css.get('#masthead-container', 'height') || '56px'
                      // : document.body.querySelector('#masthead-container')?.offsetHeight || 56
                      }) !important;
-                     }
-                     ytd-watch-flexy[theater]:not([fullscreen]) #columns {
+                     }`
+                     + // ${user_settings.player_full_viewport_mode_exit ? `.ytd-page-manager[video-id][theater]:not([fullscreen]) *:has(${_PLAYER_SELECTOR}.paused-mode.ytp-progress-bar-hover.${fixOnSeeking}) ~ #columns,` : ''}
+                     `.ytd-page-manager[video-id][theater]:not([fullscreen]) ${user_settings.player_full_viewport_mode_exit ? `*:has(${_PLAYER_SELECTOR}.playing-mode) ~` : ''} #columns {
                         position: absolute;
                         top: 100vh;
                      }
                      ${PLAYER_SELECTOR} {
                         background-color: black;
                      }`);
+
+                  fixOnPause();
                   break;
 
                case 'force':
                   // alt1 - https://greasyfork.org/en/scripts/434075-youtube-fullscreen-mode
-                  // alt2 - https://chrome.google.com/webstore/detail/gkkmiofalnjagdcjheckamobghglpdpm
+                  // alt2 - https://chromewebstore.google.com/detail/gkkmiofalnjagdcjheckamobghglpdpm
                   // alt3 - https://greasyfork.org/en/scripts/454092-youtube-theater-fill-up-window
                   // alt4 - https://greasyfork.org/en/scripts/33243-maximizer-for-youtube
                   // alt5 - https://greasyfork.org/en/scripts/442089-pkga-youtube-theater-mode
@@ -181,10 +200,10 @@ window.nova_plugins.push({
                               return;
                            }
                            const miniSize = NOVA.aspectRatio.sizeToFit({
-                              'srcWidth': this.videoWidth,
-                              'srcHeight': this.videoHeight,
-                              'maxWidth': window.innerWidth,
-                              'maxHeight': window.innerHeight,
+                              'src_Width': this.videoWidth,
+                              'src_Height': this.videoHeight,
+                              'max_Width': window.innerWidth,
+                              'max_Height': window.innerHeight,
                            });
                            // out of viewport
                            if (miniSize.width < window.innerWidth) {
@@ -194,9 +213,9 @@ window.nova_plugins.push({
                      });
                   break;
 
-               case 'cinema_mode':
+               case 'cinema':
                   // alt1 - https://greasyfork.org/en/scripts/419359-youtube-simple-cinema-mode
-                  // alt2 - https://chrome.google.com/webstore/detail/bfbmjmiodbnnpllbbbfblcplfjjepjdn
+                  // alt2 - https://chromewebstore.google.com/detail/bfbmjmiodbnnpllbbbfblcplfjjepjdn
                   NOVA.css.push(
                      PLAYER_SELECTOR + ` {
                         z-index: ${zIndex};
@@ -240,12 +259,10 @@ window.nova_plugins.push({
             }
 
             function setPlayerFullViewport(exclude_pause) {
-               const CLASS_OVER_PAUSED = 'nova-player-fullviewport';
-               // Strategy 1
+               // Solution 1
                NOVA.css.push(
-                  `${PLAYER_SELECTOR}.playing-mode,
-                  ${exclude_pause ? '' : `${PLAYER_SELECTOR}.paused-mode,`}
-                  ${PLAYER_SELECTOR}.${CLASS_OVER_PAUSED} {
+                  `${PLAYER_SELECTOR}.paused-mode${exclude_pause ? `.ytp-progress-bar-hover.${fixOnSeeking}` : ``},
+                  ${PLAYER_SELECTOR}.playing-mode {
                      width: 100vw;
                      height: 100vh;
                      position: fixed;
@@ -257,20 +274,20 @@ window.nova_plugins.push({
                // show searchbar on hover. To above v105 https://developer.mozilla.org/en-US/docs/Web/CSS/:has
                if (CSS.supports('selector(:has(*))')) {
                   NOVA.css.push(
-                     `#masthead-container:has( ~ #page-manager ytd-watch-flexy[theater]) {
+                     `#masthead-container:has( ~ #page-manager .ytd-page-manager[video-id][theater]) {
                         position: fixed;
                         z-index: ${zIndex + 1};
                         opacity: 0;
                      }
-                     #masthead-container:has( ~ #page-manager ytd-watch-flexy[theater]):hover,
-                     #masthead-container:has( ~ #page-manager ytd-watch-flexy[theater]):focus {
+                     #masthead-container:has( ~ #page-manager .ytd-page-manager[video-id][theater]):hover,
+                     #masthead-container:has( ~ #page-manager .ytd-page-manager[video-id][theater]):focus {
                         opacity: 1;
                      }`);
                }
 
                addHideScrollbarCSS();
 
-               // Strategy 2
+               // Solution 2
                // const CLASS_NAME = '';
                // video.addEventListener('playing', () => {
                //    movie_player.classList.add(CLASS_NAME)
@@ -282,36 +299,42 @@ window.nova_plugins.push({
                // for fix
                // alt1 - https://greasyfork.org/en/scripts/436168-youtube-exit-fullscreen-on-video-end
                // alt2 - https://greasyfork.org/en/scripts/469750-youtube-exit-fullscreen-on-video-end-modified
-               if (user_settings.player_full_viewport_mode_exit) {
+               fixOnPause();
+            }
 
-                  NOVA.waitSelector('video')
-                     .then(video => {
-                        // fix restore video size
-                        video.addEventListener('pause', () => {
-                           // fix overlapped ".paused-mode" after you scroll the time in the player with the mouse
-                           if (!document.body.querySelector('.ytp-progress-bar')?.contains(document.activeElement)) {
-                              window.dispatchEvent(new Event('resize'));
-                           }
-                        });
-                        // fix overwrite video height after pause
-                        video.addEventListener('play', () => window.dispatchEvent(new Event('resize')));
-                        // video.addEventListener('playing', () => window.dispatchEvent(new Event('resize')));
-                        // video.addEventListener('pause', () => window.dispatchEvent(new Event('resize')));
-                     });
+            function fixOnPause() {
+               if (!user_settings.player_full_viewport_mode_exit) return
 
-                  // fix overlapped ".paused-mode" after you scroll the time in the player with the mouse
-                  NOVA.waitSelector('.ytp-progress-bar')
-                     .then(progress_bar => {
-                        ['mousedown', 'mouseup'].forEach(evt => {
-                           progress_bar.addEventListener(evt, () => {
-                              //    // if (movie_player.contains(document.activeElement)) {
-                              // if (document.activeElement.matches('.ytp-progress-bar')) {
-                              movie_player.classList.add(CLASS_OVER_PAUSED);
-                              // }
-                           });
-                        });
+               NOVA.waitSelector('video')
+                  .then(video => {
+                     // let timeout;
+                     // fix restore video size
+                     video.addEventListener('pause', () => {
+                        // fix overlapped ".paused-mode" after you seeking the time in the player with the mouse
+                        if (!document.body.querySelector('.ytp-progress-bar')?.contains(document.activeElement)) {
+                           window.dispatchEvent(new Event('resize'));
+                        }
+                        // movie_player.classList.add(fixOnSeeking);
+                        // // if (typeof timeout === 'number') clearTimeout(timeout); // reset fade
+                        // timeout = setTimeout(() => movie_player.classList.remove(fixOnSeeking), 1000);
                      });
-               }
+                     // fix overwrite video height after pause
+                     video.addEventListener('play', () => window.dispatchEvent(new Event('resize')));
+                     // video.addEventListener('playing', () => window.dispatchEvent(new Event('resize')));
+                     // video.addEventListener('pause', () => window.dispatchEvent(new Event('resize')));
+
+                     // fix overlapped ".paused-mode" after you seeking the time in the player with the mouse
+                     // video.addEventListener('seeking', () => movie_player.classList.add(fixOnSeeking), { capture: true });
+                     // document.addEventListener('click', evt => {
+                     //    if (evt.isTrusted && document.body.querySelector('.ytp-progress-bar')?.contains(document.activeElement)) {
+                     //       movie_player.classList.add(fixOnSeeking)
+                     //    }
+                     // }, { capture: true });
+                     // video.addEventListener('seeking', () => movie_player.classList.add(fixOnSeeking));
+                     // video.addEventListener('seeked', () => movie_player.classList.remove(fixOnSeeking));
+                     // video.addEventListener('play', () => movie_player.classList.add(fixOnSeeking));
+
+                  });
             }
 
             // add scroll-down behavior on player control panel
@@ -342,7 +365,7 @@ window.nova_plugins.push({
             function addHideScrollbarCSS() {
                if (user_settings['scrollbar-hide']) return;
 
-               NOVA.css.push({ 'display': none }, `html body:has(${PLAYER_SELECTOR})::-webkit-scrollbar`);
+               NOVA.css.push(`html body:has(${PLAYER_SELECTOR})::-webkit-scrollbar { display: none }`);
             }
          });
 
@@ -382,7 +405,7 @@ window.nova_plugins.push({
                // 'label:ua': 'за замовчуванням',
             },
             {
-               label: 'cinema', value: 'cinema_mode',
+               label: 'cinema', value: 'cinema',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -430,7 +453,7 @@ window.nova_plugins.push({
                // 'label:ua': 'повноекранний (авто)',
             },
             {
-               label: 'full-viewport (offset)', value: 'offset',
+               label: 'full-viewport+searchBar', value: 'offset',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -467,7 +490,8 @@ window.nova_plugins.push({
          _tagName: 'input',
          // label: 'Exit Fullscreen on Video End',
          // label: 'Full-viewport exit if video ends/pause',
-         label: 'Exit Fullscreen on video end/pause',
+         // label: 'Exit Fullscreen on video end/pause',
+         label: 'Switch on end/pause',
          'label:zh': '视频结束/暂停时退出',
          'label:ja': 'ビデオが終了/一時停止したら終了します',
          // 'label:ko': '동영상이 종료/일시 중지되면 종료',
@@ -483,7 +507,7 @@ window.nova_plugins.push({
          // 'label:ua': 'Вихід із повного вікна перегляду, якщо відео закінчується/призупиняється',
          type: 'checkbox',
          // title: '',
-         'data-dependent': { 'player_full_viewport_mode': ['force', 'smart'] },
+         'data-dependent': { 'player_full_viewport_mode': ['force', 'smart', 'offset'] },
       },
       player_full_viewport_mode_exclude_shorts: {
          _tagName: 'input',
@@ -528,11 +552,11 @@ window.nova_plugins.push({
          min: 0,
          max: 1,
          value: .75,
-         'data-dependent': { 'player_full_viewport_mode': 'cinema_mode' },
+         'data-dependent': { 'player_full_viewport_mode': 'cinema' },
       },
       theater_mode_ignore_playlist: {
          _tagName: 'input',
-         label: 'Ignore playlist',
+         label: 'Ignore in playlist',
          'label:zh': '忽略播放列表',
          'label:ja': 'プレイリストを無視する',
          // 'label:ko': '재생목록 무시',
@@ -551,7 +575,7 @@ window.nova_plugins.push({
       },
       // theater_mode_ignore_playlist: {
       //    _tagName: 'select',
-      //    label: 'Ignore playlist',
+      //    label: 'Ignore in playlist',
       //    // 'label:zh': '',
       //    // 'label:ja': '',
       //    // 'label:ko': '',

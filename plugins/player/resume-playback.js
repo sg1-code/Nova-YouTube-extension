@@ -66,7 +66,7 @@ window.nova_plugins.push({
             // embed don't support "t=" parameter
             if (user_settings.player_resume_playback_url_mark && NOVA.currentPage != 'embed') {
                // ignore if initialized with a "t=" parameter
-               if (NOVA.queryURL.has('t') || NOVA.queryURL.getHashParam('t')) {
+               if (NOVA.queryURL.has('t') || NOVA.queryURL.getFromHash('t')) {
                   // for next video
                   document.addEventListener('yt-navigate-finish', connectSaveStateInURL.bind(video)
                      , { capture: true, once: true });
@@ -87,14 +87,14 @@ window.nova_plugins.push({
       }
 
       async function resumePlayback() {
-         if (NOVA.queryURL.has('t') || NOVA.queryURL.getHashParam('t')
+         if (NOVA.queryURL.has('t') || NOVA.queryURL.getFromHash('t')
             // || NOVA.queryURL.has('time_continue') // ex - https://www.youtube.com/watch?time_continue=68&v=yWUMMg3dmFY
 
             // Due to the inability to implement the correct work of player_resume_playback_skip_music, the [save-channel-state] plugin was used
-            // Strategy 1
+            // Solution 1
             // custom volume from [save-channel-state] plugin
             || (user_settings['save-channel-state'] && await NOVA.storage_obj_manager.getParam('ignore-playback')) // check param name in [save-channel-state] plugin
-            // Strategy 2
+            // Solution 2
             // || (user_settings.player_resume_playback_skip_music && NOVA.isMusic())
          ) {
             return;

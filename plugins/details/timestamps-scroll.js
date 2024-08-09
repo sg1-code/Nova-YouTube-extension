@@ -35,13 +35,13 @@ window.nova_plugins.push({
    // 'title:de': '',
    'desc:pl': 'Wyłącza przewijanie do odtwarzacza podczas klikania znaczników czasu',
    // 'desc:ua': 'Вимикає прокрутку до відтворювача при натисканні на часову мітку',
-   // 'plugins-conflict': 'description-popup',
+   // 'plugins-conflict': 'description-dropdown',
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/438943-youtube-no-scroll-to-top-on-timestamps
       // alt2 - https://greasyfork.org/en/scripts/451579-youtube-scroll-lock-timestamp-in-picture-in-picture
 
-      if (user_settings['description-popup']) return; // conflict with [description-popup] plugin
+      if (user_settings['description-dropdown']) return; // conflict with [description-dropdown] plugin
 
       document.addEventListener('click', evt => {
          // <a href="/playlist?list=XX"> - erroneous filtering "t=XX" without the character "&"

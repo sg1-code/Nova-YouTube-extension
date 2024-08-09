@@ -1,6 +1,8 @@
 window.nova_plugins.push({
    id: 'disable-player-sleep-mode',
-   title: 'Disable the "Continue watching?" popup',
+   // title: 'Remove "Are you there" prompt',
+   // title: 'Disable the "Continue watching?" popup',
+   title: 'Skip "Continue watching?" popup',
    // title: 'Player stay active forever',
    // title: 'Disable player sleep mode',
    'title:zh': '玩家永远保持活跃',
@@ -48,7 +50,7 @@ window.nova_plugins.push({
       setInterval(() => {
          // if (document.visibilityState == 'hidden') {
          if (!document.hasFocus()) {
-            // Strategy 1
+            // Solution 1
             document.dispatchEvent(
                // Keyboard code - https://docs.microsoft.com/en-us/dotnet/api/android.views.keycode?view=xamarin-android-sdk-12
                new KeyboardEvent(
@@ -64,14 +66,14 @@ window.nova_plugins.push({
                   }
                )
             );
-            // Strategy 2
+            // Solution 2
             // Doesn't work (source: https://greasyfork.org/en/scripts/447802-youtube-web-tweaks)
             // window.wrappedJSObject._lact = Date.now();
          }
       }, 1000 * 60 * 5); // 5 min
 
 
-      // Strategy 3
+      // Solution 3
       // function skipConfirmDialog() {
       //    // NOVA.waitSelector('[role="dialog"] #confirm-button')
       //    NOVA.waitSelector('#confirm-button')
@@ -84,7 +86,7 @@ window.nova_plugins.push({
       //       });
       // }
 
-      // Strategy 4
+      // Solution 4
       // alt10 - https://greasyfork.org/en/scripts/429909-comfortable-youtube
 
       // skipConfirmDialog();

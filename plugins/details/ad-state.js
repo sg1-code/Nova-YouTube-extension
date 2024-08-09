@@ -59,8 +59,8 @@ window.nova_plugins.push({
          (document.getElementById(SELECTOR_ID) || (() => {
             const el = document.createElement('span');
             el.id = SELECTOR_ID;
-            el.className = 'style-scope yt-formatted-string bold';
-            // el.style.cssText = 'font-size: 1.35rem; line-height: 2rem; font-weight:400;';
+            el.classList.add('style-scope', 'yt-formatted-string', 'bold');
+            // el.style.cssText = 'font-size: 1.35rem; line-height: 2rem; margin: 10px;';
             Object.assign(el.style, {
                'font-size': '1.35rem',
                'line-height': '2rem',
@@ -70,8 +70,8 @@ window.nova_plugins.push({
             // container.insertAdjacentElement('afterend', el);
             return el;
             // 62.88 % slower
-            // container.insertAdjacentHTML('afterend',
-            //    `<span id="${SELECTOR_ID}" class="style-scope yt-formatted-string bold" style="font-size: 1.35rem; line-height: 2rem; font-weight:400;">${text}</span>`);
+            // container.insertAdjacentHTML('afterend', NOVA.createSafeHTML(
+            //    `<span id="${SELECTOR_ID}" class="style-scope yt-formatted-string bold" style="font-size: 1.35rem; line-height: 2rem; font-weight:400;">${text}</span>`));
             // return document.getElementById(SELECTOR_ID);
          })())
             .textContent = text;

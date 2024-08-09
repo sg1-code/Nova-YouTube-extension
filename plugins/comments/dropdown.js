@@ -1,26 +1,29 @@
 window.nova_plugins.push({
-   id: 'comments-popup',
-   title: 'Comments section in popup',
-   'title:zh': '弹出窗口中的评论部分',
-   'title:ja': 'ポップアップのコメントセクション',
-   // 'title:ko': '팝업의 댓글 섹션',
+   id: 'comments-dropdown',
+   title: 'Comments section in dropdown menu',
+   'title:zh': '下拉菜单中的评论部分',
+   'title:ja': 'ドロップダウンメニューのコメントセクション',
+   // 'title:ko': '',
    // 'title:vi': '',
-   // 'title:id': 'Bagian komentar di popup',
-   // 'title:es': 'Sección de comentarios en ventana emergente',
-   // 'title:pt': 'Seção de comentários no pop-up',
-   // 'title:fr': 'Section des commentaires dans la fenêtre contextuelle',
-   // 'title:it': 'Sezione commenti nel popup',
-   // 'title:tr': 'Açılır pencerede yorumlar bölümü',
-   // 'title:de': 'Kommentarbereich im Popup',
-   'title:pl': 'Sekcja komentarzy w osobnym oknie',
-   // 'title:ua': 'Розділ коментарів у спливаючому вікні',
+   // 'title:id': '',
+   // 'title:es': '',
+   // 'title:pt': '',
+   // 'title:fr': '',
+   // 'title:it': '',
+   // 'title:tr': '',
+   // 'title:de': '',
+   // 'title:pl': '',
+   // 'title:ua': '',
    run_on_pages: 'watch, -mobile',
    section: 'comments',
    // desc: '',
+   // 'plugins-conflict': 'comments-visibility',
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/409893-youtube-widescreen-new-design-polymer
       // alt2 - https://greasyfork.org/en/scripts/458531-move-youtube-comments-to-sidebar
+      // alt3 - https://chromewebstore.google.com/detail/gonknbphdaoahjnamfjpaincammofgae
+      // alt4 - https://greasyfork.org/en/scripts/9064-youtube-scrolling-comments-layout-2017
 
       if (user_settings['comments_visibility_mode'] == 'disable') return; // conflict with plugin [comments-visibility]
 
@@ -59,11 +62,13 @@ window.nova_plugins.push({
 
                /* button */
                ${COMMENTS_SELECTOR}:not(:hover):before {
-                  content: attr(${counterAttrName}) " comments ▼";
+                  /* content: attr(${counterAttrName}) " comments \\25B4\\25BE"; */
+                  /* content: attr(${counterAttrName}) " comments ▼"; */
+                  content: attr(${counterAttrName}) " comments ▽";
                   cursor: pointer;
                   visibility: visible;
                   /*transform: rotate(-90deg) translateX(-100%);*/
-                  right: 3em;
+                  right: 2em;
                   padding: 0 6px 2px;
                   line-height: normal;
                   font-family: Roboto, Arial, sans-serif;
@@ -74,14 +79,14 @@ window.nova_plugins.push({
 
                /* comments section */
                ${COMMENTS_SELECTOR} {
-                  ${(user_settings.comments_popup_width === 100) ? 'margin: 0 1%;' : ''}
+                  ${(user_settings.comments_dropdown_width === 100) ? 'margin: 0 1%;' : ''}
                   padding: 0 15px;
                   background-color: var(--yt-spec-brand-background-primary);
                   background-color: var(--yt-spec-menu-background);
                   background-color: var(--yt-spec-raised-background);
                   color: var(--yt-spec-text-primary);;
                   border: 1px solid #333;
-                  max-width: ${user_settings.comments_popup_width || 40}%;
+                  max-width: ${user_settings.comments_dropdown_width || 40}%;
                   ${user_settings['square-avatars'] ? '' : 'border-radius: 12px'};
                }
 
@@ -147,7 +152,7 @@ window.nova_plugins.push({
                }`);
 
             // hide add comment textarea
-            if (user_settings.comments_popup_hide_textarea) {
+            if (user_settings.comments_dropdown_hide_textarea) {
                NOVA.css.push(
                   `${COMMENTS_SELECTOR} > #sections > #contents {
                      overflow-y: auto;
@@ -167,7 +172,7 @@ window.nova_plugins.push({
 
    },
    options: {
-      comments_popup_width: {
+      comments_dropdown_width: {
          _tagName: 'input',
          label: 'Width',
          'label:zh': '宽度',
@@ -205,7 +210,7 @@ window.nova_plugins.push({
          max: 100,
          value: 40,
       },
-      comments_popup_hide_textarea: {
+      comments_dropdown_hide_textarea: {
          _tagName: 'input',
          label: 'Hide textarea',
          'label:zh': '隐藏文本区域',

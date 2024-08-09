@@ -1,6 +1,7 @@
 window.nova_plugins.push({
    id: 'search-filter',
    // id: 'thumbs-channels-filter',
+   // title: 'Channel deny list',
    title: 'Blocked channels',
    'title:zh': '屏蔽频道列表',
    'title:ja': 'ブロックされたチャネルのリスト',
@@ -17,6 +18,7 @@ window.nova_plugins.push({
    // 'title:ua': 'Заблоковані канали',
    run_on_pages: 'results, feed, -mobile',
    section: 'thumbs',
+   // desc: 'A list of blocked channels',
    desc: 'Hide channels on the search page',
    'desc:zh': '在搜索页面上隐藏频道',
    'desc:ja': '検索ページでチャンネルを非表示にする',
@@ -50,14 +52,14 @@ window.nova_plugins.push({
          'ytd-playlist-renderer', // results
          // 'ytd-grid-video-renderer', // feed (old)
          // 'ytd-compact-video-renderer', // sidepanel in watch
-            // 'yt-append-continuation-items-action', // sidepanel append in watch
+         // 'yt-append-continuation-items-action', // sidepanel append in watch
          'ytm-compact-video-renderer', // mobile /results page (ytm-rich-item-renderer)
          // 'ytm-item-section-renderer' // mobile /subscriptions page
       ]
          .join(',');
 
       if (NOVA.isMobile) {
-         // Strategy 1. Slowdown but work in mobile and desktop
+         // Solution 1. Slowdown but work in mobile and desktop
          NOVA.watchElements({
             selectors: ['#channel-name'],
             // selectors: [
@@ -81,7 +83,14 @@ window.nova_plugins.push({
       }
 
       else {
-         // Strategy 2 (optimized but doesn't work in mobile)
+         // Solution 1 (HTML5). page update event
+         document.addEventListener('scrollend', function self() {
+            if (typeof self.timeout === 'number') clearTimeout(self.timeout);
+            self.timeout = setTimeout(hideThumb, 50); // 50ms
+         });
+
+         // Solution 2 (API). page update event
+         // Solution 2 (optimized but doesn't work in mobile)
          // page update event
          document.addEventListener('yt-action', evt => {
             // console.debug(evt.detail?.actionName);
@@ -99,45 +108,26 @@ window.nova_plugins.push({
                   // case 'yt-service-request': // results, watch
 
                   // console.debug(evt.detail?.actionName); // flltered
-                  document.body.querySelectorAll(
-                     // '#channel-name' // without @url_name
-                     '#channel-name a[href]:first-child' // exclude "Playlist" link
-                     // '.subhead > [class*="media-item-byline"]' // mobile /subscriptions page
-                  )
-                     .forEach(channel_name => {
-                        BLOCK_KEYWORDS.forEach(keyword => {
-                           // url
-                           if (keyword.startsWith('@')
-                              && channel_name.href.includes(keyword)
-                              // && channel_name.querySelector(`a[href$="${keyword}"]`)
-                              && (thumb = channel_name.closest(thumbsSelectors))
-                           ) {
-                              thumb.remove();
-                              // thumb.style.border = '2px solid green'; // mark for test
-                           }
-                           // title
-                           else if ((channel_name.textContent.trim().toLowerCase() == keyword)
-                              && (thumb = channel_name.closest(thumbsSelectors))
-                           ) {
-                              // thumb.remove();
-                              thumb.style.display = 'none'; // dependency for "thumbs_hide_live_channels_exception" in [thumbs-hide] plugin
-
-                              // thumb.style.border = '2px solid red'; // mark for test
-                              // console.log('filter removed', keyword, thumb);
-                           }
-                        });
-                     });
+                  hideThumb();
                   break;
-
-               // default:
-               //    break;
             }
          });
 
          if (typeof GM_info === 'object') {
+            let activeThumb;
+            document.addEventListener('click', evt => {
+               activeThumb = evt.isTrusted && (el = evt.target.closest('#meta #menu #button')) ? el.closest('#meta') : null;
+            });
+            // }, { capture: true }); // before all events
+
             // NOVA.waitSelector('#menu [menu-active] [role="menuitem"]')
+            // NOVA.waitSelector('tp-yt-iron-dropdown[focused]')
             NOVA.waitSelector('tp-yt-iron-dropdown:not([aria-hidden="true"]) ytd-menu-popup-renderer[slot="dropdown-content"] [role="menuitem"]')
                .then(container => {
+                  // container.style.outline = '1px solid red'; // for test
+                  // add :hover css
+                  NOVA.css.push(`div.ytd-menu-service-item-renderer:hover { background-color: var(--yt-spec-10-percent-layer); }`);
+
                   const btn = document.createElement('div');
                   btn.classList = 'style-scope ytd-menu-service-item-renderer';
                   // `<yt-formatted-string class="style-scope ytd-menu-service-item-renderer">Block</yt-formatted-string>`;
@@ -147,26 +137,32 @@ window.nova_plugins.push({
                      padding: '9px 15px 9px 56px',
                      cursor: 'pointer',
                   });
-                  // btn.textContent = 'Nova block channel';
-                  btn.innerHTML = '<b>Nova block channel</b>';
-                  // btn.innerHTML =
-                  //    `<svg viewBox="0 0 24 24" height="100%" width="100%">
-                  //       <g fill="currentColor">
-                  //          <path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zM3 12c0 2.31.87 4.41 2.29 6L18 5.29C16.41 3.87 14.31 3 12 3c-4.97 0-9 4.03-9 9zm15.71-6L6 18.71C7.59 20.13 9.69 21 12 21c4.97 0 9-4.03 9-9 0-2.31-.87-4.41-2.29-6z" />
-                  //       </g>
-                  //    </svg>Nova block channel`;
+                  // btn.innerHTML = NOVA.createSafeHTML('<b>Nova block channel</b>');
+                  // // btn.textContent = 'Nova block channel';
+                  // // btn.innerHTML = NOVA.createSafeHTML(
+                  // //    `<svg viewBox="0 0 24 24" height="100%" width="100%">
+                  // //       <g fill="currentColor">
+                  // //          <path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zM3 12c0 2.31.87 4.41 2.29 6L18 5.29C16.41 3.87 14.31 3 12 3c-4.97 0-9 4.03-9 9zm15.71-6L6 18.71C7.59 20.13 9.69 21 12 21c4.97 0 9-4.03 9-9 0-2.31-.87-4.41-2.29-6z" />
+                  // //       </g>
+                  // //    </svg>Nova block channel`);
+                  // fix - This document requires 'TrustedHTML' assignment.
+                  const boldText = document.createElement('strong');
+                  boldText.textContent = 'Nova block channel';
+                  btn.append(boldText);
                   btn.title = 'Nova block channel';
 
                   btn.addEventListener('click', () => {
                      // console.debug('search_filter_channels_blocklist', user_settings.search_filter_channels_blocklist);
-                     const currentCannelName = document.querySelector('#menu [menu-active]')
-                        .closest('#details, #meta')
-                        .querySelector('#channel-name a')?.textContent;
+                     const currentCannelName = activeThumb?.querySelector('#channel-name a')?.textContent;
+                     // const currentCannelName = document.querySelector('#title-container #menu [menu-active]')
+                     //    .closest('#details, #meta')
+                     //    .querySelector('#channel-name a')?.textContent;
 
-                     if (currentCannelName && confirm(`Add channel [${currentCannelName}] to the blacklist?`)) {
+                     if (currentCannelName && confirm(`Add channel【${currentCannelName}】to the blacklist?`)) {
                         user_settings.search_filter_channels_blocklist += '\n' + currentCannelName;
                         GM_setValue(configStoreName, user_settings);
                      }
+                     document.body.click(); // close expanded menu
                   });
 
                   container.after(btn);
@@ -181,6 +177,37 @@ window.nova_plugins.push({
                   //    threshold: .5, // set offset 0.X means trigger if atleast X0% of element in viewport
                   // })
                   //    .observe(container);
+               });
+         }
+
+         function hideThumb() {
+            document.body.querySelectorAll(
+               // '#channel-name' // without @url_name
+               '#channel-name a[href]:first-child' // exclude "Playlist" link
+               // '.subhead > [class*="media-item-byline"]' // mobile /subscriptions page
+            )
+               .forEach(channel_name => {
+                  BLOCK_KEYWORDS.forEach(keyword => {
+                     // url
+                     if (keyword.startsWith('@')
+                        && channel_name.href.includes(keyword)
+                        // && channel_name.querySelector(`a[href$="${keyword}"]`)
+                        && (thumb = channel_name.closest(thumbsSelectors))
+                     ) {
+                        thumb.remove();
+                        // thumb.style.border = '2px solid green'; // mark for test
+                     }
+                     // title
+                     else if ((channel_name.textContent.trim().toLowerCase() == keyword)
+                        && (thumb = channel_name.closest(thumbsSelectors))
+                     ) {
+                        // thumb.remove();
+                        thumb.style.display = 'none'; // dependency for "thumbs_hide_live_channels_exception" in [thumbs-hide] plugin
+
+                        // thumb.style.border = '2px solid red'; // mark for test
+                        // console.log('filter removed', keyword, thumb);
+                     }
+                  });
                });
          }
       }

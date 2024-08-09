@@ -11,17 +11,14 @@ console.log('%c /• %s •/', 'color:#0096fa; font-weight:bold;', GM_info.scrip
 // }
 
 const
-   // configPage = 'https://raingart.github.io/nova/', // ?tabs=tab-plugins
-   configPage = 'https://raingart.github.io/options.html', // ?tabs=tab-plugins
+   configPage = 'https://raingart.github.io/nova/', // ?tabs=tab-plugins
    configStoreName = 'user_settings',
-   user_settings = GM_getValue(configStoreName, null);
+   user_settings = GM_getValue(configStoreName, {});
 // user_settings = await GM_getValue(configStoreName) || {}; // for Greasemonkey
 
 // console.debug(`current ${configStoreName}:`, user_settings);
 
-// renameStorageKeys({
-//    // 'oldKey': 'newKey',
-// });
+actualizeStorageVer();
 
 // Disabled script if youtube is embedded (is iframe)
 if (user_settings?.exclude_iframe && (window.self !== window.top)) {
@@ -103,22 +100,35 @@ function setupConfigPage() {
 
    window.addEventListener('DOMContentLoaded', () => {
       localizePage(user_settings?.lang_code);
-      storeData = user_settings; // export(sync) settings to page
-      // allow to export plugins
-      unsafeWindow.window.nova_plugins = window.nova_plugins;
-      // unsafeWindow.Plugins.load = () => { };
-      // unsafeWindow.Plugins ={ };
-   });
-
-   window.addEventListener('load', () => {
-      // unlock if synchronized
-      document.body?.classList?.remove('preload');
-      // alert('PopulateForm:' + typeof PopulateForm); // test for Greasemonkey
 
       document.body.querySelector('a[href$="issues/new"]')
          .addEventListener('click', ({ target }) => {
             target.href += '?body=' + encodeURIComponent(GM_info.script.version + ' | ' + navigator.userAgent) + '&labels=bug&template=bug_report.md';
          });
+   });
+
+   // send plugins form build
+   window.addEventListener('load', () => {
+      document.dispatchEvent(
+         new CustomEvent(
+            'settings-sync',
+            {
+               bubbles: true,
+               detail: {
+                  'plugins': window.nova_plugins.map(obj => { obj._runtime = function () { }; return obj; }),
+                  'settings': user_settings,
+               }
+            })
+      );
+
+      // // the patch doesn't work. Repalace to "form submit event"
+      // Storage.setParams = newSettings => {
+      //    // fix tab reassignment
+      //    // if (obj.tabs) delete obj.tabs;
+
+      //    console.debug(`update ${configStoreName}:`, newSettings);
+      //    GM_setValue(configStoreName, newSettings);
+      // };
    });
 }
 
@@ -135,13 +145,14 @@ function appLander() {
    const isURLChanged = () => prevURL == document.URL ? false : prevURL = document.URL;
 
    // on page updated url
-   // Strategy 1 (HTML). Skip first page transition
+   // Solution 1 (HTML). Skip first page transition
    if (isMobile = (location.host == 'm.youtube.com')) {
       window.addEventListener('transitionend', ({ target }) => target.id == 'progress' && isURLChanged() && appRun());
    }
-   // Strategy 2 (API)
+   // Solution 2 (API)
    else {
       document.addEventListener('yt-navigate-start', () => isURLChanged() && appRun());
+      window.addEventListener('popstate', () => isURLChanged() && appRun());
 
       // miniplayer fix (https://github.com/raingart/Nova-YouTube-extension/issues/145)
       document.addEventListener('yt-action', reloadAfterMiniplayer);
@@ -230,77 +241,7 @@ function registerMenuCommand() {
 
       function saveImportSettings(json) {
          GM_setValue(configStoreName, json);
-         renameStorageKeys({
-            // 'oldKey': 'newKey',
-            'disable_in_frame': 'exclude_iframe',
-            'custom-api-key': 'user-api-key',
-            'shorts-disable': 'thumbs_hide_shorts',
-            'shorts_disable': 'thumbs_hide_shorts',
-            'premiere-disable': 'thumbs_hide_premieres',
-            'premieres-disable': 'thumbs_hide_premieres',
-            'premieres_disable': 'thumbs_hide_premieres',
-            'thumbs_min_duration': 'thumbs_hide_min_duration',
-            'shorts_disable_min_duration': 'thumbs_hide_min_duration',
-            'streams-disable': 'thumbs_hide_live',
-            'streams_disable': 'thumbs_hide_live',
-            'live_disable': 'thumbs_hide_live',
-            'thumbnails-mix-hide': 'thumbs_hide_mix',
-            'thumb_mix_disable': 'thumbs_hide_mix',
-            'mix_disable': 'thumbs_hide_mix',
-            'player_fullscreen_mode_exit': 'player_fullscreen_mode_onpause',
-            'subtitle-transparent': 'subtitle_transparent',
-            'video-description-expand': 'description-expand',
-            'video_quality_in_music': 'video_quality_in_music_playlist',
-            'player_float_progress_bar_color': 'player_progress_bar_color',
-            'header-short': 'header-compact',
-            'player-buttons-custom': 'player-quick-buttons',
-            'shorts_thumbnails_time': 'shorts-thumbnails-time',
-            'comments-sidebar-position-exchange': 'move-in-sidebar',
-            'comments_sidebar_position_exchange_target': 'move_in_sidebar_target',
-            'streamed_disable_channel_exception': 'thumbs_hide_live_channels_exception',
-            'streamed_disable_channels_exception': 'thumbs_hide_live_channels_exception',
-            'video_quality_in_music_quality': 'video_quality_for_music',
-            'volume_normalization': 'volume_loudness_normalization',
-            'button_no_labels_opacity': 'details_buttons_opacity',
-            'details_button_no_labels_opacity': 'details_buttons_opacity',
-            'button-no-labels': 'details_buttons_label_hide',
-            'details_button_no_labels': 'details_buttons_label_hide',
-            'volume-wheel': 'video-volume',
-            'rate-wheel': 'video-rate',
-            'video-stop-preload': 'video-autostop',
-            'stop_preload_ignore_playlist': 'video_autostop_ignore_playlist',
-            'stop_preload_ignore_live': 'video_autostop_ignore_live',
-            'stop_preload_embed': 'video_autostop_embed',
-            'disable-video-cards': 'pages-clear',
-            'volume_level_default': 'volume_default',
-            'thumb_filter_title_blocklist': 'thumbs_filter_title_blocklist',
-            'search_filter_channel_blocklist': 'search_filter_channels_blocklist',
-            'streamed_disable': 'thumbs_hide_streamed',
-            'watched_disable': 'thumbs_hide_watched',
-            'watched_disable_percent_complete': 'thumbs_hide_watched_percent_complete',
-            'sidebar-channel-links-patch': 'sidebar-thumbs-channel-link-patch',
-            'move-in-sidebar': 'move-to-sidebar',
-            'move_in_sidebar_target': 'move_to_sidebar_target',
-            'skip_into_step': 'skip_into_sec',
-            'miniplayer-disable': 'default-miniplayer-disable',
-            'thumbnails_title_normalize_show_full': 'thumbs_title_show_full',
-            'thumbnails_title_normalize_smart_max_words': 'thumbs_title_normalize_smart_max_words',
-            'thumbnails_title_clear_emoji': 'thumbs_title_clear_emoji',
-            'thumbnails_title_clear_symbols': 'thumbs_title_clear_symbols',
-            'thumbnails-clear': 'thumbs-clear',
-            'thumbnails_clear_preview_timestamp': 'thumbs_clear_preview_timestamp',
-            'thumbnails_clear_overlay': 'thumbs_clear_overlay',
-            'thumbnails-grid-count': 'thumbs-grid-count',
-            'thumbnails_grid_count': 'thumbs_grid_count',
-            'thumbnails-watched': 'thumbs-watched',
-            'thumbnails_watched_frame_color': 'thumbs_watched_frame_color',
-            'thumbnails_watched_title': 'thumbs_watched_title',
-            'thumbnails_watched_title_color': 'thumbs_watched_title_color',
-            'details-buttons': 'details-buttons-visibility',
-            'comments_sort_words_blocklist': 'comments_sort_blocklist',
-            'thumbnails-title-normalize': 'thumbs-title-normalize',
-            'time_remaining_mode': 'time_remaining_format',
-         });
+         actualizeStorageVer();
          // alert('Settings imported successfully!');
          alert('Settings imported!');
          location.reload();
@@ -309,7 +250,7 @@ function registerMenuCommand() {
    GM_registerMenuCommand('Export settings', () => {
       const d = document.createElement('a');
       d.style.display = 'none';
-      d.download = 'nova_backup.json';
+      d.download = 'nova-backup.json';
       d.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(user_settings));
       document.body.append(d);
       d.click();
@@ -317,15 +258,103 @@ function registerMenuCommand() {
    });
 }
 
-function renameStorageKeys(key_template_obj = required()) {
-   let needSave;
-   for (const oldKey in user_settings) {
-      if (newKey = key_template_obj[oldKey]) {
-         console.log(oldKey, '=>', newKey);
-         needSave = true;
-         delete Object.assign(user_settings, { [newKey]: user_settings[oldKey] })[oldKey];
+// on update this script ver.
+function actualizeStorageVer() {
+   // skip same ver.
+   if (GM_info.script.version == +user_settings?.ver) return;
+   // save this ver. number
+   user_settings.ver = GM_info.script.version
+   GM_setValue(configStoreName, user_settings);
+
+   renameStorageKeys({
+      // 'oldKey': 'newKey',
+      'disable_in_frame': 'exclude_iframe',
+      'custom-api-key': 'user-api-key',
+      'shorts-disable': 'thumbs_hide_shorts',
+      'shorts_disable': 'thumbs_hide_shorts',
+      'premiere-disable': 'thumbs_hide_premieres',
+      'premieres-disable': 'thumbs_hide_premieres',
+      'premieres_disable': 'thumbs_hide_premieres',
+      'thumbs_min_duration': 'thumbs_hide_min_duration',
+      'shorts_disable_min_duration': 'thumbs_hide_min_duration',
+      'streams-disable': 'thumbs_hide_live',
+      'streams_disable': 'thumbs_hide_live',
+      'live_disable': 'thumbs_hide_live',
+      'thumbnails-mix-hide': 'thumbs_hide_mix',
+      'thumb_mix_disable': 'thumbs_hide_mix',
+      'mix_disable': 'thumbs_hide_mix',
+      'player_fullscreen_mode_exit': 'player_fullscreen_mode_onpause',
+      'subtitle-transparent': 'subtitle_transparent',
+      'video-description-expand': 'description-expand',
+      'video_quality_in_music': 'video_quality_in_music_playlist',
+      'player_float_progress_bar_color': 'player_progress_bar_color',
+      'header-short': 'header-compact',
+      'player-buttons-custom': 'player-quick-buttons',
+      'shorts_thumbnails_time': 'shorts-thumbnails-time',
+      'comments-sidebar-position-exchange': 'move-in-sidebar',
+      'comments_sidebar_position_exchange_target': 'move_in_sidebar_target',
+      'streamed_disable_channel_exception': 'thumbs_hide_live_channels_exception',
+      'streamed_disable_channels_exception': 'thumbs_hide_live_channels_exception',
+      'video_quality_in_music_quality': 'video_quality_for_music',
+      'volume_normalization': 'volume_loudness_normalization',
+      'button_no_labels_opacity': 'details_buttons_opacity',
+      'details_button_no_labels_opacity': 'details_buttons_opacity',
+      'button-no-labels': 'details_buttons_label_hide',
+      'details_button_no_labels': 'details_buttons_label_hide',
+      'volume-wheel': 'video-volume',
+      'rate-wheel': 'video-rate',
+      'video-stop-preload': 'video-autostop',
+      'stop_preload_ignore_playlist': 'video_autostop_ignore_playlist',
+      'stop_preload_ignore_live': 'video_autostop_ignore_live',
+      'stop_preload_embed': 'video_autostop_embed',
+      'disable-video-cards': 'pages-clear',
+      'volume_level_default': 'volume_default',
+      'thumb_filter_title_blocklist': 'thumbs_filter_title_blocklist',
+      'search_filter_channel_blocklist': 'search_filter_channels_blocklist',
+      'streamed_disable': 'thumbs_hide_streamed',
+      'watched_disable': 'thumbs_hide_watched',
+      'watched_disable_percent_complete': 'thumbs_hide_watched_percent_complete',
+      'sidebar-channel-links-patch': 'sidebar-thumbs-channel-link-patch',
+      'move-in-sidebar': 'move-to-sidebar',
+      'move_in_sidebar_target': 'move_to_sidebar_target',
+      'skip_into_step': 'skip_into_sec',
+      'miniplayer-disable': 'default-miniplayer-disable',
+      'thumbnails_title_normalize_show_full': 'thumbs_title_show_full',
+      'thumbnails_title_normalize_smart_max_words': 'thumbs_title_normalize_smart_max_words',
+      'thumbnails_title_clear_emoji': 'thumbs_title_clear_emoji',
+      'thumbnails_title_clear_symbols': 'thumbs_title_clear_symbols',
+      'thumbnails-clear': 'thumbs-clear',
+      'thumbnails_clear_preview_timestamp': 'thumbs_clear_preview_timestamp',
+      'thumbnails_clear_overlay': 'thumbs_clear_overlay',
+      'thumbnails-grid-count': 'thumbs-grid-count',
+      'thumbnails_grid_count': 'thumbs_grid_count',
+      'thumbnails-watched': 'thumbs-watched',
+      'thumbnails_watched_frame_color': 'thumbs_watched_frame_color',
+      'thumbnails_watched_title': 'thumbs_watched_title',
+      'thumbnails_watched_title_color': 'thumbs_watched_title_color',
+      'details-buttons': 'details-buttons-visibility',
+      'comments_sort_words_blocklist': 'comments_sort_blocklist',
+      'thumbnails-title-normalize': 'thumbs-title-normalize',
+      'time_remaining_mode': 'time_remaining_format',
+      'player_buttons_custom_screenshot': 'player_buttons_custom_screenshot_format',
+      'description-popup': 'description-dropdown',
+      'comments-popup': 'comments-dropdown',
+      'comments_popup_width': 'comments_dropdown_width',
+      'comments_popup_hide_textarea': 'comments_dropdown_hide_textarea',
+      'thumbs_title_show_full': 'thumbs-title-show-full',
+      id: '',
+   });
+
+   function renameStorageKeys(key_template_obj = required()) {
+      let needSave;
+      for (const oldKey in user_settings) {
+         if (newKey = key_template_obj[oldKey]) {
+            console.log(oldKey, '=>', newKey);
+            needSave = true;
+            delete Object.assign(user_settings, { [newKey]: user_settings[oldKey] })[oldKey];
+         }
+         if (needSave) GM_setValue(configStoreName, user_settings);
       }
-      if (needSave) GM_setValue(configStoreName, user_settings);
    }
 }
 
@@ -333,16 +362,17 @@ function insertSettingButton() {
    NOVA.waitSelector('#masthead #end')
       .then(menu => {
          const
-            titleMsg = 'Nova Settings',
-            a = document.createElement('a'),
+            btn = document.createElement('a'),
+            title = 'Nova Settings',
             SETTING_BTN_ID = 'nova_settings_button';
 
-         a.id = SETTING_BTN_ID;
-         // a.href = configPage + '?tabs=tab-plugins';
-         a.href = configPage;
-         a.target = '_blank';
-         // a.textContent = '▷';
-         a.innerHTML =
+         btn.id = SETTING_BTN_ID;
+         // btn.href = configPage + '?tabs=tab-plugins';
+         btn.href = configPage;
+         btn.target = '_blank';
+         // btn.textContent = '►';
+         // btn.textContent = '▷'; // fix - This document requires 'TrustedHTML' assignment.
+         btn.innerHTML = NOVA.createSafeHTML(
             `<yt-icon-button class="style-scope ytd-button-renderer style-default size-default">
                <svg viewBox="-4 0 20 16">
                   <radialGradient id="nova-gradient" gradientUnits="userSpaceOnUse" cx="6" cy="22" r="18.5">
@@ -353,29 +383,28 @@ function insertSettingButton() {
                      <polygon points="0,16 14,8 0,0"/>
                   </g>
                </svg>
-            </yt-icon-button>`;
+            </yt-icon-button>`);
          // `<svg viewBox="0 0 24 24" style="height:24px;">
-         //     <path d="M3 1.8v20.4L21 12L3 1.8z M6 7l9 5.1l-9 5.1V7z"/>
-         // </svg>`;
-         // a.textContent = '►';
-         // a.style.cssText = '';
-         // Object.assign(a.style, {
-         //    'font-size': '24px',
-         //    'color': 'deepskyblue !important',
-         //    'text-decoration': 'none',
-         //    'padding': '0 10px',
-         // });
-         a.addEventListener('click', null, { capture: true }); // fix hide <tp-yt-iron-dropdown>
+         //    <path d="M3 1.8v20.4L21 12L3 1.8z M6 7l9 5.1l-9 5.1V7z"/>
+         // </svg>`);
+         // btn.style.cssText = '';
+         Object.assign(btn.style, {
+            'font-size': '24px',
+            'color': 'deepskyblue !important',
+            'text-decoration': 'none',
+            'padding': '0 10px',
+         });
+         btn.addEventListener('click', null, { capture: true }); // fix hide <tp-yt-iron-dropdown>
 
          // append tooltip
-         // a.setAttribute('tooltip', titleMsg); // css (ahs bug on hover search buttom)
+         // btn.setAttribute('tooltip', title); // css (ahs bug on hover search buttom)
          // yt-api
-         a.title = titleMsg;
+         btn.title = title;
          const tooltip = document.createElement('tp-yt-paper-tooltip');
-         tooltip.className = 'style-scope ytd-topbar-menu-button-renderer';
+         tooltip.className.classList.add('style-scope', 'ytd-topbar-menu-button-renderer');
          // tooltip.setAttribute('role', 'tooltip');
-         tooltip.textContent = titleMsg;
-         a.appendChild(tooltip);
+         tooltip.textContent = title;
+         btn.append(tooltip);
 
          // const style = document.createElement('style');
          // style.innerHTML += `#${SETTING_BTN_ID} button {display: contents;}`;
@@ -430,10 +459,10 @@ function insertSettingButton() {
                /*stop-color: #fff700;*/
             }`);
 
-         // a.appendChild(style);
+         // btn.append(style);
          // menu.attachShadow({ mode: 'open' });
-         // menu.shadowRoot.prepend(a);
-         menu.prepend(a);
+         // menu.shadowRoot.prepend(btn);
+         menu.prepend(btn);
 
          // const btn = document.createElement('button');
          // btn.className = 'ytd-topbar-menu-button-renderer';

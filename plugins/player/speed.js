@@ -10,7 +10,7 @@
 
 window.nova_plugins.push({
    id: 'video-rate',
-   title: 'Playback speed control',
+   title: 'Playback speed',
    'title:zh': '播放速度控制',
    'title:ja': '再生速度制御',
    // 'title:ko': '재생 속도 제어',
@@ -46,19 +46,20 @@ window.nova_plugins.push({
 
       // speed buttons (-/+)
       // alt1 - https://greasyfork.org/en/scripts/475864-youtube-playback-speed-buttons
-      // alt2 - https://chrome.google.com/webstore/detail/hdannnflhlmdablckfkjpleikpphncik
-      // alt3 - https://chrome.google.com/webstore/detail/gaiceihehajjahakcglkhmdbbdclbnlf
+      // alt2 - https://chromewebstore.google.com/detail/hdannnflhlmdablckfkjpleikpphncik
+      // alt3 - https://chromewebstore.google.com/detail/gaiceihehajjahakcglkhmdbbdclbnlf
 
       // array
       // alt1 - https://greasyfork.org/en/scripts/30506-video-speed-buttons
       // alt2 - https://greasyfork.org/en/scripts/477218-m-youtube-com-more-playback-speeds
       // alt3 - https://greasyfork.org/en/scripts/421670-youtube-more-speeds
       // alt4 (mobile) - https://greasyfork.org/en/scripts/477218-m-youtube-com-more-playback-speeds
+      // alt5 - https://greasyfork.org/en/scripts/485372-youtube-com-video-speed-buttons
 
       // NOVA.waitSelector('#movie_player')
       //    .then(movie_player => {
       //       // trigger default indicator
-      //       // Strategy 1. Default indicator doesn't work for html5 way (Strategy 2)
+      //       // Solution 1. Default indicator doesn't work for html5 way (Solution 2)
       //       movie_player.addEventListener('onPlaybackRateChange', rate => {
       //          console.debug('onPlaybackRateChange', rate);
       //       });
@@ -74,7 +75,7 @@ window.nova_plugins.push({
             // console.debug('sliderContainer', sliderContainer);
 
             // trigger default indicator
-            // Strategy 2
+            // Solution 2
             video.addEventListener('ratechange', function () {
                // console.debug('ratechange', movie_player.getPlaybackRate(), this.playbackRate);
                NOVA.showOSD(this.playbackRate + 'x');
@@ -100,9 +101,7 @@ window.nova_plugins.push({
                   const rate = playerRate.adjust(+user_settings.rate_step * Math.sign(evt.wheelDelta));
                   // console.debug('current rate:', rate);
                });
-               sliderContainer.sliderCheckbox.addEventListener('change', ({ target }) => {
-                  target.checked || playerRate.set(1)
-               });
+               sliderContainer.sliderCheckbox.addEventListener('change', ({ target }) => target.checked || playerRate.set(1));
             }
             // expand memu
             // alt1 - https://greasyfork.org/en/scripts/421610-youtube-speed-up
@@ -110,17 +109,11 @@ window.nova_plugins.push({
             // NOVA.runOnPageLoad(() => (NOVA.currentPage == 'watch') && expandAvailableRatesMenu());
 
             NOVA.runOnPageLoad(async () => {
-               // const fn = () => playerRate.set(userRate);
-               // video.removeEventListener('playing', fn);
+               // alt - https://greasyfork.org/en/scripts/27091-youtube-speed-rememberer
                if (NOVA.currentPage == 'watch' || NOVA.currentPage == 'embed') {
                   // custom speed from [save-channel-state] plugin
-                  // alt - https://greasyfork.org/en/scripts/27091-youtube-speed-rememberer
-                  if (user_settings['save-channel-state']) {
-                     if (userRate = await NOVA.storage_obj_manager.getParam('speed')) {
-                        // video.addEventListener('playing', fn);
-                        // playerRate.set(userRate);
-                        video.addEventListener('playing', () => playerRate.set(userRate), { capture: true, once: true });
-                     }
+                  if (user_settings['save-channel-state'] && (customRate = await NOVA.storage_obj_manager.getParam('speed'))) {
+                     video.addEventListener('playing', () => playerRate.set(customRate), { capture: true, once: true });
                   }
                   // expand memu
                   expandAvailableRatesMenu();
@@ -134,6 +127,7 @@ window.nova_plugins.push({
       // alt2 - https://greasyfork.org/en/scripts/421464-html5-video-speed-controller-vlc-like
       // alt3 - https://greasyfork.org/en/scripts/405559-youtube-playback-rate-shortcut
       // alt4 - https://greasyfork.org/en/scripts/481189-youtube-playback-speed-up
+      // alt5 - https://greasyfork.org/en/scripts/492938-youtube-playback-rate-control
       if (user_settings.rate_hotkey == 'keyboard') {
          document.addEventListener('keydown', evt => {
             if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
@@ -243,7 +237,7 @@ window.nova_plugins.push({
 
             return (this.testDefault(rate_step) && this.default(+rate_step)) || this.html5(+rate_step);
          },
-         // Strategy 1
+         // Solution 1
          default(playback_rate = required()) {
             this.log('default', ...arguments);
             const playbackRate = movie_player.getPlaybackRate();
@@ -275,7 +269,7 @@ window.nova_plugins.push({
             this.log('default return', newRate);
             return newRate === movie_player.getPlaybackRate() && newRate;
          },
-         // Strategy 2
+         // Solution 2
          html5(playback_rate = required()) {
             this.log('html5', ...arguments);
             if (!NOVA.videoElement) return console.error('playerRate > videoElement empty:', NOVA.videoElement);
@@ -436,7 +430,7 @@ window.nova_plugins.push({
 
          // append final html code
          // document.body.querySelector('.ytp-panel-menu')
-         //    ?.insertAdjacentHTML('beforeend',
+         //    ?.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(
          //       `<div class="ytp-menuitem" id="rate-slider-menu">
          //          <div class="ytp-menuitem-icon"></div>
          //          <div class="ytp-menuitem-label">Speed (${user_settings.rate_default})</div>
@@ -444,7 +438,7 @@ window.nova_plugins.push({
          //             <input type="checkbox" checked="${Boolean(user_settings.rate_default)}" title="Remember speed" class="ytp-menuitem-toggle-checkbox">
          //             <input type="range" min="0.5" max="4" step="0.1" class="ytp-menuitem-slider">
          //          </div>
-         //       </div>`);
+         //       </div>`));
       }
 
       // function insertSlider() {
@@ -475,47 +469,49 @@ window.nova_plugins.push({
             return console.error('expandAvailableRatesMenu > _yt_player is empty', _yt_player);
          }
 
-         // Strategy 1. local fn
-         // if (path = findPathInObj({ 'obj': _yt_player, 'keys': 'getAvailablePlaybackRates' })) {
-         //    setAvailableRates(_yt_player, 0, path.split('.'));
-         // }
-
-         // function findPathInObj({ obj = required(), keys = required(), path }) {
-         //    const setPath = d => (path ? path + '.' : '') + d;
-
-         //    for (const prop in obj) {
-         //       if (obj.hasOwnProperty(prop) && obj[prop]) {
-         //          if (keys === prop) {
-         //             return this.path = setPath(prop)
-         //          }
-         //          // in deeper
-         //          if (obj[prop].constructor.name == 'Function' && Object.keys(obj[prop]).length) {
-         //             for (const j in obj[prop]) {
-         //                if (typeof obj[prop] !== 'undefined') {
-         //                   // if (prop in obj) {
-         //                   // recursive
-         //                   findPathInObj({
-         //                      'obj': obj[prop][j],
-         //                      'keys': keys,
-         //                      'path': setPath(prop) + '.' + j,
-         //                   });
-         //                }
-         //                if (this.path) return this.path;
-         //             }
-         //          }
-         //       }
-         //    }
-         // }
-
-         // Strategy 2. NOVA fn
-         if (Object.keys(_yt_player).length
-            && (path = NOVA.seachInObjectBy.key({
-               'obj': _yt_player,
-               'keys': 'getAvailablePlaybackRates',
-               // 'match_fn': val => (typeof val === 'function') && val,
-            })?.path)) {
+         // Solution 1. local fn
+         if (path = findPathInObj({ 'obj': _yt_player, 'key': 'getAvailablePlaybackRates' })) {
             setAvailableRates(_yt_player, 0, path.split('.'));
          }
+
+         function findPathInObj({ obj = required(), key = required(), path = '' }) {
+            const setPath = d => (path ? path + '.' : '') + d;
+
+            for (const prop in obj) {
+               if (obj.hasOwnProperty(prop) && obj[prop]) {
+                  if (key === prop) {
+                     return setPath(prop);
+                  }
+                  // in deeper (recursive)
+                  if (typeof obj[prop] == 'function') {
+                     for (const j in obj[prop]) {
+                        if (typeof obj[prop][j] !== 'undefined') {
+                           // recursive
+                           if (result = findPathInObj({
+                              'obj': obj[prop][j],
+                              'key': key,
+                              'path': setPath(prop) + '.' + j,
+                           })) {
+                              return result;
+                           };
+                        }
+                     }
+                  }
+
+               }
+            }
+
+         }
+
+         // Solution 2. NOVA fn
+         // if (Object.keys(_yt_player).length
+         //    && (path = NOVA.searchInObjectBy.key({
+         //       'obj': _yt_player,
+         //       'key': 'getAvailablePlaybackRates',
+         //       // 'match_fn': val => (typeof val === 'function') && val,
+         //    })?.path)) {
+         //    setAvailableRates(_yt_player, 0, path.split('.'));
+         // }
 
          function setAvailableRates(path, idx, arr) {
             if (arr.length - 1 == idx) {
@@ -528,12 +524,20 @@ window.nova_plugins.push({
 
       }
 
-
       function reCalcOverlayTime() {
          const
             ATTR_MARK = 'nova-thumb-overlay-time-recalc';
+         // append icon
+         NOVA.css.push(
+            `#thumbnail #overlays [${ATTR_MARK}]:not(:empty):before { content: '⚡'; }`);
 
-         // page update event
+         // Solution 1 (HTML5). page update event
+         document.addEventListener('scrollend', function self() {
+            if (typeof self.timeout === 'number') clearTimeout(self.timeout);
+            self.timeout = setTimeout(reCalc, 50); // 50ms
+         });
+
+         // Solution 2 (API). page update event
          document.addEventListener('yt-action', evt => {
             // console.debug(evt.detail?.actionName);
             switch (evt.detail?.actionName) {
@@ -541,39 +545,41 @@ window.nova_plugins.push({
                case 'ytd-update-grid-state-action': // feed, channel
                case 'yt-service-request': // results, watch
                case 'ytd-rich-item-index-update-action': // home, channel
+                  // case 'yt-rich-grid-layout-refreshed': // channel
 
-                  // console.debug(evt.detail?.actionName); // flltered
-                  switch (NOVA.currentPage) {
-                     case 'home':
-                     case 'results':
-                     case 'feed':
-                     case 'channel':
-                     case 'watch':
-                        // document.body.querySelectorAll(`#thumbnail #overlays #time-status #text:not([${ATTR_MARK}])`)
-                        // document.body.querySelectorAll(`#thumbnail #overlays ytd-thumbnail-overlay-time-status-renderer:not([${ATTR_MARK}])`)
-                        document.body.querySelectorAll(`#thumbnail #overlays #text:not([${ATTR_MARK}])`)
-                           .forEach(overlay => {
-                              if ((timeLabelEl = overlay.textContent.trim())
-                                 // && !timeLabelEl.startsWith('⚡')
-                              ) {
-                                 overlay.setAttribute(ATTR_MARK, true); // mark
-                                 // overlay.style.border = '2px solid orange'; // mark for test
-                                 const timeSec = NOVA.formatTimeOut.hmsToSec(timeLabelEl);
-                                 overlay.textContent = // '⚡' + // broken `thumbs_hide_min_duration` in [thumbs-hide] plugin
-                                    NOVA.formatTimeOut.HMS.digit(timeSec / user_settings.rate_default);
-                              }
-                           });
-                        break;
+                  reCalc();
+                  break;
+            }
+         });
 
-                     // default:
-                     //    break;
-                  }
+         function reCalc() {
+            // console.debug(evt.detail?.actionName); // flltered
+            switch (NOVA.currentPage) {
+               case 'home':
+               // case 'results':
+               case 'feed':
+               case 'channel':
+               case 'watch':
+                  // document.body.querySelectorAll(`#thumbnail #overlays #time-status #text:not([${ATTR_MARK}])`)
+                  // document.body.querySelectorAll(`#thumbnail #overlays #text:not([${ATTR_MARK}])`)
+                  document.body.querySelectorAll(`#thumbnail #overlays ytd-thumbnail-overlay-time-status-renderer .badge-shape-wiz__text:not([${ATTR_MARK}])`)
+                     .forEach(overlay => {
+                        if ((timeLabelEl = overlay.textContent.trim())
+                           && timeLabelEl.includes(':')// has digit time
+                        ) {
+                           overlay.setAttribute(ATTR_MARK, true); // mark
+                           // overlay.style.border = '2px solid orange'; // mark for test
+                           // if (timeLabelEl.includes(':')) return;
+                           const timeSec = NOVA.formatTimeOut.hmsToSec(timeLabelEl);
+                           overlay.textContent = NOVA.formatTimeOut.HMS.digit(timeSec / user_settings.rate_default);
+                        }
+                     });
                   break;
 
                // default:
                //    break;
             }
-         });
+         }
       }
 
    },
@@ -581,7 +587,8 @@ window.nova_plugins.push({
       rate_default: {
          _tagName: 'input',
          // label: 'Default rate',
-         label: 'Speed at startup',
+         // label: 'Speed at startup',
+         label: 'Default speed',
          'label:zh': '启动速度',
          'label:ja': '起動時の速度',
          // 'label:ko': '시작 시 속도',
@@ -604,23 +611,23 @@ window.nova_plugins.push({
       },
       rate_apply_music: {
          _tagName: 'select',
-         label: 'For music genre',
-         // 'label:zh': '音乐流派视频',
-         // 'label:ja': '音楽ジャンルのビデオ',
-         // 'label:ko': '음악 장르',
+         label: 'Music video',
+         // 'label:zh': '',
+         // 'label:ja': '',
+         // 'label:ko': '',
          // 'label:vi': '',
-         // 'label:id': 'Genre musik',
-         // 'label:es': 'Género musical',
-         // 'label:pt': 'Gênero musical',
-         // 'label:fr': 'Genre de musique',
-         // 'label:it': 'Genere musicale',
-         // // 'label:tr': 'Müzik tarzı',
-         // 'label:de': 'Musikrichtung',
-         // 'label:pl': 'Gatunek muzyczny',
-         // 'label:ua': 'Жарн музики',
-         title: 'Extended detection - may trigger falsely',
-         'title:zh': '扩展检测 - 可能会错误触发',
-         'title:ja': '拡張検出-誤ってトリガーされる可能性があります',
+         // 'label:id': '',
+         // 'label:es': '',
+         // 'label:pt': '',
+         // 'label:fr': '',
+         // 'label:it': '',
+         // 'label:tr': '',
+         // 'label:de': '',
+         // 'label:pl': '',
+         // 'label:ua': '',
+         // title: 'Extended detection - may trigger falsely',
+         // 'title:zh': '扩展检测 - 可能会错误触发',
+         // 'title:ja': '拡張検出-誤ってトリガーされる可能性があります',
          // 'title:ko': '확장 감지 - 잘못 트리거될 수 있음',
          // 'title:vi': '',
          // 'title:id': 'Deteksi diperpanjang - dapat memicu salah',
@@ -630,13 +637,13 @@ window.nova_plugins.push({
          // 'title:it': 'Rilevamento esteso - potrebbe attivarsi in modo errato',
          // 'title:tr': 'Genişletilmiş algılama - yanlış tetiklenebilir',
          // 'title:de': 'Erweiterte Erkennung - kann fälschlicherweise auslösen',
-         'title:pl': 'Rozszerzona detekcja - może działać błędnie',
+         // 'title:pl': 'Rozszerzona detekcja - może działać błędnie',
          // 'title:ua': 'Розширене виявлення - може спрацювати помилково',
          options: [
             {
-               label: 'skip', value: true, selected: true,
-               'label:zh': '跳过',
-               'label:ja': 'スキップ',
+               label: 'ignore', value: true, selected: true,
+               // 'label:zh': '跳过',
+               // 'label:ja': 'スキップ',
                // 'label:ko': '건너 뛰기',
                // 'label:vi': '',
                // 'label:id': 'merindukan',
@@ -646,7 +653,7 @@ window.nova_plugins.push({
                // 'label:it': 'Perdere',
                // 'label:tr': 'atlamak',
                // 'label:de': 'überspringen',
-               'label:pl': 'tęsknić',
+               // 'label:pl': 'tęsknić',
                // 'label:ua': 'пропустити',
             },
             // {
@@ -665,9 +672,9 @@ window.nova_plugins.push({
             //    // 'label:ua': 'пропустити (розширено)',
             // },
             {
-               label: 'force apply', value: false,
-               'label:zh': '施力',
-               'label:ja': '力を加える',
+               label: 'apply', value: false,
+               // 'label:zh': '施力',
+               // 'label:ja': '力を加える',
                // 'label:ko': '강제 적용',
                // 'label:vi': '',
                // 'label:id': 'berlaku paksa',
@@ -677,7 +684,7 @@ window.nova_plugins.push({
                // 'label:it': 'applicare la forza',
                // 'label:tr': 'zorlamak',
                // 'label:de': 'kraft anwenden',
-               'label:pl': 'zastosować siłę',
+               // 'label:pl': 'zastosować siłę',
                // 'label:ua': 'примусово активувати',
             },
          ],
@@ -933,7 +940,7 @@ window.nova_plugins.push({
       },
       rate_max: {
          _tagName: 'input',
-         label: 'Hotkey Max',
+         label: 'Hotkey max',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',

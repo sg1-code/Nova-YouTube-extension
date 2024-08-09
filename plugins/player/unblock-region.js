@@ -1,4 +1,10 @@
 // for test
+// https://watannetwork.com/tools/blocked/
+// https://webtoolsmate.com/youtube-region-restriction-checker
+// https://seostudio.tools/youtube-region-restriction-checker
+// https://www.freetools.one/tool/youtube-region-restriction-checker
+// https://www.freetools.one/tool/youtube-region-restriction-checker
+
 // https://www.youtube.com/watch?v=bTm3kwroEyw - https://watannetwork.com/tools/blocked/#url=bTm3kwroEyw
 // https://www.youtube.com/watch?v=3U2UGM0ldGg - https://watannetwork.com/tools/blocked/#url=3U2UGM0ldGg
 // https://www.youtube.com/watch?v=OztVDJXEfpo - https://watannetwork.com/tools/blocked/#url=OztVDJXEfpo
@@ -13,9 +19,16 @@
 // https://www.youtube.com/watch?v=m5whz6p0BGE - https://watannetwork.com/tools/blocked/#url=m5whz6p0BGE
 // https://www.youtube.com/watch?v=TDmidrIDB4o - https://watannetwork.com/tools/blocked/#url=TDmidrIDB4o
 // https://www.youtube.com/watch?v=ZouuqRfQZ1g - https://watannetwork.com/tools/blocked/#url=ZouuqRfQZ1g
+// https://www.youtube.com/watch?v=JNs0UYkeTZk - https://watannetwork.com/tools/blocked/#url=JNs0UYkeTZk
+// https://www.youtube.com/watch?v=CGRAqZga5Fk - https://watannetwork.com/tools/blocked/#url=CGRAqZga5Fk
+// https://www.youtube.com/watch?v=lYwHhQiMGdE - https://watannetwork.com/tools/blocked/#url=lYwHhQiMGdE
+// https://www.youtube.com/watch?v=bcJ8Kvke9Lk - https://watannetwork.com/tools/blocked/#url=bcJ8Kvke9Lk
+// https://www.youtube.com/watch?v=BryspbM6s3E - https://watannetwork.com/tools/blocked/#url=BryspbM6s3E
+// https://www.youtube.com/watch?v=AL8ZGEyBuNs - https://watannetwork.com/tools/blocked/#url=AL8ZGEyBuNs
 
 // unavailable
 // https://www.youtube.com/embed/QQr3XlJQEgE - This video contains content from VAP inc., who has blocked it from display on this website or application
+// https://www.youtube.com/watch?v=De9tzM1XxKY - This video has been removed for violating YouTube's Terms of Service
 
 window.nova_plugins.push({
    id: 'video-unblock-region',
@@ -54,14 +67,14 @@ window.nova_plugins.push({
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/9062-youtube-unblocker
-      // alt2 - https://chrome.google.com/webstore/detail/gpnebajhkedajplkepiafghcfoljbgmk
+      // alt2 - https://chromewebstore.google.com/detail/gpnebajhkedajplkepiafghcfoljbgmk
       // alt3 - https://greasyfork.org/en/scripts/24163-youtube-unblocker
       // alt4 - https://freetubeapp.io/
       // alt5 - https://greasyfork.org/en/scripts/466944-youtube-country-restriction-forwarder
       // alt5 - https://greasyfork.org/en/scripts/476133-youtube-lite-melhor-experi%C3%AAncia
 
       // Doesn't work
-      // NOVA.waitSelector('ytd-watch-flexy[player-unavailable] video')
+      // NOVA.waitSelector('.ytd-page-manager[video-id][player-unavailable] video')
       //    .then(video => {
       //       video.addEventListener('emptied', () => {
       //          switch (key) {
@@ -75,7 +88,7 @@ window.nova_plugins.push({
       //    });
 
       const SELECTOR_EMBED = '#movie_player.ytp-embed-error .ytp-error[role="alert"] .ytp-error-content-wrap-subreason:not(:empty)';
-      const SELECTOR = `ytd-watch-flexy[player-unavailable] #player-error-message-container #info, ${SELECTOR_EMBED}`;
+      const SELECTOR = `.ytd-page-manager[video-id][player-unavailable] #player-error-message-container #info, ${SELECTOR_EMBED}`;
 
       NOVA.waitSelector(SELECTOR, { destroy_after_page_leaving: true })
          .then(async container => {
@@ -130,12 +143,12 @@ window.nova_plugins.push({
                   });
 
                const liAtention = document.createElement('li');
-               liAtention.className = 'bold style-scope yt-formatted-string';
+               liAtention.classList.add('bold style-scope', 'yt-formatted-string');
                liAtention.textContent = 'Enable map select allowed country in your VPN';
                ul.append(liAtention);
                // 50.59 % slower
-               // ul.insertAdjacentHTML('beforeend',
-               //    `<li class="bold style-scope yt-formatted-string">Enable map select allowed country in your VPN</li>`);
+               // ul.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(
+               //    `<li class="bold style-scope yt-formatted-string">Enable map select allowed country in your VPN</li>`));
 
                container.append(ul); // append
             }
@@ -144,9 +157,9 @@ window.nova_plugins.push({
 
       // '#movie_player .ytp-error'
       // '#movie_player .ytp-error .ytp-error-content-wrap-reason'
-      NOVA.waitSelector(`ytd-watch-flexy[player-unavailable], ${SELECTOR_EMBED}`, { destroy_after_page_leaving: true })
+      NOVA.waitSelector(`.ytd-page-manager[video-id][player-unavailable], ${SELECTOR_EMBED}`, { destroy_after_page_leaving: true })
          // To above v105 https://developer.mozilla.org/en-US/docs/Web/CSS/:has
-         // NOVA.waitSelector('ytd-watch-flexy[player-unavailable] yt-player-error-message-renderer #button.yt-player-error-message-renderer:not(:has(button))')
+         // NOVA.waitSelector('.ytd-page-manager[video-id][player-unavailable] yt-player-error-message-renderer #button.yt-player-error-message-renderer:not(:has(button))')
          .then(el => {
             if (user_settings.video_unblock_region_domain
                && el.querySelector('yt-player-error-message-renderer #button.yt-player-error-message-renderer button')
@@ -158,7 +171,7 @@ window.nova_plugins.push({
             // open map
             if (user_settings.video_unblock_region_open_map) {
                // iframe
-               // c = document.body.querySelector('ytd-watch-flexy[player-unavailable] #error-screen > *');
+               // c = document.body.querySelector('.ytd-page-manager[video-id][player-unavailable] #error-screen > *');
                // const iframe = document.createElement('iframe');
                // iframe.src = ;
                // // iframe.style.width = '100%';
@@ -211,7 +224,7 @@ window.nova_plugins.push({
 
    },
    options: {
-      // Strategy 1 (input + datalist)
+      // Solution 1 (input + datalist)
       video_unblock_region_domain: {
          _tagName: 'input',
          label: 'Redirect to URL',
@@ -231,7 +244,7 @@ window.nova_plugins.push({
          // type: 'url',
          type: 'text',
          list: 'video_unblock_region_domain_help_list',
-         pattern: "^[a-zA-Z0-9-]{2,20}\.[a-zA-Z]{2,5}$",
+         pattern: "^(?!-)[a-zA-Z0-9\\-]{1,63}(?<!-)\.[a-zA-Z]{2,6}$", // which is the official limit for domain labels according to IANA (https://www.iana.org/domains)
          title: 'without "https://"',
          'title:zh': '没有“https://”',
          'title:ja': '「https://」なし',
@@ -270,7 +283,7 @@ window.nova_plugins.push({
             // { label: 'cinemaphile.com', value: 'cinemaphile.com' },
          ],
       },
-      // Strategy 2 (list + input)
+      // Solution 2 (list + input)
       // video_unblock_region_domain: {
       //    _tagName: 'select',
       //    label: 'choose a mirror',

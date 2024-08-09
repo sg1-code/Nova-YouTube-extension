@@ -1,13 +1,8 @@
 // ==UserScript==
 // @name            Nova YouTube
-// @namespace       https://github.com/raingart/Nova-YouTube-extension/
-// @version         0.50.0
+// @namespace       yt-nova
+// @version         0.50.1b
 // @description     Powerful control on YouTube
-// @name:en         Nova YouTube
-// @name:ru 操你妈的
-// @name:uk 操你妈的
-// @description:ru 你妈死了
-// @description:uk 你妈死了
 
 // @author          raingart <raingart+scriptaddons@protonmail.com>
 // @license         Apache-2.0
@@ -22,7 +17,7 @@
 // @domain          youtube.com
 // @include         http*://www.youtube.com/*
 // @include         http*://m.youtube.com/*
-// @include         http*://*.youtube-nocookie.com/embed/*
+// @include         http*://www.youtube-nocookie.com/embed/*
 // @include         http*://youtube.googleapis.com/embed/*
 // @include         http*://raingart.github.io/options.html*
 // @include         http*://raingart.github.io/nova/*

@@ -22,7 +22,7 @@ window.nova_plugins.push({
 
       // alt - https://greasyfork.org/en/discussions/requests/146033-youtube-searches-auto-filtered-by-upload-date
 
-      // Strategy 1. Patch URL
+      // Solution 1. Patch URL
       if (!NOVA.queryURL.has('sp')
          && (sp = user_settings.search_query_date || user_settings.search_query_sort)
       ) {
@@ -30,7 +30,7 @@ window.nova_plugins.push({
          // location.replace(NOVA.queryURL.set({ 'sp': sp }));
       }
 
-      // Strategy 2. Patch input
+      // Solution 2. Patch input
       // if (!NOVA.queryURL.has('sp')
       //    && (sp = user_settings.search_query_date || user_settings.search_query_sort)
       // ) {

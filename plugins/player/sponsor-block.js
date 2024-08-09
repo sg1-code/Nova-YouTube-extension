@@ -3,6 +3,9 @@
 // https://www.youtube.com/watch?v=3eJZcpoSpKY
 // https://www.youtube.com/watch?v=pf9WOuzeWhw
 // https://www.youtube.com/watch?v=KboTw3NBuuk - ad in multi chaprtes
+// https://youtu.be/cQUlbFmjDcM?t=190 - filler category
+// https://youtu.be/5S-tTDeFZfY?t=237 - many filler category
+// https://www.youtube.com/watch?v=50yz_BFL7ao- a lot filler category
 
 window.nova_plugins.push({
    id: 'sponsor-block',
@@ -32,19 +35,21 @@ window.nova_plugins.push({
       // alt2 - https://codeberg.org/mthsk/userscripts/src/branch/master/simple-sponsor-skipper
       // alt3 - https://github.com/mchangrh/sb.js/blob/main/docs/sb.user.js
       // alt4 - https://chromewebstore.google.com/detail/mnjggcdmjocbbbhaepdhchncahnbgone
+      // alt5 - https://chromewebstore.google.com/detail/gimgmkmpmjfjdnlmolehpabbehcflhpc
 
       NOVA.waitSelector('#movie_player video')
          .then(video => {
             const categoryNameLabel = {
-               sponsor: 'Sponsor',
+               sponsor: 'Ad', // 'Sponsor'
                selfpromo: 'Self Promotion',
                interaction: 'Reminder Subscribe',
                intro: 'Intro',
-               outro: 'Credits (Outro)',
-               // poi_highlight   'Highlight',
-               preview: 'Preview/Recap',
-               music_offtopic: 'Non-Music Section',
+               outro: 'Credits',
+               preview: 'Recap',
+               music_offtopic: 'Non-music section',
                exclusive_access: 'Full Video Label Only',
+               // poi_highlight: 'Highlight',
+               filler: 'Off-topic', // 'Filler'
             };
 
             let segmentsList = [];
@@ -87,14 +92,20 @@ window.nova_plugins.push({
                            if (((Math.trunc(segmentStart) + deflectionSec) <= chapterNextStart)
                               && ((Math.trunc(segmentEnd) - deflectionSec) >= chapterStart)
                            ) {
-                              let color;
-                              switch (category) {
-                                 case 'sponsor': color = '255, 231, 0'; break;
-                                 case 'interaction': color = '255, 127, 80'; break;
-                                 case 'selfpromo': color = '255, 99, 71'; break;
-                                 case 'intro': color = '255, 165, 0'; break;
-                                 case 'outro': color = '255, 165, 0'; break;
-                                 default: color = '0, 255, 107'; break;
+                              let color = user_settings[`sponsor_block_color_${category}`];
+                              if (color) {
+                                 color = convertColor.hex2rgb(color).join(',');
+                              }
+                              // default colors
+                              else {
+                                 switch (category) {
+                                    case 'sponsor': color = '255, 231, 0'; break; // '#ffe700'
+                                    case 'interaction': color = '255, 127, 80'; break; // '#ff7f50'
+                                    case 'selfpromo': color = '255, 99, 71'; break; // '#ff6347'
+                                    case 'intro': color = '255, 165, 0'; break; // '#ffa500'
+                                    case 'outro': color = '255, 165, 0'; break; // '#ffa500'
+                                    default: color = '0, 255, 107'; break; // '#00ff6b'
+                                 }
                               }
                               // simple chapter coloring
                               // chapterEl.style.background = `rgb(${color}, .4`;
@@ -177,7 +188,7 @@ window.nova_plugins.push({
                function novaNotification(prefix = '') {
                   if (!user_settings.sponsor_block_notification) return;
 
-                  const msg = `${prefix} ${NOVA.formatTimeOut.HMS.digit(segmentEnd - segmentStart)} [${categoryNameLabel[category]}] • ${NOVA.formatTimeOut.HMS.digit(segmentStart)} - ${NOVA.formatTimeOut.HMS.digit(segmentEnd)}`;
+                  const msg = `${prefix} ${NOVA.formatTimeOut.HMS.digit(segmentEnd - segmentStart)}「${categoryNameLabel[category]}」• ${NOVA.formatTimeOut.HMS.digit(segmentStart)} - ${NOVA.formatTimeOut.HMS.digit(segmentEnd)}`;
                   console.info(videoId, msg); // user log
                   NOVA.showOSD(msg); // trigger default indicator
                }
@@ -187,7 +198,7 @@ window.nova_plugins.push({
 
 
       async function getSkipSegments(videoId = required()) {
-         const CACHE_PREFIX = 'nova-videos-sponsor-block:';
+         const CACHE_PREFIX = 'nova-sponsor-block:';
 
          if (
             navigator.cookieEnabled // fix - Failed to read the 'sessionStorage' property from 'Window': Access is denied for this document.
@@ -316,6 +327,19 @@ window.nova_plugins.push({
       //    }
       // }
 
+      const convertColor = {
+         /**
+          * @param  {string} hex
+          * @return {array}
+         */
+         hex2rgb(hex = required()) {
+            return ['0x' + hex[1] + hex[2] | 0, '0x' + hex[3] + hex[4] | 0, '0x' + hex[5] + hex[6] | 0];
+         },
+         // rgbToHex(r = 0, g = 0, b = 0) {
+         //    return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+         // },
+      };
+
    },
    options: {
       sponsor_block_category: {
@@ -367,9 +391,10 @@ window.nova_plugins.push({
                // 'label:de': '',
                // 'label:pl': '',
                // 'label:ua': '',
+               title: 'Paid promotion, paid referrals and direct advertisements',
             },
             {
-               label: 'Unpaid/Self Promotion', value: 'selfpromo',
+               label: 'Unpaid/Self promotion', value: 'selfpromo',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -383,9 +408,11 @@ window.nova_plugins.push({
                // 'label:de': '',
                // 'label:pl': '',
                // 'label:ua': '',
+               // title: 'Similar to sponsor except for unpaid or self promotion. This includes sections about merchandise, donations, or information about who they collaborated with',
             },
             {
-               label: 'Reminder Subscribe', value: 'interaction',
+               // label: 'Interaction Reminder (Subscribe)', value: 'interaction',
+               label: 'Reminder subscribe', value: 'interaction',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -399,8 +426,10 @@ window.nova_plugins.push({
                // 'label:de': '',
                // 'label:pl': '',
                // 'label:ua': '',
+               // title: 'When there is a short reminder to like, subscribe or follow them in the middle of content',
             },
             {
+               // label: 'Intermission/Intro Animation', value: 'intro',
                label: 'Intro', value: 'intro',
                // 'label:zh': '',
                // 'label:ja': '',
@@ -415,9 +444,10 @@ window.nova_plugins.push({
                // 'label:de': '',
                // 'label:pl': '',
                // 'label:ua': '',
+               // title: 'An interval without actual content. Could be a pause, static frame, repeating animation',
             },
             {
-               label: 'Endcards/Credits (Outro)', value: 'outro',
+               label: 'Endcards/Credits', value: 'outro',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -431,6 +461,7 @@ window.nova_plugins.push({
                // 'label:de': '',
                // 'label:pl': '',
                // 'label:ua': '',
+               // title: 'Credits or when the YouTube endcards appear. Not spoken conclusions',
             },
             // {
             //    label: 'Highlight', value: 'poi_highlight',
@@ -447,6 +478,7 @@ window.nova_plugins.push({
             //    // 'label:de': '',
             //    // 'label:pl': '',
             //    // 'label:ua': '',
+            //    // title: '',
             // },
             {
                label: 'Preview/Recap', value: 'preview',
@@ -463,9 +495,11 @@ window.nova_plugins.push({
                // 'label:de': '',
                // 'label:pl': '',
                // 'label:ua': '',
+               // title: 'Quick recap of previous episodes, or a preview of what's coming up later in the current video. Meant for edited together clips, not for spoken summaries.',
             },
             {
-               label: 'Music: Non-Music Section', value: 'music_offtopic',
+               // label: 'Music: Non-Music Section', value: 'music_offtopic',
+               label: 'Non-music section of clip', value: 'music_offtopic',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -479,6 +513,7 @@ window.nova_plugins.push({
                // 'label:de': '',
                // 'label:pl': '',
                // 'label:ua': '',
+               // title: 'Only for use in music videos. This includes introductions or outros in music videos',
             },
             {
                label: 'Full Video Label Only', value: 'exclusive_access',
@@ -495,23 +530,25 @@ window.nova_plugins.push({
                // 'label:de': '',
                // 'label:pl': '',
                // 'label:ua': '',
+               // title: '',
             },
-            // {
-            //    label: 'filler', value: 'filler',
-            //    // 'label:zh': '',
-            //    // 'label:ja': '',
-            //    // 'label:ko': '',
-            //    // 'label:vi': '',
-            //    // 'label:id': '',
-            //    // 'label:es': '',
-            //    // 'label:pt': '',
-            //    // 'label:fr': '',
-            //    // 'label:it': '',
-            //    // 'label:tr': '',
-            //    // 'label:de': '',
-            //    // 'label:pl': '',
-            //    // 'label:ua': '',
-            // },
+            {
+               label: 'Off-topic/Filler', value: 'filler',
+               // 'label:zh': '',
+               // 'label:ja': '',
+               // 'label:ko': '',
+               // 'label:vi': '',
+               // 'label:id': '',
+               // 'label:es': '',
+               // 'label:pt': '',
+               // 'label:fr': '',
+               // 'label:it': '',
+               // 'label:tr': '',
+               // 'label:de': '',
+               // 'label:pl': '',
+               // 'label:ua': '',
+               // title: '',
+            },
          ],
       },
       sponsor_block_action: {
@@ -626,6 +663,209 @@ window.nova_plugins.push({
          // 'label:ua': '',
          type: 'checkbox',
          // title: '',
+         // 'data-dependent': { 'player-indicator': true },
+      },
+      // colors
+      sponsor_block_color_sponsor: {
+         _tagName: 'input',
+         type: 'color',
+         value: '#08D00B',
+         label: 'Color - Ads/Sponsor',
+         // 'label:zh': '颜色',
+         // 'label:ja': '色',
+         // 'label:ko': '색깔',
+         // 'label:vi': '',
+         // 'label:id': 'Warna',
+         // 'label:es': 'Color',
+         // 'label:pt': 'Cor',
+         // 'label:fr': 'Couleur',
+         // 'label:it': 'Colore',
+         // 'label:tr': 'Renk',
+         // 'label:de': 'Farbe',
+         // 'label:pl': 'Kolor',
+         // 'label:ua': 'Колір',
+         'data-dependent': { 'sponsor_block_category': ['sponsor'] },
+      },
+      sponsor_block_color_selfpromo: {
+         _tagName: 'input',
+         type: 'color',
+         value: '#F8FA00',
+         label: 'Color - Unpaid/Self Promotion',
+         // 'label:zh': '颜色',
+         // 'label:ja': '色',
+         // 'label:ko': '색깔',
+         // 'label:vi': '',
+         // 'label:id': 'Warna',
+         // 'label:es': 'Color',
+         // 'label:pt': 'Cor',
+         // 'label:fr': 'Couleur',
+         // 'label:it': 'Colore',
+         // 'label:tr': 'Renk',
+         // 'label:de': 'Farbe',
+         // 'label:pl': 'Kolor',
+         // 'label:ua': 'Колір',
+         'data-dependent': { 'sponsor_block_category': ['selfpromo'] },
+      },
+      sponsor_block_color_interaction: {
+         _tagName: 'input',
+         type: 'color',
+         value: '#C900FB',
+         label: 'Color - Reminder Subscribe',
+         // 'label:zh': '颜色',
+         // 'label:ja': '色',
+         // 'label:ko': '색깔',
+         // 'label:vi': '',
+         // 'label:id': 'Warna',
+         // 'label:es': 'Color',
+         // 'label:pt': 'Cor',
+         // 'label:fr': 'Couleur',
+         // 'label:it': 'Colore',
+         // 'label:tr': 'Renk',
+         // 'label:de': 'Farbe',
+         // 'label:pl': 'Kolor',
+         // 'label:ua': 'Колір',
+         'data-dependent': { 'sponsor_block_category': ['interaction'] },
+      },
+      sponsor_block_color_intro: {
+         _tagName: 'input',
+         type: 'color',
+         value: '#00F4F3',
+         label: 'Color - intro',
+         // 'label:zh': '颜色',
+         // 'label:ja': '色',
+         // 'label:ko': '색깔',
+         // 'label:vi': '',
+         // 'label:id': 'Warna',
+         // 'label:es': 'Color',
+         // 'label:pt': 'Cor',
+         // 'label:fr': 'Couleur',
+         // 'label:it': 'Colore',
+         // 'label:tr': 'Renk',
+         // 'label:de': 'Farbe',
+         // 'label:pl': 'Kolor',
+         // 'label:ua': 'Колір',
+         'data-dependent': { 'sponsor_block_category': ['intro'] },
+      },
+      sponsor_block_color_outro: {
+         _tagName: 'input',
+         type: 'color',
+         value: '#0102F3',
+         label: 'Color - Endcards/Credits',
+         // 'label:zh': '颜色',
+         // 'label:ja': '色',
+         // 'label:ko': '색깔',
+         // 'label:vi': '',
+         // 'label:id': 'Warna',
+         // 'label:es': 'Color',
+         // 'label:pt': 'Cor',
+         // 'label:fr': 'Couleur',
+         // 'label:it': 'Colore',
+         // 'label:tr': 'Renk',
+         // 'label:de': 'Farbe',
+         // 'label:pl': 'Kolor',
+         // 'label:ua': 'Колір',
+         'data-dependent': { 'sponsor_block_category': ['outro'] },
+      },
+      // sponsor_block_color_poi_highlight: {
+      //    _tagName: 'input',
+      //    type: 'color',
+      //    value: '#00ff6b', // '0, 255, 107'
+      //    label: 'Color - Highlight',
+      //    // 'label:zh': '颜色',
+      //    // 'label:ja': '色',
+      //    // 'label:ko': '색깔',
+      //    // 'label:vi': '',
+      //    // 'label:id': 'Warna',
+      //    // 'label:es': 'Color',
+      //    // 'label:pt': 'Cor',
+      //    // 'label:fr': 'Couleur',
+      //    // 'label:it': 'Colore',
+      //    // 'label:tr': 'Renk',
+      //    // 'label:de': 'Farbe',
+      //    // 'label:pl': 'Kolor',
+      //    // 'label:ua': 'Колір',
+      //    'data-dependent': { 'sponsor_block_category': ['poi_highlight'] },
+      // },
+      sponsor_block_color_preview: {
+         _tagName: 'input',
+         type: 'color',
+         value: '#0B85C8',
+         label: 'Color - Preview/Recap',
+         // 'label:zh': '颜色',
+         // 'label:ja': '色',
+         // 'label:ko': '색깔',
+         // 'label:vi': '',
+         // 'label:id': 'Warna',
+         // 'label:es': 'Color',
+         // 'label:pt': 'Cor',
+         // 'label:fr': 'Couleur',
+         // 'label:it': 'Colore',
+         // 'label:tr': 'Renk',
+         // 'label:de': 'Farbe',
+         // 'label:pl': 'Kolor',
+         // 'label:ua': 'Колір',
+         'data-dependent': { 'sponsor_block_category': ['preview'] },
+      },
+      sponsor_block_color_music_offtopic: {
+         _tagName: 'input',
+         type: 'color',
+         value: '#FF9D04',
+         // label: 'Color - Music: Non-Music Section',
+         label: 'Color - Non-Music Section',
+         // 'label:zh': '颜色',
+         // 'label:ja': '色',
+         // 'label:ko': '색깔',
+         // 'label:vi': '',
+         // 'label:id': 'Warna',
+         // 'label:es': 'Color',
+         // 'label:pt': 'Cor',
+         // 'label:fr': 'Couleur',
+         // 'label:it': 'Colore',
+         // 'label:tr': 'Renk',
+         // 'label:de': 'Farbe',
+         // 'label:pl': 'Kolor',
+         // 'label:ua': 'Колір',
+         'data-dependent': { 'sponsor_block_category': ['music_offtopic'] },
+      },
+      sponsor_block_color_exclusive_access: {
+         _tagName: 'input',
+         type: 'color',
+         value: '#F2177B',
+         label: 'Color - Full Video Label Only',
+         // 'label:zh': '颜色',
+         // 'label:ja': '色',
+         // 'label:ko': '색깔',
+         // 'label:vi': '',
+         // 'label:id': 'Warna',
+         // 'label:es': 'Color',
+         // 'label:pt': 'Cor',
+         // 'label:fr': 'Couleur',
+         // 'label:it': 'Colore',
+         // 'label:tr': 'Renk',
+         // 'label:de': 'Farbe',
+         // 'label:pl': 'Kolor',
+         // 'label:ua': 'Колір',
+         'data-dependent': { 'sponsor_block_category': ['exclusive_access'] },
+      },
+      sponsor_block_color_filler: {
+         _tagName: 'input',
+         type: 'color',
+         value: '#7E00FF',
+         label: 'Color - Off-topic/Filler',
+         // 'label:zh': '颜色',
+         // 'label:ja': '色',
+         // 'label:ko': '색깔',
+         // 'label:vi': '',
+         // 'label:id': 'Warna',
+         // 'label:es': 'Color',
+         // 'label:pt': 'Cor',
+         // 'label:fr': 'Couleur',
+         // 'label:it': 'Colore',
+         // 'label:tr': 'Renk',
+         // 'label:de': 'Farbe',
+         // 'label:pl': 'Kolor',
+         // 'label:ua': 'Колір',
+         'data-dependent': { 'sponsor_block_category': ['filler'] },
       },
    }
 });

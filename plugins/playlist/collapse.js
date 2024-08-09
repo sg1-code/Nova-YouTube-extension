@@ -19,18 +19,16 @@ window.nova_plugins.push({
    // desc: '',
    _runtime: user_settings => {
 
-      // alt - https://github.com/skoshy/YouTubeHideChatByDefaultUserscript
-
       // conflict with plugin [playlist-extended]?
 
       if (!location.search.includes('list=')) return;
 
-      // ytd-watch-flexy.ytd-page-manager:not([hidden]) ytd-playlist-panel-renderer:not([collapsed])
+      // .ytd-page-manager[video-id]:not([hidden]) ytd-playlist-panel-renderer:not([collapsed])
       // #page-manager #playlist:not([collapsed])
       NOVA.waitSelector('#secondary #playlist:not([collapsed]) #expand-button button')
          .then(btn => {
             // if (user_settings.playlist_collapse_ignore_theater
-            //    && document.body.querySelector('ytd-watch-flexy[theater]')
+            //    && document.body.querySelector('.ytd-page-manager[video-id][theater]')
             // ) return;
             // if (user_settings.playlist_collapse_ignore_music && NOVA.isMusic()) return;
 

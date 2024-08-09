@@ -3,7 +3,8 @@
 
 window.nova_plugins.push({
    id: 'shorts-redirect',
-   title: 'Redirect Shorts to regular (watch) URLs',
+   // title: 'Redirect Shorts to regular (watch) URLs',
+   title: 'UnShort video',
    'title:zh': '将 Shorts 重定向到常规（watch）URL',
    'title:ja': 'ショートパンツを通常の（watch）URLにリダイレクトする',
    // 'title:ko': 'Shorts를 일반(watch) URL로 리디렉션',
@@ -48,6 +49,7 @@ window.nova_plugins.push({
       //       // alt2 - https://openuserjs.org/scripts/Kraust/Youtube_Shorts_Redirect
       //       // alt3 - https://greasyfork.org/en/scripts/458220-better-short-player - replace to embed
       //       // alt4 - https://greasyfork.org/en/scripts/444710-byts-better-youtube-shorts-greasyfork-edition
+      //       // alt5 - https://greasyfork.org/en/scripts/474490-unshort-youtube
 
       //       return location.href = location.href.replace('shorts/', 'watch?v=');
       //       // location.replace(location.href.replace('/shorts/', '/watch?v='));
@@ -56,7 +58,7 @@ window.nova_plugins.push({
 
       // if (user_settings['thumbs_hide_shorts']) return; // conflict with plugin [thumbs-hide] option (thumbs_hide_shorts). Attention! After shorts redirect
 
-      // Strategy 1
+      // Solution 1
 
       // document.addEventListener('yt-action', evt => {
       //    // console.debug(evt.detail?.actionName);
@@ -79,9 +81,6 @@ window.nova_plugins.push({
 
       //          patchThumbShort();
       //          break;
-
-      //       // default:
-      //       //    break;
       //    }
       // });
 
@@ -97,7 +96,7 @@ window.nova_plugins.push({
       //       });
       // }
 
-      // Strategy 2
+      // Solution 2
 
       // clear before restart_on_location_change
       // document.addEventListener('yt-navigate-start', () =>

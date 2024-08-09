@@ -37,11 +37,11 @@ const App = {
       console.log('%c /* %s */', 'color:#0096fa; font-weight:bold;', manifest.name + ' v.' + manifest.version);
 
       // on page updated url
-      // Strategy 1 (HTML). Skip first page transition
+      // Solution 1 (HTML). Skip first page transition
       if (this.isMobile) {
          window.addEventListener('transitionend', ({ target }) => target.id == 'progress' && this.isURLChanged() && this.run());
       }
-      // Strategy 2 (API)
+      // Solution 2 (API)
       else {
          document.addEventListener('yt-navigate-start', () => this.isURLChanged() && this.run());
 
@@ -49,6 +49,7 @@ const App = {
          document.addEventListener('yt-action', this.reloadAfterMiniplayer.bind(this));
       }
 
+      window.addEventListener('popstate', () => this.isURLChanged() && this.run());
       // for test
       // document.documentElement.addEventListener('load', () => console.debug('documentElement-load'));
       // document.addEventListener('yt-navigate-start', () => console.debug('yt-navigate-start'));
@@ -57,14 +58,15 @@ const App = {
       // window.addEventListener('transitionend', ({ target }) => target.id == 'progress' && console.debug('transitionend'));
       // window.addEventListener('load', () => console.debug('window load')); // once on page init
       // window.addEventListener('urlchange', () => console.debug('urlchange')); // once on page init (only working in userscript space)
+      // window.addEventListener('historyChanged', () => console.debug('historyChanged'));
       // window.addEventListener('hashchange', () => console.debug('hashchange'));
-      window.addEventListener('hashchange', this.isURLChanged);
-      // checkbox.addEventListener('DOMAttrModified', );
+      // document.addEventListener('loadstart', () => console.debug('loadstart'));
+      // checkbox.addEventListener('DOMAttrModified', () => console.debug('DOMAttrModified'));
 
       this.storage.load.apply(this);
       // load all Plugins
       Plugins.injectScript('window.nova_plugins = [];');
-      Plugins.load(['nova-api.js']);
+      Plugins.load(['common.js']);
       Plugins.load(); // all
    },
 
@@ -131,8 +133,8 @@ const App = {
                margin: '50px',
                'z-index': 9999,
                'border-radius': '2px',
-               // 'background-color': typeof NOVA === 'object' ? '#0099ff' : 'crimson',
-               'background-color': typeof NOVA === 'object' ? '#e85717' : 'crimson',
+               'background-color': typeof NOVA === 'object' ? '#0099ff' : 'crimson',
+               // 'background-color': typeof NOVA === 'object' ? '#e85717' : 'crimson',
                'box-shadow': 'rgb(0 0 0 / 50%) 0px 0px 3px',
                'font-size': '12px',
                color: 'white',
@@ -141,11 +143,23 @@ const App = {
             });
             // notice.addEventListener('click', ({ target }) => target.remove());
             notice.addEventListener('click', () => notice.remove());
-            notice.innerHTML =
-               `<h4 style="margin:0;">Failure on initialization ${app_name}</h4>`
-               + ((typeof NOVA === 'object')
-                  ? `<div>plugins loaded: ${window.nova_plugins.length + '/' + plugins_count}</div>`
-                  : `<div>Critical Error: NOVA core is "${typeof NOVA}"</div>`);// lauch obstacted
+            // notice.innerHTML =
+            //    `<h4 style="margin:0;">Failure on initialization ${app_name}</h4>`
+            //    + ((typeof NOVA === 'object')
+            //       ? `<div>plugins loaded: ${window.nova_plugins.length + '/' + plugins_count}</div>`
+            //       : `<div>Critical Error: NOVA core is "${typeof NOVA}"</div>`);// lauch obstacted
+
+            // fix - This document requires 'TrustedHTML' assignment.
+            const h4 = document.createElement('h4');
+            h4.textContent = `Failure on initialization ${app_name}`;
+
+            const div = document.createElement('div');
+            div.textContent = (typeof NOVA === 'object')
+               ? `plugins loaded: ${window.nova_plugins.length + '/' + plugins_count}`
+               : `Critical Error: NOVA core is '${typeof NOVA}'`;
+
+            notice.append(h4);
+            notice.append(div);
             document.body.append(notice);
          }
       }, 1000 * 3); // 3sec
@@ -214,8 +228,7 @@ App.init();
  * 構造
  *
  * #content
- *     ytd-watch-flexy
- *         #player-container
+ *     #page-manager > .ytd-page-manager
  *         #columns
  *             #primary
  *                #player
@@ -236,7 +249,7 @@ App.init();
 // https://greasyfork.org/en/scripts/459412-youtube-playlists-playback-tracker
 
 // for testing
-// https://www.youtube.com/watch?v=9xp1XWmJ_Wo - 30sec
+// https://www.youtube.com/watch?v=9xp1XWmJ_Wo - 1 minute
 // https://www.youtube.com/watch?v=U9mUwZ47z3E - ultra-wide
 // https://www.youtube.com/watch?v=4Zivt4wbvoM - narrow
 // https://www.youtube.com/watch?v=ir6nk2zrMG0 - wide

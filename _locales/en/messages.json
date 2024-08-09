@@ -87,10 +87,10 @@
       "message": "It is advised to backup your current settings before continuing.\nDelete all settings?"
    },
    "opt_btn_save_settings_tooltip": {
-      "message": "Open tabs don't change"
+      "message": "Opened tabs don't change"
    },
    "opt_btn_api_key_input": {
-      "message": "API key"
+      "message": "YouTube API key"
    },
    "opt_api_key_generate": {
       "message": "Generate API key"

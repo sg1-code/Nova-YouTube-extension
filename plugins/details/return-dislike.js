@@ -145,14 +145,20 @@ window.nova_plugins.push({
             (document.getElementById(SELECTOR_ID) || (function () {
                const el = document.createElement('span');
                el.id = SELECTOR_ID;
-               el.className = 'style-scope yt-formatted-string bold';
-               el.style.cssText = 'text-overflow:ellipsis; overflow:visible; white-space:nowrap; padding-left:3px;';
+               el.classList.add('style-scope', 'yt-formatted-string', 'bold');
+               // el.style.cssText = 'text-overflow: ellipsis; overflow: visible; white-space: nowrap; padding-left: 3px;';
+               Object.assign(el.style, {
+                  'text-overflow': 'ellipsis',
+                  overflow: 'visible',
+                  'white-space': 'nowrap',
+                  'padding-left ': '3px',
+               });
                return container.appendChild(el);
                // container.insertAdjacentElement('beforeend', el);
                // return el;
                // 62.88 % slower
-               // container.insertAdjacentHTML('beforeend',
-               //    `<span id="${SELECTOR_ID}" style="text-overflow:ellipsis; overflow:visible; white-space:nowrap; padding-left:3px;">${text}</span>`);
+               // container.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(
+               //    `<span id="${SELECTOR_ID}" style="text-overflow:ellipsis; overflow:visible; white-space:nowrap; padding-left:3px;">${text}</span>`));
                // return document.getElementById(SELECTOR_ID);
             })())
                .textContent = text;

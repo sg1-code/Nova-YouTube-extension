@@ -26,9 +26,9 @@ window.nova_plugins.push({
 
       // alt1 - https://greasyfork.org/en/scripts/434990-youtube-always-show-progress-bar-forked
       // alt2 - https://greasyfork.org/en/scripts/30046-youtube-always-show-progress-bar
-      // alt3 - https://chrome.google.com/webstore/detail/dammfdepmngjjoidfdbhkjboecgceamb
+      // alt3 - https://chromewebstore.google.com/detail/dammfdepmngjjoidfdbhkjboecgceamb
       // alt4 - https://greasyfork.org/en/scripts/394512-youtube-progressbar-preserver
-      // alt5 - https://chrome.google.com/webstore/detail/ogkoifddpkoabehfemkolflcjhklmkge
+      // alt5 - https://chromewebstore.google.com/detail/ogkoifddpkoabehfemkolflcjhklmkge
       // alt6 - https://greasyfork.org/en/scripts/426283-youtube-permanent-progressbar
       // alt7 - https://greasyfork.org/en/scripts/466345-stick-youtube-progress-bar
       // alt8 - https://greasyfork.org/en/scripts/485580-youtube-always-show-progress-bar-css-method
@@ -66,6 +66,7 @@ window.nova_plugins.push({
             // resetBar on new video loaded
             video.addEventListener('progress', () => container.classList.add('transition'), { capture: true, once: true }); // skip on init transition
             video.addEventListener('loadeddata', resetBar);
+            video.addEventListener('ended', resetBar); // fix for "document.visibilityState == 'hidden' // tab inactive"
             document.addEventListener('yt-navigate-finish', resetBar);
 
             // render progress
@@ -77,11 +78,11 @@ window.nova_plugins.push({
             video.addEventListener('timeupdate', function () {
                if (notInteractiveToRender()) return;
 
-               // Strategy 1 (HTML)
+               // Solution 1 (HTML)
                if (!isNaN(this.duration)) {
                   progressEl.style.transform = `scaleX(${this.currentTime / this.duration})`;
                }
-               // Strategy 2 (API)
+               // Solution 2 (API)
                // if (!isNaN(movie_player.getDuration())) {
                //    progressEl.style.transform = `scaleX(${movie_player.getCurrentTime() / movie_player.getDuration()})`;
                // }
@@ -98,7 +99,7 @@ window.nova_plugins.push({
             function renderBuffer() {
                if (notInteractiveToRender()) return;
 
-               // Strategy 1 (HTML)
+               // Solution 1 (HTML)
                if (!isNaN(this.duration) && this.buffered?.length) {
                   bufferEl.style.transform = `scaleX(${this.buffered.end(this.buffered.length - 1) / this.duration})`;
                   // for (let i = 0; i < this.buffered.length; i++) {
@@ -109,7 +110,7 @@ window.nova_plugins.push({
                   // }
                }
 
-               // Strategy 2 (API)
+               // Solution 2 (API)
                // if (!isNaN(movie_player.getDuration())) {
                //    // movie_player.getVideoLoadedFraction()
                //    // === ((movie_player.getVideoBytesLoaded()
@@ -145,18 +146,42 @@ window.nova_plugins.push({
 
       function insertFloatBar({ init_container = movie_player, z_index = 60 }) {
          if (!(init_container instanceof HTMLElement)) {
-            return console.error('vid not HTMLElement:', init_container);
+            return console.error('init_container not HTMLElement:', init_container);
          }
 
          return document.getElementById(SELECTOR_ID) || (function () {
-            init_container.insertAdjacentHTML('beforeend',
+            init_container.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(
                `<div id="${SELECTOR_ID}" class="">
                   <div class="container">
                      <div id="${SELECTOR_ID}-buffer" class="ytp-load-progress"></div>
                      <div id="${SELECTOR_ID}-progress" class="ytp-swatch-background-color"></div>
                   </div>
                   <div id="${SELECTOR_ID}-chapters"></div>
-               </div>`);
+               </div>`));
+            // // fix - This document requires 'TrustedHTML' assignment.
+            // const container = document.createElement('div');
+            // container.id = SELECTOR_ID;
+
+            // const innerContainer = document.createElement('div');
+            // innerContainer.classList.add('container');
+
+            // const buffer = document.createElement('div');
+            // buffer.id = `${SELECTOR_ID}-buffer`;
+            // buffer.classList.add('ytp-load-progress');
+
+            // const progress = document.createElement('div');
+            // progress.id = `${SELECTOR_ID}-progress`;
+            // progress.classList.add('ytp-swatch-background-color');
+
+            // const chapters = document.createElement('div');
+            // chapters.id = `${SELECTOR_ID}-chapters`;
+
+            // innerContainer.append(buffer);
+            // innerContainer.append(progress);
+            // container.append(innerContainer);
+            // container.append(chapters);
+            // init_container.append(container);
+            // // end fix - This document requires 'TrustedHTML' assignment.
 
             // const bufferColor = NOVA.css.get('.ytp-load-progress', 'background-color') || 'rgba(255,255,255,.4)';
 
@@ -334,7 +359,7 @@ window.nova_plugins.push({
 
       }
 
-      // alt - https://chrome.google.com/webstore/detail/jahmafmcpgdedfjfknmfkhaiejlfdcfc
+      // alt - https://chromewebstore.google.com/detail/jahmafmcpgdedfjfknmfkhaiejlfdcfc
       const renderChapters = {
          async init(vid) {
             if (NOVA.currentPage == 'watch' && !(vid instanceof HTMLElement)) {
@@ -392,13 +417,13 @@ window.nova_plugins.push({
             //    .then(() => this.renderChaptersMarkers(duration));
          },
 
-         from_div(chaptersContainer = required()) {
-            if (!(chaptersContainer instanceof HTMLElement)) return console.error('container not HTMLElement:', chaptersContainer);
+         from_div(chapters_container = required()) {
+            if (!(chapters_container instanceof HTMLElement)) return console.error('container not HTMLElement:', chapters_container);
             const
-               progressContainerWidth = parseInt(getComputedStyle(chaptersContainer).width),
+               progressContainerWidth = parseInt(getComputedStyle(chapters_container).width),
                chaptersOut = document.getElementById(`${SELECTOR_ID}-chapters`);
 
-            for (const chapter of chaptersContainer.children) {
+            for (const chapter of chapters_container.children) {
                const
                   newChapter = document.createElement('span'),
                   { width, marginLeft, marginRight } = getComputedStyle(chapter), // chapterWidth = width
@@ -416,7 +441,7 @@ window.nova_plugins.push({
             if (isNaN(duration)) return console.error('duration isNaN:', duration);
 
             if (chaptersContainer = document.getElementById(`${SELECTOR_ID}-chapters`)) {
-               chaptersContainer.innerHTML = ''; // clear old
+               chaptersContainer.textContent = ''; // clear old
             }
             const chapterList = NOVA.getChapterList(duration);
 

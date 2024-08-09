@@ -62,16 +62,17 @@ window.nova_plugins.push({
             // if (!NOVA.queryURL.has('list')/* || !movie_player?.getPlaylistId()*/) return;
             reverseControl(); // set event
 
-            // Strategy 1 (Stupid hack)
+            // Solution 1 (Stupid hack)
+            // await NOVA.waitUntil(() => !document.getElementById(SELECTOR_ID), 500); // Stupid hack await when yt remove this button
             // await NOVA.delay(1000);
             // insertButton();
-            // Strategy 2 (API)
+            // Solution 2 (API)
             document.addEventListener('yt-page-data-updated', insertButton, { capture: true, once: true });
          }
       });
 
       function insertButton() {
-         NOVA.waitSelector('ytd-watch-flexy.ytd-page-manager:not([hidden]) ytd-playlist-panel-renderer:not([collapsed]) #playlist-action-menu .top-level-buttons:not([hidden]), #secondary #playlist #playlist-action-menu #top-level-buttons-computed', { destroy_after_page_leaving: true })
+         NOVA.waitSelector('.ytd-page-manager[video-id] #playlist #playlist-action-menu .top-level-buttons:not([hidden]), #secondary #playlist #playlist-action-menu #top-level-buttons-computed', { destroy_after_page_leaving: true })
             .then(el => createButton(el));
 
          function createButton(container = required()) {
@@ -86,20 +87,42 @@ window.nova_plugins.push({
             if (window.nova_playlistReversed) reverseBtn.className = CLASS_NAME_ACTIVE;
             reverseBtn.id = SELECTOR_ID;
             renderTitle(); // refresh only after page transitionend
-            reverseBtn.innerHTML =
-               `<yt-icon-button>
-                  <svg viewBox="0 0 381.399 381.399" height="100%" width="100%">
-                     <g>
-                        <path d="M233.757,134.901l-63.649-25.147v266.551c0,2.816-2.286,5.094-5.104,5.094h-51.013c-2.82,0-5.099-2.277-5.099-5.094 V109.754l-63.658,25.147c-2.138,0.834-4.564,0.15-5.946-1.669c-1.389-1.839-1.379-4.36,0.028-6.187L135.452,1.991 C136.417,0.736,137.91,0,139.502,0c1.576,0,3.075,0.741,4.041,1.991l96.137,125.061c0.71,0.919,1.061,2.017,1.061,3.109 c0,1.063-0.346,2.158-1.035,3.078C238.333,135.052,235.891,135.735,233.757,134.901z M197.689,378.887h145.456v-33.62H197.689 V378.887z M197.689,314.444h145.456v-33.622H197.689V314.444z M197.689,218.251v33.619h145.456v-33.619H197.689z"/>
-                     </g>
-                  </svg>
-               </yt-icon-button>`;
-               // `<yt-icon-button>
-               //    <svg class="pl-reverse" viewBox="0 0 16 20">
-               //          <polygon points="7,8 3,8 3,14 0,14 5,20 10,14 7,14"></polygon>
-               //          <polygon points="11,0 6,6 9,6 9,12 13,12 13,6 16,6"></polygon>
-               //    </svg>
-               // </yt-icon-button>`;
+            // reverseBtn.innerHTML = NOVA.createSafeHTML(
+            //    `<yt-icon-button>
+            //       <svg viewBox="0 0 381.399 381.399" height="100%" width="100%">
+            //          <g>
+            //             <path d="M233.757,134.901l-63.649-25.147v266.551c0,2.816-2.286,5.094-5.104,5.094h-51.013c-2.82,0-5.099-2.277-5.099-5.094 V109.754l-63.658,25.147c-2.138,0.834-4.564,0.15-5.946-1.669c-1.389-1.839-1.379-4.36,0.028-6.187L135.452,1.991 C136.417,0.736,137.91,0,139.502,0c1.576,0,3.075,0.741,4.041,1.991l96.137,125.061c0.71,0.919,1.061,2.017,1.061,3.109 c0,1.063-0.346,2.158-1.035,3.078C238.333,135.052,235.891,135.735,233.757,134.901z M197.689,378.887h145.456v-33.62H197.689 V378.887z M197.689,314.444h145.456v-33.622H197.689V314.444z M197.689,218.251v33.619h145.456v-33.619H197.689z"/>
+            //          </g>
+            //       </svg>
+            //    </yt-icon-button>`;
+            // `<yt-icon-button>
+            //    <svg class="pl-reverse" viewBox="0 0 16 20">
+            //          <polygon points="7,8 3,8 3,14 0,14 5,20 10,14 7,14"></polygon>
+            //          <polygon points="11,0 6,6 9,6 9,12 13,12 13,6 16,6"></polygon>
+            //    </svg>
+            // </yt-icon-button>`);
+            // fix - This document requires 'TrustedHTML' assignment.
+            reverseBtn.append((function createSvgIcon() {
+               const iconButton = document.createElement('yt-icon-button');
+
+               const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+               svg.setAttribute('viewBox', '0 0 381.399 381.399');
+               svg.setAttribute('height', '100%');
+               svg.setAttribute('width', '100%');
+
+               const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+               const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+               path.setAttribute('d', 'M233.757,134.901l-63.649-25.147v266.551c0,2.816-2.286,5.094-5.104,5.094h-51.013c-2.82,0-5.099-2.277-5.099-5.094 V109.754l-63.658,25.147c-2.138,0.834-4.564,0.15-5.946-1.669c-1.389-1.839-1.379-4.36,0.028-6.187L135.452,1.991 C136.417,0.736,137.91,0,139.502,0c1.576,0,3.075,0.741,4.041,1.991l96.137,125.061c0.71,0.919,1.061,2.017,1.061,3.109 c0,1.063-0.346,2.158-1.035,3.078C238.333,135.052,235.891,135.735,233.757,134.901z M197.689,378.887h145.456v-33.62H197.689 V378.887z M197.689,314.444h145.456v-33.622H197.689V314.444z M197.689,218.251v33.619h145.456v-33.619H197.689z');
+
+               g.append(path);
+               svg.append(g);
+               iconButton.append(svg);
+
+               return iconButton;
+            })());
+
             reverseBtn.addEventListener('click', () => {
                reverseBtn.classList.toggle(CLASS_NAME_ACTIVE);
                window.nova_playlistReversed = !window.nova_playlistReversed;
@@ -117,19 +140,25 @@ window.nova_plugins.push({
       }
 
       function fixConflictPlugins() {
-         // document.getElementById('nova-playlist-duration').style.display = 'none'; // hide
-         document.getElementById('nova-playlist-duration').innerHTML = '&nbsp; [out of reach] &nbsp;';
-         if (autoplayBtn = document.getElementById('nova-playlist-autoplay-btn')) {
+         if (user_settings['playlist-duration']) {
+            // button visibility state
+            document.getElementById('nova-playlist-duration')
+               // .remove();
+               // .innerHTML = '&nbsp; [out of reach] &nbsp;';
+               .textContent = '';
+         }
+
+         if (user_settings['playlist-toggle-autoplay'] && (autoplayBtn = document.getElementById('nova-playlist-autoplay-btn'))) {
             autoplayBtn.disabled = true; // disabled button
             autoplayBtn.title = 'out of reach';
          }
       }
 
-      // Strategy 1 (API)
+      // Solution 1 (API)
       async function reverseControl() {
          if (!window.nova_playlistReversed) return;
 
-         if ((ytdWatch = await NOVA.waitSelector('ytd-watch-flexy', { destroy_after_page_leaving: true }))
+         if ((ytdWatch = await NOVA.waitSelector('.ytd-page-manager[video-id]', { destroy_after_page_leaving: true }))
             && (data = await NOVA.waitUntil(() => ytdWatch.data?.contents?.twoColumnWatchNextResults, 100)) // 100ms
             && (playlist = data.playlist?.playlist)
             && (autoplay = data.autoplay?.autoplay)
@@ -167,7 +196,7 @@ window.nova_plugins.push({
          scrollToElement(document.body.querySelector('#secondary #playlist-items[selected], ytm-playlist .item[selected=true]'));
       }
 
-      // Strategy 2 (HTML)
+      // Solution 2 (HTML)
       // function reverseControl() {
       //    if (!window.nova_playlistReversed) return;
 
@@ -176,10 +205,10 @@ window.nova_plugins.push({
       //       window.nova_playlistReversed && movie_player.previousVideo(), { capture: true, once: true });
 
       //    // update UI
-      //    // Strategy 1 (JS hack). Emulate scroll
+      //    // Solution 1 (JS hack). Emulate scroll
       //    reverseElement(document.body.querySelector('#secondary #playlist #items.playlist-items, ytm-playlist lazy-list'));
       //    scrollToElement(document.body.querySelector('#secondary #playlist-items[selected], ytm-playlist .item[selected=true]'));
-      //    // Strategy 2 (CSS). Scroll doesn't work
+      //    // Solution 2 (CSS). Scroll doesn't work
       //    // NOVA.css.push(
       //    //    `#playlist #items.playlist-items {
       //    //       display: flex;

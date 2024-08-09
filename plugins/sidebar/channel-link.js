@@ -37,9 +37,9 @@ window.nova_plugins.push({
             // evt.stopImmediatePropagation();
 
             if ((data = evt.target.closest('ytd-compact-video-renderer, ytd-video-meta-block')?.data)
-               && (res = NOVA.seachInObjectBy.key({
+               && (res = NOVA.searchInObjectBy.key({
                   'obj': data,
-                  'keys': 'navigationEndpoint',
+                  'key': 'navigationEndpoint',
                   'match_fn': val => {
                      // console.debug('match_fn:', val);
                      return val?.commandMetadata?.webCommandMetadata?.webPageType == 'WEB_PAGE_TYPE_CHANNEL';
@@ -47,17 +47,18 @@ window.nova_plugins.push({
                })?.data)
             ) {
                // console.debug('res:', res);
+               // console.debug('res:', res);
                const
                   urlOrigData = link.data,
-                  urlOrig = link.href; // '/watch?v=' + link.data.watchEndpoint.videoId
+                  urlOrig = link.href, // '/watch?v=' + link.data.watchEndpoint.videoId
+                  endpoint = (user_settings['channel-default-tab'] && user_settings.channel_default_tab) || 'videos';
 
                // patch
                link.data = res;
-               link.href = link.data.commandMetadata.webCommandMetadata.url += (user_settings['channel-default-tab'] && user_settings.channel_default_tab) || '/videos';
-               // link.data.commandMetadata.webCommandMetadata.url += (user_settings['channel-default-tab'] && user_settings.channel_default_tab) || '/videos';
-               // link.href = link.data.commandMetadata.webCommandMetadata.url;
+               link.href = link.data.commandMetadata.webCommandMetadata.url
+                  += (link.data.commandMetadata.webCommandMetadata.url.endsWith('/') ? endpoint : `/${endpoint}`);
 
-               // restore
+               // restore native code
                evt.target.addEventListener('mouseout', ({ target }) => {
                   link.data = urlOrigData;
                   link.href = urlOrig;

@@ -28,6 +28,7 @@ window.nova_plugins.push({
       // alt2 - https://greasyfork.org/en/scripts/466007-s-disable-youtube-channel-user-home-page-video-autoplay
       // alt3 - https://greasyfork.org/en/discussions/requests/56798-request-make-videoes-the-default-tab-on-youtube-channels
       // alt4 - https://greasyfork.org/en/scripts/480747-youtube-channel-trailer-pauser
+      // alt5 - https://greasyfork.org/en/scripts/399862-kill-youtube-channel-video-autoplay
 
       NOVA.waitSelector('#c4-player.playing-mode', { destroy_after_page_leaving: true })
          .then(player => player.stopVideo());

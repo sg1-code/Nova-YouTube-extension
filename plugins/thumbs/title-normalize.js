@@ -31,15 +31,11 @@ window.nova_plugins.push({
    // 'desc:de': '',
    // 'desc:pl': '',
    // 'desc:ua': '',
-   'plugins-conflict': 'thumbs-title-lang',
+   // 'plugins-conflict': 'thumbs-title-lang',
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/445780-youtube-remove-caps-from-videos-titles
-      // alt2 - https://chrome.google.com/webstore/detail/pgpdaocammeipkkgaeelifgakbhjoiel
-      // alt3 - https://github.com/MarcGuiselin/youtube-refined/blob/main/code/scripts/common/title-caps.js
-
-      // conflict with [thumbs-title-lang] plugin
-      if (user_settings['thumbs-title-lang']) return;
+      // alt2 - https://github.com/MarcGuiselin/youtube-refined/blob/main/code/scripts/common/title-caps.js
 
       const
          VIDEO_TITLE_SELECTOR = [
@@ -58,13 +54,8 @@ window.nova_plugins.push({
          clearOfSymbols = str => str.replace(/[\u2011-\u26FF]/g, ' ').replace(/\s{2,}/g, ' '), // simple
          clearOfEmoji = str => str.replace(/[^<>=\p{L}\p{N}\p{P}\p{Z}{\^\$}]/gu, ' ').replace(/\s{2,}/g, ' ');
 
-      if (user_settings.thumbs_title_show_full) {
-         NOVA.css.push(
-            VIDEO_TITLE_SELECTOR.join(',') + `{
-               display: block !important;
-               max-height: unset !important;
-            }`);
-      }
+      // conflict with [thumbs-title-lang] plugin
+      if (user_settings['thumbs-title-lang']) return;
 
       // Letters(Lu) + Dash punctuation(Pd) + Decimal number(Nd): Upper case letter unicode - https://apps.timwhitlock.info/js/regex
       const UpperCaseLetterRegex = new RegExp("([\-0-9A-ZÀ-ÖØ-ÞĀĂĄĆĈĊČĎĐĒĔĖĘĚĜĞĠĢĤĦĨĪĬĮİĲĴĶĹĻĽĿŁŃŅŇŊŌŎŐŒŔŖŘŚŜŞŠŢŤŦŨŪŬŮŰŲŴŶŸ-ŹŻŽƁ-ƂƄƆ-ƇƉ-ƋƎ-ƑƓ-ƔƖ-ƘƜ-ƝƟ-ƠƢƤƦ-ƧƩƬƮ-ƯƱ-ƳƵƷ-ƸƼǄǇǊǍǏǑǓǕǗǙǛǞǠǢǤǦǨǪǬǮǱǴǶ-ǸǺǼǾȀȂȄȆȈȊȌȎȐȒȔȖȘȚȜȞȠȢȤȦȨȪȬȮȰȲȺ-ȻȽ-ȾɁɃ-ɆɈɊɌɎͰͲͶΆΈ-ΊΌΎ-ΏΑ-ΡΣ-ΫϏϒ-ϔϘϚϜϞϠϢϤϦϨϪϬϮϴϷϹ-ϺϽ-ЯѠѢѤѦѨѪѬѮѰѲѴѶѸѺѼѾҀҊҌҎҐҒҔҖҘҚҜҞҠҢҤҦҨҪҬҮҰҲҴҶҸҺҼҾӀ-ӁӃӅӇӉӋӍӐӒӔӖӘӚӜӞӠӢӤӦӨӪӬӮӰӲӴӶӸӺӼӾԀԂԄԆԈԊԌԎԐԒԔԖԘԚԜԞԠԢԱ-Ֆ֊־٠-٩۰-۹߀-߉०-९০-৯੦-੯૦-૯୦-୯௦-௯౦-౯೦-೯൦-൯๐-๙໐-໙༠-༩၀-၉႐-႙Ⴀ-Ⴥ០-៩᠆᠐-᠙᥆-᥏᧐-᧙᭐-᭙᮰-᮹᱀-᱉᱐-᱙ḀḂḄḆḈḊḌḎḐḒḔḖḘḚḜḞḠḢḤḦḨḪḬḮḰḲḴḶḸḺḼḾṀṂṄṆṈṊṌṎṐṒṔṖṘṚṜṞṠṢṤṦṨṪṬṮṰṲṴṶṸṺṼṾẀẂẄẆẈẊẌẎẐẒẔẞẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼẾỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴỶỸỺỼỾἈ-ἏἘ-ἝἨ-ἯἸ-ἿὈ-ὍὙὛὝὟὨ-ὯᾸ-ΆῈ-ΉῘ-ΊῨ-ῬῸ-Ώ‐-―ℂℇℋ-ℍℐ-ℒℕℙ-ℝℤΩℨK-ℭℰ-ℳℾ-ℿⅅↃⰀ-ⰮⱠⱢ-ⱤⱧⱩⱫⱭ-ⱯⱲⱵⲀⲂⲄⲆⲈⲊⲌⲎⲐⲒⲔⲖⲘⲚⲜⲞⲠⲢⲤⲦⲨⲪⲬⲮⲰⲲⲴⲶⲸⲺⲼⲾⳀⳂⳄⳆⳈⳊⳌⳎⳐⳒⳔⳖⳘⳚⳜⳞⳠⳢ⸗⸚〜〰゠꘠-꘩ꙀꙂꙄꙆꙈꙊꙌꙎꙐꙒꙔꙖꙘꙚꙜꙞꙢꙤꙦꙨꙪꙬꚀꚂꚄꚆꚈꚊꚌꚎꚐꚒꚔꚖꜢꜤꜦꜨꜪꜬꜮꜲꜴꜶꜸꜺꜼꜾꝀꝂꝄꝆꝈꝊꝌꝎꝐꝒꝔꝖꝘꝚꝜꝞꝠꝢꝤꝦꝨꝪꝬꝮꝹꝻꝽ-ꝾꞀꞂꞄꞆꞋ꣐-꣙꤀-꤉꩐-꩙︱-︲﹘﹣－０-９Ａ-Ｚ]|\ud801[\udc00-\udc27\udca0-\udca9]|\ud835[\udc00-\udc19\udc34-\udc4d\udc68-\udc81\udc9c\udc9e-\udc9f\udca2\udca5-\udca6\udca9-\udcac\udcae-\udcb5\udcd0-\udce9\udd04-\udd05\udd07-\udd0a\udd0d-\udd14\udd16-\udd1c\udd38-\udd39\udd3b-\udd3e\udd40-\udd44\udd46\udd4a-\udd50\udd6c-\udd85\udda0-\uddb9\uddd4-\udded\ude08-\ude21\ude3c-\ude55\ude70-\ude89\udea8-\udec0\udee2-\udefa\udf1c-\udf34\udf56-\udf6e\udf90-\udfa8\udfca\udfce-\udfff]){2,}", 'g');
@@ -101,7 +92,7 @@ window.nova_plugins.push({
                   || (match.length === 1 && /[A-Z]/.test(match)) // one upper word (latin)
                   // || (match.length < 5 && match.includes('.') && /([A-Z]\.){2,}/.test(match)) // Abbreviations. Does not make sense Since word length == 1
                   || (match.length < 5 && match.length > 1 && ['HD', 'UHD', 'USB', 'TV', 'CPU', 'GPU', 'APU', 'AMD', 'XT', 'RX', 'GTX', 'RTX', 'GT', 'FX', 'SE', 'HP', 'SSD', 'RAM', 'PC', 'FPS', 'RDNA', 'FSR', 'DLSS', 'MSI', 'VR', 'GOTY', 'AAA', 'UI', 'BBC', 'WWE', 'OS', 'OP', 'ED', 'MV', 'PV', 'OST', 'NCS', 'BGM', 'EDM', 'GMV', 'AMV', 'MMD', 'MAD', 'SQL', 'CAPS'].includes(match)) // specific words (like: AMD RADEON VII)
-                  || (match.length < 5 && /(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))/i.test(match)) // skip roman numerals
+                  || (match.length < 5 && /(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))/i.test(match)) // skip Roman numerals
                ) ? match : match.toLowerCase();
             });
             // Upper case
@@ -137,24 +128,6 @@ window.nova_plugins.push({
 
    },
    options: {
-      thumbs_title_show_full: {
-         _tagName: 'input',
-         label: 'Show full title',
-         'label:zh': '显示完整标题',
-         'label:ja': '完全なタイトルを表示',
-         // 'label:ko': '전체 제목 표시',
-         // 'label:vi': '',
-         // 'label:id': 'Tampilkan judul lengkap',
-         // 'label:es': 'Mostrar título completo',
-         // 'label:pt': 'Mostrar título completo',
-         // 'label:fr': 'Afficher le titre complet',
-         // 'label:it': 'Mostra il titolo completo',
-         // 'label:tr': 'Tam başlığı göster',
-         // 'label:de': 'Vollständigen Titel anzeigen',
-         'label:pl': 'Pokaż pełny tytuł',
-         // 'label:ua': 'Показати повну назву',
-         type: 'checkbox'
-      },
       // thumbs_title_decapitalize: {
       //    _tagName: 'input',
       //    label: 'Decapitalize title',

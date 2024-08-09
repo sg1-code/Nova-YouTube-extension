@@ -7,6 +7,7 @@
 // https://www.youtube.com/watch?v=v0PqdzLdFSk&list=OLAK5uy_m-Dv_8xLBZNZeysu7yXsw7psMf48nJ7tw - 1 unavailable video is hidden
 // https://www.youtube.com/watch?v=RhxF9Qg5mOU&list=RDEMd-ObnI9A_YffTMufAPhAHQ&index=9 - infinite playlist
 // https://www.youtube.com/watch?v=30PcoavqFq0&list=PLS3XGZxi7cBXnYfJpUas1ud6XATvWATHb&index=305 - big playlist
+// https://www.youtube.com/watch?v=Z1MqhNxX4SI&list=RDEM6fQXJCxKKd0r2r8_Djb7aQ&index=2 - err?
 
 window.nova_plugins.push({
    id: 'playlist-duration',
@@ -36,16 +37,20 @@ window.nova_plugins.push({
       // alt4 - https://greasyfork.org/en/scripts/427936-youtube-playlist-duration
       // alt5 - https://greasyfork.org/en/scripts/418188-youtube-playlist-total-duration
       // alt6 - https://greasyfork.org/en/scripts/11712-youtube-playlist-time
-      // alt7 - https://chrome.google.com/webstore/detail/pijbakhgmhhadeakaocjfockpndcpobk
+      // alt7 - https://chromewebstore.google.com/detail/pijbakhgmhhadeakaocjfockpndcpobk
       // alt8 - https://greasyfork.org/en/scripts/465609-youtube-playlist-calculator
       // alt9 - https://greasyfork.org/en/scripts/475879-youtube-playlist-length
       // alt10 - https://greasyfork.org/en/scripts/484490-youtube-playlist-duration
       // alt11 - https://greasyfork.org/en/scripts/447887-invidious-playlist-length-checker
       // alt12 - https://greasyfork.org/en/scripts/489937-youtube-ocd-number-replacer
 
+      // render prgress-bar
+      // alt1 - https://chromewebstore.google.com/detail/youtube-playlist-duration/klbacnllhiilbiiedcbgfafmnedldgeg
+      // alt2 - https://github.com/WaiShen1000/YouTube-Playlist-Duration-bar
+
       const
          SELECTOR_ID = 'nova-playlist-duration',
-         // SELECTOR_ID = 'nova-playlist-duration-' + NOVA.currentPage, // Strategy 11
+         // SELECTOR_ID = 'nova-playlist-duration-' + NOVA.currentPage, // Solution 11
          // CACHE_PREFIX = SELECTOR_ID + ':',
          // STORE_NAME = CACHE_PREFIX + playlistId,
          playlistId = NOVA.queryURL.get('list');
@@ -78,8 +83,8 @@ window.nova_plugins.push({
                         ?.tabs[0].tabRenderer?.content?.sectionListRenderer
                         ?.contents[0].itemSectionRenderer
                         ?.contents[0].playlistVideoListRenderer?.contents
-                        || document.body.querySelector('ytd-watch-flexy')?.__data.playlistData?.contents
-                        || document.body.querySelector('ytd-watch-flexy')?.data?.playlist?.playlist?.contents;
+                        || document.body.querySelector('.ytd-page-manager[video-id]')?.__data.playlistData?.contents
+                        || document.body.querySelector('.ytd-page-manager[video-id]')?.data?.playlist?.playlist?.contents;
 
                      const duration = vids_list?.reduce((acc, vid) => acc + (+vid.playlistVideoRenderer?.lengthSeconds || 0), 0);
 
@@ -91,7 +96,7 @@ window.nova_plugins.push({
             break;
 
          case 'watch':
-            NOVA.waitSelector('#secondary .index-message-wrapper', { destroy_after_page_leaving: true })
+            NOVA.waitSelector('#page-manager #playlist .index-message-wrapper:not([hidden])', { destroy_after_page_leaving: true })
                .then(el => {
                   const waitPlaylist = setInterval(() => {
                      const
@@ -105,7 +110,7 @@ window.nova_plugins.push({
                      if (playlistLength && (playlistList?.length === playlistLength)) {
                         clearInterval(waitPlaylist);
 
-                        // Strategy 1 (API)
+                        // Solution 1 (API)
                         if (duration = getPlaylistDuration(playlistList)) {
                            insertToHTML({ 'container': el, 'text': duration });
 
@@ -117,7 +122,7 @@ window.nova_plugins.push({
                                  });
                               });
                         }
-                        // Strategy 2 (HTML). This method ignores progress
+                        // Solution 2 (HTML). This method ignores progress
                         // this method ignores progress
                         else if (!user_settings.playlist_duration_progress_type) {
                            getPlaylistDurationFromThumbnails('#playlist #playlist-items #unplayableText[hidden]')
@@ -226,7 +231,8 @@ window.nova_plugins.push({
             // time
             NOVA.formatTimeOut.HMS.digit(
                (NOVA.currentPage == 'watch' && NOVA.videoElement?.playbackRate)
-                  ? (duration / NOVA.videoElement.playbackRate) : duration
+                  ? (duration / NOVA.videoElement.playbackRate)
+                  : duration
             )
          ];
          // pt
@@ -248,12 +254,12 @@ window.nova_plugins.push({
          (container.querySelector(`#${SELECTOR_ID}`) || (function () { // for 2 parallel pages - playlist, watch
             const el = document.createElement('span');
             el.id = SELECTOR_ID;
-            // el.className = 'style-scope ytd-playlist-sidebar-primary-info-renderer';
+            // el..classList.add('style-scope', 'ytd-playlist-sidebar-primary-info-renderer');
             // el.style.display = 'inline-block';
             // el.style.margin = '0 .5em';
             return container.appendChild(el);
             // 62.88 % slower
-            // container.insertAdjacentHTML('beforeend', `<span id="${SELECTOR_ID}">${text}</span>`);
+            // container.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(`<span id="${SELECTOR_ID}">${text}</span>`));
             // return document.getElementById(SELECTOR_ID);
          })())
             .textContent = ' ' + text;

@@ -52,7 +52,13 @@ window.nova_plugins.push({
             .map(i => `${i}:not(.${SELECTOR_CLASS_NAME})`)
             .join(',');
 
-      // page update event
+      // Solution 1 (HTML5). page update event
+      document.addEventListener('scrollend', function self() {
+         if (typeof self.timeout === 'number') clearTimeout(self.timeout);
+         self.timeout = setTimeout(patchThumb, 50); // 50ms
+      });
+
+      // Solution 2 (API). page update event
       document.addEventListener('yt-action', evt => {
          // console.debug(evt.detail?.actionName);
          switch (evt.detail?.actionName) {
@@ -70,45 +76,10 @@ window.nova_plugins.push({
                // case 'yt-service-request': // results, watch
 
                // console.debug(evt.detail?.actionName); // flltered
-               switch (NOVA.currentPage) {
-                  // case 'home':
-                  // case 'results':
-                  case 'feed':
-                     // case 'channel':
-                     // case 'watch':
-                     document.body.querySelectorAll(thumbsSelectors)
-                        .forEach(thumb => {
-                           thumb.classList.add(SELECTOR_CLASS_NAME);
-
-                           if (container = thumb.querySelector('a#thumbnail.ytd-thumbnail')) {
-                              // if (user_settings['thumbs-not-interested']) {
-                              //    NOVA.waitSelector(`#${SELECTOR_OVERLAY_ID_NAME}`, { 'container': container })
-                              //       .then(container => {
-                              //          container.append(renderButton(thumb));
-                              //       });
-                              // }
-                              // else {
-                              const div = document.createElement('div');
-                              div.id = SELECTOR_OVERLAY_ID_NAME;
-                              div.append(renderButton(thumb));
-                              container.append(div);
-                           }
-                           // }
-                           // if (vidId = NOVA.queryURL.get('v', thumb.href)) {
-                           // }
-                        });
-                     break;
-
-                  // default:
-                  //    break;
-               }
+               patchThumb();
                break;
-
-            // default:
-            //    break;
          }
       });
-
 
       // button style
       NOVA.css.push(
@@ -131,14 +102,33 @@ window.nova_plugins.push({
       function renderButton(thumb = required()) {
          const btn = document.createElement('button');
          btn.className = SELECTOR_CLASS_NAME;
-         // btn.textContent = '⏱';
-         // btn.textContent = '🕓';
-         btn.innerHTML =
-            `<svg viewBox="0 0 24 24" height="100%" width="100%">
-               <g fill="currentColor">
-                  <path d="M14.97 16.95 10 13.87V7h2v5.76l4.03 2.49-1.06 1.7zM12 3c-4.96 0-9 4.04-9 9s4.04 9 9 9 9-4.04 9-9-4.04-9-9-9m0-1c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z" />
-               </g>
-            </svg>`;
+         // // btn.textContent = '⏱';
+         // // btn.textContent = '🕓';
+         // btn.innerHTML = NOVA.createSafeHTML(
+         //    `<svg viewBox="0 0 24 24" height="100%" width="100%">
+         //       <g fill="currentColor">
+         //          <path d="M14.97 16.95 10 13.87V7h2v5.76l4.03 2.49-1.06 1.7zM12 3c-4.96 0-9 4.04-9 9s4.04 9 9 9 9-4.04 9-9-4.04-9-9-9m0-1c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z" />
+         //       </g>
+         //    </svg>`);
+         // fix - This document requires 'TrustedHTML' assignment.
+         btn.append((function createSvgIcon() {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('height', '100%');
+            svg.setAttribute('width', '100%');
+
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('fill', 'currentColor');
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M14.97 16.95 10 13.87V7h2v5.76l4.03 2.49-1.06 1.7zM12 3c-4.96 0-9 4.04-9 9s4.04 9 9 9 9-4.04 9-9-4.04-9-9-9m0-1c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z');
+
+            g.append(path);
+            svg.append(g);
+
+            return svg;
+         })());
+
          btn.title = 'Watch Later';
          // btn.style.cssText = '';
          // Object.assign(btn.style, {
@@ -174,6 +164,41 @@ window.nova_plugins.push({
             }
          });
          return btn;
+      }
+
+      function patchThumb() {
+         switch (NOVA.currentPage) {
+            // case 'home':
+            // case 'results':
+            case 'feed':
+               // case 'channel':
+               // case 'watch':
+               document.body.querySelectorAll(thumbsSelectors)
+                  .forEach(thumb => {
+                     thumb.classList.add(SELECTOR_CLASS_NAME);
+
+                     if (container = thumb.querySelector('a#thumbnail.ytd-thumbnail')) {
+                        // if (user_settings['thumbs-not-interested']) {
+                        //    NOVA.waitSelector(`#${SELECTOR_OVERLAY_ID_NAME}`, { 'container': container })
+                        //       .then(container => {
+                        //          container.append(renderButton(thumb));
+                        //       });
+                        // }
+                        // else {
+                        const div = document.createElement('div');
+                        div.id = SELECTOR_OVERLAY_ID_NAME;
+                        div.append(renderButton(thumb));
+                        container.append(div);
+                     }
+                     // }
+                     // if (vidId = NOVA.queryURL.get('v', thumb.href)) {
+                     // }
+                  });
+               break;
+
+            // default:
+            //    break;
+         }
       }
 
    },

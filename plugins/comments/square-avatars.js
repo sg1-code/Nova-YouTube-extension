@@ -46,13 +46,17 @@ window.nova_plugins.push({
             '.ytp-title-channel-logo',
             '#player .ytp-title-channel',
             'ytm-profile-icon',
-            '#ytd-player.ytd-watch-flexy',
+            '.ytd-page-manager[video-id]',
             // after 10.27.22
             'a.ytd-thumbnail',
             // 'ytd-watch-metadata #description.ytd-watch-metadata',
             '#search .ytd-searchbox', // searchbox
             // '.yt-spec-button-shape-next--size-m', // comment replay, subscribe like , , etc btn
+            '#ytd-player',
+            'yt-image-banner-view-model', // .yt-image-banner-view-model-wiz--inset
 
+            // for ytd-watch-grid mode
+            'ytd-engagement-panel-section-list-renderer[modern-panels]:not([live-chat-engagement-panel])',
          ]
             .join(',\n') + ` {
                border-radius: 0 !important;

@@ -1,6 +1,7 @@
 /*
    NOVA - complex solutions to simple problems
    full fusctions list in NOVA:
+   - createSafeHTML
    - waitSelector (async)
    - waitUntil (async)
    - delay (async)
@@ -9,15 +10,13 @@
    - runOnPageLoad
    - css.push
    - css.get
-   //- cookie.clearAllCookies
-   //- cookie.get
-   //- cookie.set
-   //- cookie.delete
-   //- cookie.clear
-   //- cookie.parseQueryToObj
-   //- cookie.get
-   //- cookie.set
-   //- cookie.updateParam
+   // - cookies.get
+   // - cookies.set
+   // - cookies.delete
+   // - cookies.clear
+   // - cookies.clearAllCookies
+   // - cookies.parseQueryToObj
+   // - cookies.updateParam
    - isInViewport
    // - checkVisibility
    - collapseElement
@@ -26,6 +25,7 @@
    - aspectRatio.calculateHeight
    - aspectRatio.calculateWidth
    - openPopup
+   // - simulateClick
    - showOSD
    - getChapterList
    - strToArray
@@ -47,13 +47,13 @@
    - queryURL.get
    - queryURL.set
    - queryURL.remove
-   - queryURL.getHashParam
+   - queryURL.getFromHash
    - request.API (async)
    - getPlayerState
    //- videoId
    - getChannelId (async)
    - storage_obj_manager.getParam
-   //- seachInObjectBy.key
+   //- searchInObjectBy.key
    //- fakeUA
 
    // data (not fn)
@@ -66,6 +66,18 @@
 
 const NOVA = {
    // DEBUG: true,
+
+   // fix - This document requires 'TrustedHTML' assignment.
+   createSafeHTML(html = required()) {
+      if (typeof html !== 'string') return console.error('not string "html":', typeof html);
+      if (typeof this.policy === 'undefined') {
+         this.policy = (typeof trustedTypes !== 'undefined')
+            // Sanitize or validate the HTML here before returning it
+            ? trustedTypes.createPolicy('nova-policy', { createHTML: html => html, })
+            : null;
+      }
+      return this.policy ? this.policy.createHTML(html) : html;
+   },
 
    /**
    * @typedef {{
@@ -86,45 +98,45 @@ const NOVA = {
    //    context = document,
    // } = {}) {
    //    return new Promise((resolve) => {
-   //       let startTime = Date.now()
-   //       let rafId
-   //       let timeoutId
+   //       let startTime = Date.now();
+   //       let recordId;
+   //       let timeoutId;
 
    //       function stop($element, reason) {
    //          if ($element == null) {
-   //             warn(`stopped waiting for ${name || selector} after ${reason}`)
+   //             warn(`stopped waiting for ${name || selector} after ${reason}`);
    //          }
    //          else if (Date.now() > startTime) {
-   //             log(`${name || selector} appeared after`, Date.now() - startTime, 'ms')
+   //             log(`${name || selector} appeared after`, Date.now() - startTime, 'ms');
    //          }
-   //          if (rafId) {
-   //             cancelAnimationFrame(rafId)
+   //          if (recordId) {
+   //             cancelAnimationFrame(recordId);
    //          }
    //          if (timeoutId) {
-   //             clearTimeout(timeoutId)
+   //             clearTimeout(timeoutId);
    //          }
-   //          resolve($element)
+   //          resolve($element);
    //       }
 
    //       if (timeout !== Infinity) {
-   //          timeoutId = setTimeout(stop, timeout, null, `${timeout}ms timeout`)
+   //          timeoutId = setTimeout(stop, timeout, null, `${timeout}ms timeout`);
    //       }
 
    //       function queryElement() {
-   //          let $element = context.querySelector(selector)
+   //          let $element = context.querySelector(selector);
    //          if ($element) {
-   //             stop($element)
+   //             stop($element);
    //          }
    //          else if (stopIf?.() === true) {
-   //             stop(null, 'stopIf condition met')
+   //             stop(null, 'stopIf condition met');
    //          }
    //          else {
-   //             rafId = requestAnimationFrame(queryElement)
+   //             recordId = requestAnimationFrame(queryElement);
    //          }
    //       }
 
-   //       queryElement()
-   //    })
+   //       queryElement();
+   //    });
    // },
 
    // waitSelector(selector, intervalMs = 500, maxTries = 6) {
@@ -132,24 +144,24 @@ const NOVA = {
    //       let tried = 1
    //       const id = setInterval(() => {
    //          if (tried > maxTries) {
-   //             clearInterval(id)
-   //             reject(new Error(`The maximum amount of tries (${maxTries}) was exceeded.`))
-   //             return
+   //             clearInterval(id);
+   //             reject(new Error(`The maximum amount of tries (${maxTries}) was exceeded.`));
+   //             return;
    //          }
-   //          const elements = document.body.querySelectorAll(selector)
+   //          const elements = document.body.querySelectorAll(selector);
    //          if (elements.length > 0) {
-   //             clearInterval(id)
-   //             resolve(elements)
-   //             return
+   //             clearInterval(id);
+   //             resolve(elements);
+   //             return;
    //          }
    //          tried++
-   //       }, +intervalMs || 500) // default 500ms
+   //       }, +intervalMs || 500); // default 500ms
    //    })
    // }
 
    // waitSelector(selector = required(), container) {
    //    if (typeof selector !== 'string') return console.error('wait > selector:', typeof selector);
-   //    if (container && !(container instanceof HTMLElement)) return console.error('wait > container not HTMLElement:', container);
+   //    if (!(container instanceof HTMLElement)) return console.error('wait > container not HTMLElement:', container);
    //    // console.debug('waitSelector:', selector);
 
    //    return Promise.resolve((container || document.body).querySelector(selector));
@@ -177,123 +189,214 @@ const NOVA = {
    /**
     * @param  {string} selector
     * @param  {Node*} container
-    * @return {Promise<Element>}
     * @param {destroy_timeout} sec How long to wait before throwing an error (seconds)
-    * @returns {Promise<void>}
+    * @return {Promise<Element>}
     *
    */
-   // Function to be called when the target element exists
-   // untilDOM
-   // waitSelector(selector = required(), { container, destroy_after_page_leaving, destroy_timeout }) {
-   waitSelector(selector = required(), limit_data) {
+   // // Function to be called when the target element exists
+   // // untilDOM
+   // // waitSelector(selector = required(), { container, destroy_after_page_leaving, destroy_timeout }) {
+   // waitSelector(selector = required(), limit_data) {
+   //    return new Promise((resolve, reject) => {
+   //       // reject
+   //       if (typeof selector !== 'string') {
+   //          console.error('wait > selector:', ...arguments);
+   //          return reject('wait > selector:', typeof selector);
+   //       }
+   //       // if (selector.includes(':has(')) selector = `@supports selector(:has(*)) {${selector}}`
+   //       if (selector.includes(':has(') && !CSS.supports('selector(:has(*))')) {
+   //       // fix - Error: Failed to execute 'querySelector' on 'Element': 'ytd-comment-thread-renderer:has(#linked-comment-badge) #replies' is not a valid selector.
+   //       // https://jsfiddle.net/f6o2amjk/4/ https://www.bram.us/2023/01/04/css-has-feature-detection-with-supportsselector-you-want-has-not-has/
+   //          // throw new Error('CSS ":has()" unsupported');
+   //          console.warn('CSS ":has()" unsupported');
+   //          return reject('CSS ":has()" unsupported');
+   //       }
+
+   //       if (limit_data && (/*!Object.keys(limit_data).label ||*/ !limit_data.hasOwnProperty('destroy_after_page_leaving') && !limit_data.hasOwnProperty('container'))) {
+   //          console.error('waitSelector > check format "limit_data":', ...arguments);
+   //          return reject('waitSelector > check format "limit_data"');
+   //       }
+   //       if (limit_data?.container && !(container instanceof HTMLElement)) {
+   //          console.error('waitSelector > container not HTMLElement:', ...arguments);
+   //          return reject('waitSelector > container not HTMLElement');
+   //       }
+   //       // console.debug('waitSelector:', selector);
+
+   //       // https://stackoverflow.com/a/68262400
+   //       // best https://codepad.co/snippet/wait-for-an-element-to-exist-via-mutation-observer
+   //       // alt:
+   //       // https://git.io/waitForKeyElements.js
+   //       // https://github.com/fuzetsu/userscripts/tree/master/wait-for-elements
+   //       // https://github.com/CoeJoder/waitForKeyElements.js
+   //       // https://gist.githubusercontent.com/sidneys/ee7a6b80315148ad1fb6847e72a22313/raw/
+   //       // https://greasyfork.org/scripts/21927-arrive-js/code/arrivejs.js  (ex: https://greasyfork.org/en/scripts/429783-confirm-and-upload-imgur)
+   //       // https://greasyfork.org/scripts/464780-global-module/code/global_module.js
+   //       // https://github.com/CoeJoder/waitForKeyElements.js
+   //       // https://update.greasyfork.org/scripts/419640/887637/onElementReady.js
+
+   //       // There is a more correct method - transitionend.
+   //       // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/transitionend_event
+   //       // But this requires a change in the logic of the current implementation. It will also complicate the restoration of the expansion if in the future, if YouTube replaces logic.
+
+   //       // resolve
+   //       if (element = (limit_data?.container || document.body || document).querySelector(selector)) {
+   //          // console.debug('[1]', selector);
+   //          return resolve(element);
+   //       }
+
+   //       const startTime = Date.now();
+   //       let waiting = false;
+
+   //       const observerFactory = new MutationObserver((mutationRecordsArray, observer) => {
+   //          // for (const record of mutationRecordsArray) {
+   //          //    for (const node of record.addedNodes) {
+   //          //       if (![1, 3, 8].includes(node.nodeType) || !(node instanceof HTMLElement)) continue; // speedup hack
+
+   //          //       if (node.matches && node.matches(selector)) { // this node
+   //          //          console.debug('[2]', Date.now() - startTime, 'ms', record.type, node.nodeType, selector);
+   //          //          observer.disconnect();
+   //          //          return resolve(node);
+   //          //       }
+   //          //       // closet ?
+   //          //       else if ( // inside node
+   //          //          (parentEl = node.parentElement || node)
+   //          //          && (!(parentEl instanceof HTMLElement))
+   //          //          && (element = parentEl.querySelector(selector))
+   //          //       ) {
+   //          //          console.debug('[3]', Date.now() - startTime, 'ms', record.type, node.nodeType, selector);
+   //          //          observer.disconnect();
+   //          //          return resolve(element);
+   //          //       }
+   //          //    }
+   //          // }
+
+   //          // after for-loop. In global
+   //          // if (document?.readyState != 'loading' // fix slowdown page
+   //          //    && (element = (limit_data?.container || document?.body || document).querySelector(selector))
+   //          // ) {
+   //          //    // console.debug('[4]', selector);
+   //          //    observer.disconnect();
+   //          //    return resolve(element);
+   //          // }
+
+   //          if (!waiting
+   //             && document?.readyState != 'loading' // fix slowdown page
+   //             // && document.visibilityState == 'visible'
+   //          ) {
+   //             waiting = true;
+   //             setTimeout(() => {
+   //                if (element = (limit_data?.container || document?.body || document).querySelector(selector)) {
+   //                   // console.debug('[4]', selector);
+   //                   observer.disconnect();
+   //                   return resolve(element);
+   //                }
+   //                waiting = false;
+   //             }, 100); // Adjust throttle time as needed
+   //          }
+   //       });
+
+   //       observerFactory
+   //          .observe(limit_data?.container || document.body || document.documentElement || document, {
+   //             childList: true, // observe direct children
+   //             subtree: true, // and lower descendants too
+   //             attributes: true, // need to - "NOVA.waitSelector('#movie_player.ytp-autohide video')" in embed page
+   //             //  characterData: true,
+   //             //  attributeOldValue: true,
+   //             //  characterDataOldValue: true
+   //          });
+
+   //       // destructure self
+   //       if (sec = +limit_data?.destroy_timeout) {
+   //          setTimeout(() => {
+   //             observerFactory.disconnect();
+   //             return reject(`"${selector}" timed out after ${sec} seconds`);
+   //          }, sec * 1000);
+   //       }
+
+   //       // destructure self
+   //       // if (limit_data?.destroy_on_page_navigate) {
+   //       if (limit_data?.destroy_after_page_leaving) {
+   //          // url save init
+   //          isURLChange();
+   //          // on page update
+   //          window.addEventListener('transitionend', ({ target }) => isURLChange() && observerFactory.disconnect(), { capture: true, once: true });
+
+   //          function isURLChange() {
+   //             return (this.prevURL === document.URL) ? false : this.prevURL = document.URL;
+   //          }
+   //       }
+   //    });
+   // },
+
+   /**
+    * Finds an element on the webpage, with timeout and page change handling.
+    *
+    * @param {string} selector - CSS selector for the target element
+    * @param {object} options - Configuration options
+    * @param {HTMLElement} options.container - The element to search within (defaults to document)
+    * @param {number} options.destroy_timeout - Timeout in seconds before rejecting (optional)
+    * @param {boolean} options.destroy_after_page_leaving - Disconnect observer on page change (optional)
+    *
+    * @returns {Promise<HTMLElement>} - Resolves with the found element, rejects on timeout or error
+   */
+   waitSelector(selector = required(), options = {}) {
+      const { container = document, destroy_timeout, destroy_after_page_leaving } = options;
+
       return new Promise((resolve, reject) => {
          // reject
          if (typeof selector !== 'string') {
             console.error('wait > selector:', ...arguments);
             return reject('wait > selector:', typeof selector);
          }
-
-         if (limit_data && (/*!Object.keys(limit_data).label ||*/ !limit_data.hasOwnProperty('destroy_after_page_leaving') && !limit_data.hasOwnProperty('container'))) {
-            console.error('waitSelector > check format "limit_data":', ...arguments);
-            return reject('waitSelector > check format "limit_data"');
+         // if (selector.includes(':has(')) selector = `@supports selector(:has(*)) {${selector}}`
+         else if (selector.includes(':has(') && !CSS.supports('selector(:has(*))')) {
+            // fix - Error: Failed to execute 'querySelector' on 'Element': 'ytd-comment-thread-renderer:has(#linked-comment-badge) #replies' is not a valid selector.
+            // https://jsfiddle.net/f6o2amjk/4/ https://www.bram.us/2023/01/04/css-has-feature-detection-with-supportsselector-you-want-has-not-has/
+            // throw new Error('CSS ":has()" unsupported');
+            console.error('CSS ":has()" unsupported');
+            return reject('CSS ":has()" unsupported');
          }
-         if (limit_data?.container && !(limit_data.container instanceof HTMLElement)) {
+
+         if (options?.container && (!(options.container instanceof HTMLElement))) {
             console.error('waitSelector > container not HTMLElement:', ...arguments);
             return reject('waitSelector > container not HTMLElement');
          }
 
-         // fix - Error: Failed to execute 'querySelector' on 'Element': 'ytd-comment-thread-renderer:has(#linked-comment-badge) #replies' is not a valid selector.
-         // https://jsfiddle.net/f6o2amjk/4/ https://www.bram.us/2023/01/04/css-has-feature-detection-with-supportsselector-you-want-has-not-has/
-         // if (selector.includes(':has(')) selector = `@supports selector(:has(*)) {${selector}}`
-         if (selector.includes(':has(') && !CSS.supports('selector(:has(*))')) {
-            // throw new Error('CSS ":has()" unsupported');
-            console.warn('CSS ":has()" unsupported');
-            return reject('CSS ":has()" unsupported');
-         }
-         // console.debug('waitSelector:', selector);
+         const prevURL = document.URL; // For page change detection
+         let recordId;
 
-         // https://stackoverflow.com/a/68262400
-         // best https://codepad.co/snippet/wait-for-an-element-to-exist-via-mutation-observer
-         // alt:
-         // https://git.io/waitForKeyElements.js
-         // https://github.com/fuzetsu/userscripts/tree/master/wait-for-elements
-         // https://github.com/CoeJoder/waitForKeyElements.js
-         // https://gist.githubusercontent.com/sidneys/ee7a6b80315148ad1fb6847e72a22313/raw/
-         // https://greasyfork.org/scripts/21927-arrive-js/code/arrivejs.js  (ex: https://greasyfork.org/en/scripts/429783-confirm-and-upload-imgur)
-         // https://greasyfork.org/scripts/464780-global-module/code/global_module.js
-         // https://github.com/CoeJoder/waitForKeyElements.js
+         function queryElement() {
+            if (el = container.querySelector(selector)) stop(el);
+            else {
+               recordId = requestAnimationFrame(queryElement);
+            }
 
-         // There is a more correct method - transitionend.
-         // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/transitionend_event
-         // But this requires a change in the logic of the current implementation. It will also complicate the restoration of the expansion if in the future, if YouTube replaces logic.
-
-         // resolve
-         if (element = (limit_data?.container || document.body || document).querySelector(selector)) {
-            // console.debug('[1]', selector);
-            return resolve(element);
-         }
-
-         // const startTime = Date.now();
-
-         const observerFactory = new MutationObserver((mutationRecordsArray, observer) => {
-            for (const record of mutationRecordsArray) {
-               for (const node of record.addedNodes) {
-                  if (![1, 3, 8].includes(node.nodeType) || !(node instanceof HTMLElement)) continue; // speedup hack
-
-                  if (node.matches && node.matches(selector)) { // this node
-                     // console.debug('[2]', Date.now() - startTime, 'ms', record.type, node.nodeType, selector);
-                     observer.disconnect();
-                     return resolve(node);
-                  }
-                  else if ( // inside node
-                     (parentEl = node.parentElement || node)
-                     && (parentEl instanceof HTMLElement)
-                     && (element = parentEl.querySelector(selector))
-                  ) {
-                     // console.debug('[3]', Date.now() - startTime, 'ms', record.type, node.nodeType, selector);
-                     observer.disconnect();
-                     return resolve(element);
-                  }
+            function stop(el) {
+               if (recordId) {
+                  cancelAnimationFrame(recordId);
                }
+               resolve(el);
             }
-            // after loop. In global
-            if (document?.readyState != 'loading' // fix slowdown page
-               && (element = (limit_data?.container || document?.body || document).querySelector(selector))
-            ) {
-               // console.debug('[4]', selector);
-               observer.disconnect();
-               return resolve(element);
-            }
-         });
-
-         observerFactory
-            .observe(limit_data?.container || document.body || document.documentElement || document, {
-               childList: true, // observe direct children
-               subtree: true, // and lower descendants too
-               attributes: true, // need to - "NOVA.waitSelector('#movie_player.ytp-autohide video')" in embed page
-               //  characterData: true,
-               //  attributeOldValue: true,
-               //  characterDataOldValue: true
-            });
-
-         // destructure self
-         if (sec = +limit_data?.destroy_timeout) {
-            setTimeout(() => {
-               observerFactory.disconnect();
-               return reject(`"${selector}" timed out after ${sec} seconds`);
-            }, sec * 1000);
          }
 
-         // destructure self
-         if (limit_data?.destroy_after_page_leaving) {
-            // url save init
-            isURLChange();
-            // on page update
-            window.addEventListener('transitionend', ({ target }) => isURLChange() && observerFactory.disconnect());
+         queryElement();
 
-            function isURLChange() {
-               return (this.prevURL === document.URL) ? false : this.prevURL = document.URL;
-            }
+         // Handle timeout (if provided)
+         if (destroy_timeout) {
+            setTimeout(() => {
+               cancelAnimationFrame(recordId);
+               reject(`${name || 'Element'} timed out after ${destroy_timeout} seconds`);
+            }, destroy_timeout * 1000);
+         }
+
+         // Handle page change (if enabled)
+         if (destroy_after_page_leaving) {
+            window.addEventListener('transitionend', ({ target }) => {
+               if (prevURL != document.URL) {
+                  cancelAnimationFrame(recordId);
+                  reject(`${name || 'Element'} not found before page change`);
+               }
+            }, { capture: true, once: true });
          }
       });
    },
@@ -340,67 +443,87 @@ const NOVA = {
    //    else alert(message);
    // },
 
-   watchElements_list: {}, // can to stop watch setInterval
-   // complete doesn't work
-   // clear_watchElements(name = required()) {
-   //    return this.watchElements_list.hasOwnProperty(name)
-   //       && clearInterval(this.watchElements_list[name])
-   //       && delete this.watchElements_list[name];
-   // },
-
-   // alt:
-   // https://github.com/uzairfarooq/arrive (https://greasyfork.org/scripts/21927-arrive-js/code/arrivejs.js)
-
    /**
     * @param  {array/string} condition
     * @param  {string*} attr_mark
     * @param  {function} callback
+    * @param  {boolean} destroy_after_page_leaving
     * @return {void}
    */
-   watchElements({ selectors = required(), attr_mark, callback = required() }) {
+   watchElements({ selectors = required(), attr_mark, callback = required(), destroy_after_page_leaving = false }) {
+      // alt - https://github.com/uzairfarooq/arrive (https://greasyfork.org/scripts/21927-arrive-js/code/arrivejs.js)
+
       // console.debug('watch', selector);
       if (!Array.isArray(selectors) && typeof selectors !== 'string') return console.error('watch > selector:', typeof selectors);
       if (typeof callback !== 'function') return console.error('watch > callback:', typeof callback);
 
-      // async wait el. Removes the delay for init
-      this.waitSelector((typeof selectors === 'string') ? selectors : selectors.join(','))
-         .then(video => {
-            // selectors - str to array
-            !Array.isArray(selectors) && (selectors = selectors.split(',').map(s => s.trim()));
+      let waiting = false;
+      // let mutations = [];
 
-            process(); // launch without waiting
-            // if (attr_mark) {
-            this.watchElements_list[attr_mark] = setInterval(() =>
-               document.visibilityState == 'visible' && process(), 1500); // 1.5s
-            // }
+      // selectors str to array
+      !Array.isArray(selectors) && (selectors = selectors.split(',').map(s => s.trim()));
 
-            function process() {
-               // console.debug('watch.process', { selector, callback });
-               selectors
-                  .forEach(selectorItem => {
-                     // https://jsfiddle.net/f6o2amjk/4/ https://www.bram.us/2023/01/04/css-has-feature-detection-with-supportsselector-you-want-has-not-has/
-                     // if (selector.includes(':has(')) selector = `@supports selector(:has(*)) {${selector}}`
-                     if (selectorItem.includes(':has(') && !CSS.supports('selector(:has(*))')) {
-                        return console.warn('CSS ":has()" unsupported');
-                     }
-
-                     if (attr_mark) selectorItem += `:not([${attr_mark}])`;
-                     // if ((slEnd = ':not([hidden])') && !selectorItem.endsWith(slEnd)) {
-                     //    selectorItem += slEnd;
-                     // }
-                     // console.debug('selectorItem', selectorItem);
-
-                     document.body.querySelectorAll(selectorItem)
-                        .forEach(el => {
-                           // if (el.offsetWidth > 0 || el.offsetHeight > 0) { // el.is(":visible")
-                           // console.debug('watch.process.viewed', selectorItem);
-                           if (attr_mark) el.setAttribute(attr_mark, true);
-                           callback(el);
-                           // }
-                        });
-                  });
-            }
+      const observerFactory = new MutationObserver(records => {
+         // mutations.push(...records);
+         if (!waiting && document.visibilityState == 'visible') {
+            waiting = true;
+            setTimeout(() => {
+               // callback(mutations);
+               process();
+               waiting = false;
+               // mutations = [];
+            }, 100); // Adjust throttle time as needed
+         }
+      });
+      observerFactory
+         .observe(document.body || document.documentElement || document, {
+            childList: true, // observe direct children
+            subtree: true, // and lower descendants too
+            attributes: true, // need to - "NOVA.waitSelector('#movie_player.ytp-autohide video')" in embed page
+            //  characterData: true,
+            //  attributeOldValue: true,
+            //  characterDataOldValue: true
          });
+
+      // destructure self
+      // if (limit_data?.destroy_on_page_navigate) {
+      if (destroy_after_page_leaving) {
+         // url save init
+         isURLChange();
+         // on page update
+         window.addEventListener('transitionend', ({ target }) => isURLChange() && observerFactory.disconnect());
+
+         function isURLChange() {
+            return (this.prevURL === document.URL) ? false : this.prevURL = document.URL;
+         }
+      }
+
+      function process() {
+         // console.debug('watch.process', { selector, callback });
+         selectors
+            .forEach(selector => {
+               // https://jsfiddle.net/f6o2amjk/4/ https://www.bram.us/2023/01/04/css-has-feature-detection-with-supportsselector-you-want-has-not-has/
+               // if (selector.includes(':has(')) selector = `@supports selector(:has(*)) {${selector}}`
+               if (selector.includes(':has(') && !CSS.supports('selector(:has(*))')) {
+                  return console.warn('CSS ":has()" unsupported');
+               }
+
+               if (attr_mark) selector += `:not([${attr_mark}])`;
+               // if ((slEnd = ':not([hidden])') && !selector.endsWith(slEnd)) {
+               //    selector += slEnd;
+               // }
+               // console.debug('selector', selector);
+
+               document.body.querySelectorAll(selector)
+                  .forEach(el => {
+                     // if (el.offsetWidth > 0 || el.offsetHeight > 0) { // el.is(":visible")
+                     // console.debug('watch.process.viewed', selector);
+                     if (attr_mark) el.setAttribute(attr_mark, true);
+                     callback(el);
+                     // }
+                  });
+            });
+      }
 
    },
 
@@ -408,6 +531,7 @@ const NOVA = {
     * @param  {function} callback
     * @return {void}
    */
+   // Check if URL has changed
    runOnPageLoad(callback) {
       if (!callback || typeof callback !== 'function') {
          return console.error('runOnPageLoad > callback not function:', ...arguments);
@@ -484,6 +608,7 @@ const NOVA = {
                })();
             }
 
+            // sheet.innerText += '/**/\n' + source
             sheet.textContent += '/**/\n' + source
                .replace(/\n+\s{2,}/g, ' ') // singleline format
                // multiline format
@@ -511,102 +636,138 @@ const NOVA = {
          return (el = (selector instanceof HTMLElement) ? selector : document.body?.querySelector(selector))
             ? getComputedStyle(el).getPropertyValue(prop_name) : null; // for some callback functions (Match.max) return "undefined" is not valid
       },
+      // getCssBatch(selector, propNames) {
+      //    const styles = getComputedStyle(document.body.querySelector(selector));
+      //    const values = {};
+      //    for (const propName of propNames) {
+      //       values[propName] = styles.getPropertyValue(propName);
+      //    }
+      //    return values;
+      // }
    },
 
-   // cookie: {
-   //    get: function (name) {
-   //       const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-   //       return match && decodeURIComponent(match[2]);
-   //    },
-   //    set: function (name, value, days) {
-   //       let expires = '';
-   //       if (+days) {
-   //          let date = new Date();
-   //          date.setTime(date.getTime() + (24 * 60 * 60 * 1000 * days));
-   //          expires = '; expires=' + date.toGMTString();
-   //       }
-   //       document.cookie = encodeURIComponent(name) + '=' + encodeURIComponent(value) + ';path=/' + expires;
-   //    },
-   //    delete: function (name) {
-   //       this.set(name, '', -1);
-   //    },
-   //    clear: function () {
-   //       for (const key in this.get()) {
-   //          this.delete(key);
-   //       }
-   //       const domain = location.hostname.replace(/^www\./i, '');
-   //       this.clearAllCookies(domain);
-   //    },
-   //    clearAllCookies: function (domain) {
-   //       let cookies = document.cookie.split('; ');
-   //       for (let i = 0; i < cookies.length; i++) {
-   //          const cookie = cookies[i];
-   //          const eqPos = cookie.indexOf('=');
-   //          const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-   //          const cookieDomain = location.hostname.replace(/^www\./i, '');
-   //          if (cookieDomain === domain || cookieDomain.endsWith('.' + domain)) {
-   //             document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;domain=' + cookieDomain + ';path=/';
-   //          }
-   //       }
-   //    },
-   // },
+   cookies: {
+      // 97.1 % slower
+      // get(name = required()) {
+      //    return Object.fromEntries(
+      //       document.cookie
+      //          .split(/; */)
+      //          .map(c => {
+      //             const [key, ...v] = c.split('=');
+      //             return [key, decodeURIComponent(v.join('='))];
+      //          })
+      //    )[name];
+      // },
+      get(name = required()) {
+         return (matches = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'))
+            && decodeURIComponent(matches[1]));
+      },
+      get(name = required()) {
+         return (match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`))) && decodeURIComponent(match[2]);
+      },
+      // 70.38 % slower
+      // set(name = required(), value = '', days = 90) { // 90 days
+      //    let date = new Date();
+      //    date.setTime(date.getTime() + 24 * 60 * 60 * 1000 * days);
 
-   // cookie: {
-   //    // 69.97 % slower
-   //    parseQueryToObj(str) {
-   //       return str && [...new URLSearchParams(str).entries()]
-   //          .reduce((acc, [k, v]) => ((acc[k] = v), acc), {});
-   //    },
-   //    parseQueryToObj(str) {
-   //       return str && Object.fromEntries(
-   //          str
-   //             ?.split(/&/)
-   //             .map(c => {
-   //                const [key, ...v] = c.split('=');
-   //                return [key, decodeURIComponent(v.join('='))];
-   //             }) || []
-   //       );
-   //    },
+      //    document.cookie = Object.entries({
+      //       [encodeURIComponent(name)]: value,
+      //       // domain: '.' + location.hostname.split('.').slice(-2).join('.'),  // "www.youtube.com" => ".youtube.com"
+      //       domain: location.hostname,
+      //       expires: date.toUTCString(),
+      //       path: '/', // what matters at the end
+      //    })
+      //       .map(([key, value]) => `${key}=${value}`).join('; ');
 
-   //    get(name = required()) {
-   //       return Object.fromEntries(
-   //          document.cookie
-   //             .split(/; */)
-   //             .map(c => {
-   //                const [key, ...v] = c.split('=');
-   //                return [key, decodeURIComponent(v.join('='))];
-   //             })
-   //       )[name];
-   //    },
+      //    // console.assert(this.get(name) == value, 'cookie set err:', ...arguments, document.cookie);
+      // },
+      // set(name = required(), value = '', options) {
+      //    options = options || {};
 
-   //    set(name = required(), value, days = 90) { // 90 days
-   //       if (this.get(name) == value) return;
+      //    let expires = options.expires;
 
-   //       let date = new Date();
-   //       date.setTime(date.getTime() + 3600000 * 24 * days); // m*h*d
+      //    if (typeof expires === 'number' && expires) {
+      //       let d = new Date();
+      //       d.setTime(d.getTime() + expires * 1000);
+      //       expires = options.expires = d;
+      //    }
+      //    if (expires && expires.toUTCString) {
+      //       options.expires = expires.toUTCString();
+      //    }
 
-   //       document.cookie = Object.entries({
-   //          [encodeURIComponent(name)]: value,
-   //          // domain: '.' + location.hostname.split('.').slice(-2).join('.'),  // "www.youtube.com" => ".youtube.com"
-   //          domain: location.hostname,
-   //          expires: date.toUTCString(),
-   //          path: '/', // what matters at the end
-   //       })
-   //          .map(([key, value]) => `${key}=${value}`).join('; '); // if no "value" = undefined
+      //    value = encodeURIComponent(value);
 
-   //       console.assert(this.get(name) == value, 'cookie set err:', ...arguments, document.cookie);
-   //    },
+      //    let updatedCookie = name + "=" + value;
 
-   //    updateParam({ key = required(), param = required(), value = required() }) {
-   //       let paramsObj = this.getParamLikeObj(key) || {};
+      //    for (let propName in options) {
+      //       if (options.hasOwnProperty(propName)) {
+      //          updatedCookie += "; " + propName;
+      //          let propValue = options[propName];
+      //          if (propValue !== true) {
+      //             updatedCookie += "=" + propValue;
+      //          }
+      //       }
+      //    }
 
-   //       if (paramsObj[param] != value) {
-   //          paramsObj[param] = value;
-   //          this.set(key, NOVA.queryURL.set(paramsObj).split('?').pop());
-   //          location.reload();
-   //       }
-   //    },
-   // },
+      //    document.cookie = updatedCookie;
+      // },
+      set(name = required(), value = '', days = 90) { // 90 days
+         let expires = '';
+         if (+days) {
+            let date = new Date();
+            date.setTime(date.getTime() + (24 * 60 * 60 * 1000 * days));
+            expires = '; expires=' + date.toGMTString();
+         }
+         document.cookie = encodeURIComponent(name) + '=' + encodeURIComponent(value) + ';path=/' + expires;
+         // console.assert(this.get(name) == value, 'cookie set err:', ...arguments, document.cookie);
+      },
+      delete(name) {
+         this.set(name, '', -1);
+      },
+      clear() {
+         for (const key in this.get()) {
+            this.delete(key);
+         }
+         const domain = location.hostname.replace(/^www\./i, '');
+         this.clearAllCookies(domain);
+      },
+      clearAllCookies(domain) {
+         let cookies = document.cookie.split('; ');
+         for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i];
+            const eqPos = cookies.indexOf('=');
+            const name = eqPos > -1 ? cookies.substr(0, eqPos) : cookie;
+            const cookieDomain = location.hostname.replace(/^www\./i, '');
+            if (cookieDomain === domain || cookieDomain.endsWith('.' + domain)) {
+               document.cookie = name + `=;expires=Thu, 01 Jan 1970 00:00:00 GMT;domain=${cookieDomain};path=/`;
+            }
+         }
+      },
+      // 47.69 % slower
+      // parseQueryToObj(str) {
+      //    return str && [...new URLSearchParams(str).entries()]
+      //       .reduce((acc, [k, v]) => ((acc[k] = v), acc), {});
+      // },
+      parseQueryToObj(str) {
+         return str && Object.fromEntries(
+            str
+               ?.split(/&/)
+               .map(c => {
+                  const [key, ...v] = c.split('=');
+                  return [key, decodeURIComponent(v.join('='))];
+               }) || []
+         );
+      },
+      updateParam({ key = required(), param = required(), value = required() }) {
+         let paramsObj = this.getParamLikeObj(key) || {};
+
+         if (paramsObj[param] != value) {
+            paramsObj[param] = value;
+            this.set(key, NOVA.queryURL.set(paramsObj).split('?').pop());
+            location.reload();
+         }
+      },
+   },
 
    /**
     * @param  {Node} el
@@ -666,7 +827,7 @@ const NOVA = {
                const btn = document.createElement('a');
                btn.textContent = `Load ${label}`;
                btn.id = selector_id;
-               btn.className = 'more-button style-scope ytd-video-secondary-info-renderer';
+               btn.classList.add('more-button style-scope', 'ytd-video-secondary-info-renderer');
                // btn.className = 'ytd-vertical-list-renderer';
                // btn.style.cssText = '';
                Object.assign(btn.style, {
@@ -692,15 +853,15 @@ const NOVA = {
        * @return {Object} { width, height }
       */
       sizeToFit({
-         srcWidth = 0, srcHeight = 0,
-         // maxWidth = window.innerWidth, maxHeight = window.innerHeight // iframe size
-         maxWidth = screen.width, maxHeight = screen.height // screen size
+         src_width = required(), src_height = required(),
+         // max_width = window.innerWidth, max_height = window.innerHeight // viewport size
+         max_width = screen.width, max_height = screen.height // screen size
       }) {
          // console.debug('aspectRatioFit:', ...arguments);
-         const aspectRatio = Math.min(maxWidth / +srcWidth, maxHeight / +srcHeight, 1); // "1" if src < max
+         const aspectRatio = Math.min(max_width / +src_width, max_height / +src_height, 1); // "1" if src < max
          return {
-            width: +srcWidth * aspectRatio,
-            height: +srcHeight * aspectRatio,
+            width: +src_width * aspectRatio,
+            height: +src_height * aspectRatio,
          };
       },
 
@@ -809,13 +970,15 @@ const NOVA = {
    openPopup({ url = required(), title = document.title, width = window.innerWidth, height = window.innerHeight, closed_callback }) {
       // console.debug('openPopup', ...arguments);
       // center screen
-      const left = (screen.width / 2) - (width / 2);
-      const top = (screen.height / 2) - (height / 2);
+      const left = (window.screen.width / 2) - (width / 2);
+      const top = (window.screen.height / 2) - (height / 2);
+      // const left = (screen.width / 2) - (width / 2);
+      // const top = (screen.height / 2) - (height / 2);
       // bottom right corner
       // left = window.innerWidth;
       // top = window.innerHeight;
       const win = window.open(url, '_blank', `popup=1,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,resizable=yes,copyhistory=no,width=${width},height=${height},top=${top},left=${left}`);
-      // win.document.title = title; // ncaught TypeError: Cannot read properties of null (reading 'document')
+      // win.document.title = title; // Uncaught TypeError: Cannot read properties of null (reading 'document')
 
       if (closed_callback && typeof closed_callback === 'function') {
          const timer = setInterval(() => {
@@ -828,47 +991,90 @@ const NOVA = {
    },
 
    /**
+    * @param  {HTMLElement}
+    * @return {void}
+   */
+   // simulateClick(el = required()) {
+   //    if (!(el instanceof HTMLElement)) return console.error('el is not HTMLElement type:', el);
+   //    ['mouseover', 'mousedown', 'mouseup', 'click']
+   //       .forEach(evt => {
+   //          el.dispatchEvent(new MouseEvent(evt, {
+   //             bubbles: true,
+   //             cancelable: true,
+   //             // view: window
+   //             // target: document.body,
+   //          }));
+   //       });
+   // },
+
+   /**
     * @param  {string} text
     * @return {void}
    */
-   showOSD(text) {
-      // console.debug('showOSD', ...arguments);
-      if (!text || !['watch', 'embed'].includes(this.currentPage)) return;
-      if (typeof this.fadeBezel === 'number') clearTimeout(this.fadeBezel); // reset fade
-
-      const bezelEl = document.body.querySelector('.ytp-bezel-text');
-      if (!bezelEl) return console.error(`showOSD ${text}=>${bezelEl}`);
-
-      const
-         bezelContainer = bezelEl.parentElement.parentElement,
-         CLASS_VALUE = 'ytp-text-root',
-         SELECTOR = '.' + CLASS_VALUE; // for css
-
-      if (!this.bezel_css_inited) {
-         this.bezel_css_inited = true;
-         this.css.push(
-            `${SELECTOR} { display: block !important; }
-            ${SELECTOR} .ytp-bezel-text-wrapper {
-               pointer-events: none;
-               z-index: 40 !important;
-            }
-            ${SELECTOR} .ytp-bezel-text { display: inline-block !important; }
-            ${SELECTOR} .ytp-bezel { display: none !important; }`);
-      }
-
-      bezelEl.textContent = text;
-      bezelContainer.classList.add(CLASS_VALUE);
-
-      let ms = 1200;
-      if ((text = String(text)) && (text.endsWith('%') || text.endsWith('x') || text.startsWith('+'))) {
-         ms = 600
-      }
-
-      this.fadeBezel = setTimeout(() => {
-         bezelContainer.classList.remove(CLASS_VALUE);
-         bezelEl.textContent = ''; // fix not showing bug when frequent calls
-      }, ms);
+   showOSD({
+      message = '',
+      ui_value,
+      ui_max,
+      source,
+      // 'timeout_ms': null,
+      // 'clear_previous_text': true,
+   }) {
+      console.debug('showOSD', ...arguments);
+      // notification [player-indicator] plugin
+      document.dispatchEvent(
+         new CustomEvent(
+            'nova-osd',
+            {
+               bubbles: true,
+               detail: {
+                  'message': message,
+                  'ui_value': ui_value,
+                  'ui_max': ui_max,
+                  'source': source,
+                  // 'timeout_ms': null,
+                  // 'clear_previous_text': true,
+               }
+            })
+      );
    },
+   // showOSD(text) {
+   //    // console.debug('showOSD', ...arguments);
+   //    if (!text || !['watch', 'embed'].includes(this.currentPage)) return;
+   //    if (typeof this.fadeBezel === 'number') clearTimeout(this.fadeBezel); // reset fade
+
+   //    const bezelEl = document.body.querySelector('.ytp-bezel-text');
+   //    if (!bezelEl) return console.error(`showOSD ${text}=>${bezelEl}`);
+
+   //    const
+   //       bezelContainer = bezelEl.parentElement.parentElement,
+   //       CLASS_VALUE = 'ytp-text-root',
+   //       SELECTOR = '.' + CLASS_VALUE; // for css
+
+   //    if (!this.bezel_css_inited) {
+   //       this.bezel_css_inited = true;
+   //       this.css.push(
+   //          `${SELECTOR} { display: block !important; }
+   //          ${SELECTOR} .ytp-bezel-text-wrapper {
+   //             pointer-events: none;
+   //             z-index: 40 !important;
+   //          }
+   //          ${SELECTOR} .ytp-bezel-text { display: inline-block !important; }
+   //          ${SELECTOR} .ytp-bezel { display: none !important; }`);
+   //    }
+
+   //    bezelEl.textContent = text;
+   //    bezelContainer.classList.add(CLASS_VALUE);
+
+   //    let ms = 1200;
+   //    if ((text = String(text)) && (text.endsWith('%') || text.endsWith('x') || text.startsWith('+'))) {
+   //       ms = 600
+   //    }
+
+   //    this.fadeBezel = setTimeout(() => {
+   //       bezelContainer.classList.remove(CLASS_VALUE);
+   //       bezelEl.textContent = ''; // fix not showing bug when frequent calls
+   //    }, ms);
+   // },
 
    /**
     * @param  {int} video_duration
@@ -884,9 +1090,10 @@ const NOVA = {
             return chapsCollect;
             break;
 
-         // Strategy 2
+         // Solution 2
          case 'watch':
-            if ((chapsCollect = getFromDescriptionText() || getFromDescriptionChaptersBlock())
+            // if ((chapsCollect = getFromDescriptionText() || getFromDescriptionChaptersBlock())
+            if ((chapsCollect = getFromDescriptionText())
                && chapsCollect.length
             ) {
                // console.debug('chapsCollect (watch)', chapsCollect);
@@ -910,14 +1117,14 @@ const NOVA = {
          [
             // description text
             // https://www.youtube.com/watch?v=4_m3HsaNwOE - bold chapater "Screenshot moment" show markdown "*Screenshot moment*"(
-            (document.body.querySelector('ytd-watch-flexy')?.playerData?.videoDetails?.shortDescription
+            (document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.videoDetails?.shortDescription
                || document.body.querySelector('ytd-watch-metadata #description.ytd-watch-metadata')?.textContent
             )
                ?.split('\n') || [],
 
             // first comment (pinned)
             // '#comments ytd-comment-thread-renderer:first-child #content',
-            // Strategy 1. To above v105 https://developer.mozilla.org/en-US/docs/Web/CSS/:has
+            // Solution 1. To above v105 https://developer.mozilla.org/en-US/docs/Web/CSS/:has
             // all comments
             [...document.body.querySelectorAll(`#comments #comment #comment-content:has(${selectorTimestampLink})`)]
                .map(el => [...el.querySelectorAll(selectorTimestampLink)]
@@ -960,22 +1167,32 @@ const NOVA = {
                            // fix invalid sort timestamp
                            // ex: https://www.youtube.com/watch?v=S66Q7T7qqxU https://www.youtube.com/watch?v=nkyXwDU97ms
                            (unreliableSorting ? true : (sec > prevSec && sec < +video_duration))
-                           // not in the middle of the line
-                           && (timestampPos < 5 || (timestampPos + timestamp.length) === line.length)
+                           // not in the middle of the line ("2" - is a possible error. For example, at the end of the line there is a comma and the time is in brackets)
+                           // ex: https://www.youtube.com/watch?v=5Do_0aWpYeo
+                           && (timestampPos < 5 || (timestampPos + timestamp.length) > (line.length - 2))
                         ) {
                            if (unreliableSorting) prevSec = sec;
 
                            timestampsCollect.push({
                               'sec': sec,
-                              'time': timestamp,
+                              'time': timestamp.startsWith('0')
+                                 ? NOVA.formatTimeOut.HMS.digit(sec) // clear zeros prefix (like "00:05:11" -> "5:11")
+                                 : timestamp,
                               'title': line
-                                 .replace(timestamp, '')
-                                 .replace(/\*(.*?)\*/g, '<b>$1</b>') // Markdown bold text to convert html
-                                 .trim().replace(/^[\u2011-\u26FF:\-|\[\]]+|[\u2011-\u26FF:\-.;]+$/g, '') // clear of quotes and list characters
+                                 // .replace(timestamp, '')
+                                 // https://www.youtube.com/watch?v=5Do_0aWpYeo - Phoenix (0:37)
+                                 // https://www.youtube.com/watch?v=S5_Fk51hbFw - 5:21 Save Time with Text Snippets (Text Blaze)
+                                 // https://www.youtube.com/watch?v=PD8xu0ooYko - 10. Anti Heaven 97 (Knights Ver.) 28:22
+                                 // https://www.youtube.com/watch?v=OFx2ZXEIw-0 - 3:40 Cuphead (1080p)
+                                 // .replace(/(\(\)|\[\])/g, '') // clear of brackets
+                                 .replace(new RegExp(`((?:\\[\\(]|\\(|\\[)?)(${timestamp})(?:\\]|\\)|\\])?`, 'g'), '') // timestamp + brackets
+                                 .replace(/\*(.*?)\*/g, '<b>$1</b>').trim() // convert Markdown bold text to html
                                  .replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2580-\u27BF]|\uD83E[\uDD10-\uDDFF]/g, '') // Symbols
-                                 // .trim().replace(/^([:\-–—|]|(\d+[\.)]))|(\[\])?[:\-–—.;|]$/g, '') // clear numeric list prefix
-                                 // ^[\"(]|[\")]$ && .trim().replace(/^[\"(].*[\")]$/g, '') // quote stripping example - "text"
                                  .trim()
+                                 .replace(/^([\u2011-\u26FF:\-|/]+)/, '') // beginning of the line
+                                 .replace(/([\u2011-\u26FF:\-;|/]+|(\.))$/g, '') // end of the line, exclude "text..."
+                                 // .trim().replace(/^\d+[.):]\s+/g, '') // clear numeric list prefix
+                                 .trim(),
                            });
                         }
                         // else {
@@ -1036,7 +1253,7 @@ const NOVA = {
       function getFromAPI() {
          // console.debug('getFromAPI');
          if (!window.ytPubsubPubsubInstance) {
-            return console.warn('ytPubsubPubsubInstance is null:', ytPubsubPubsubInstance);
+            return console.warn('ytPubsubPubsubInstance is empty:', ytPubsubPubsubInstance);
          }
 
          if ((ytPubsubPubsubInstance = ytPubsubPubsubInstance.i // embed
@@ -1054,7 +1271,7 @@ const NOVA = {
             if (data?.markersMap?.length) {
                return data.markersMap[0].value.chapters
                   ?.map(c => {
-                     const sec = +c.chapterRenderer.timeRangeStartMillis / 1000;
+                     const sec = Math.trunc(c.chapterRenderer.timeRangeStartMillis) / 1000;
                      return {
                         'sec': sec,
                         'time': NOVA.formatTimeOut.HMS.digit(sec),
@@ -1122,7 +1339,12 @@ const NOVA = {
     * @param  {boolean*} highlight_selector
     * @return {void}
    */
-   searchFilterHTML({ keyword = required(), filter_selectors = required(), highlight_selector, highlight_class }) {
+   searchFilterHTML({
+      keyword = required(),
+      filter_selectors = required(),
+      highlight_selector,
+      highlight_class,
+   }) {
       // console.debug('searchFilterHTML:', ...arguments);
       keyword = keyword.toString().toLowerCase();
 
@@ -1135,9 +1357,9 @@ const NOVA = {
                hasText = text?.toLowerCase().includes(keyword),
                highlight = el => {
                   if (el.innerHTML.includes('<mark ')) {
-                     // el.innerHTML = el.textContent
-                     el.innerHTML = el.innerHTML
-                        .replace(/<\/?mark[^>]*>/g, ''); // clear highlight tags
+                     el.innerHTML = this.createSafeHTML(el.innerHTML
+                        .replace(/<\/?mark[^>]*>/g, '')
+                     ); // clear highlight tags
                   }
                   item.style.display = hasText ? '' : 'none'; // hide el out of search
                   if (hasText && keyword) {
@@ -1164,7 +1386,7 @@ const NOVA = {
             replaceWith = `$1<mark ${highlightStyle}>$2</mark>$3`,
             marked = content.replaceAll(pattern, replaceWith);
 
-         return (target.innerHTML = marked) !== content;
+         return (target.innerHTML = NOVA.createSafeHTML(marked)) !== content;
       }
    },
 
@@ -1203,31 +1425,32 @@ const NOVA = {
          // await NOVA.waitUntil(() => typeof movie_player === 'object');
          const
             // channelName = document.body.querySelector('#upload-info #channel-name a:not(:empty)')?.textContent,
-            // channelName = document.body.querySelector('ytd-watch-flexy')?.playerData?.videoDetails?.author,
-            // channelName = document.body.querySelector('ytd-watch-flexy')?.playerData?.microformat?.playerMicroformatRenderer.ownerChannelName,
+            // channelName = document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.videoDetails?.author,
+            // channelName = document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.microformat?.playerMicroformatRenderer.ownerChannelName,
             channelName = movie_player.getVideoData().author, // document.body.querySelector('.ytp-title-channel a:not(:empty)').textContent
             titleStr = movie_player.getVideoData().title.toUpperCase(), // #movie_player .ytp-title a:not(:empty)
             titleWordsList = titleStr?.toUpperCase().match(/\w+/g), // UpperCase
-            playerData = document.body.querySelector('ytd-watch-flexy')?.playerData;
+            playerData = document.body.querySelector('.ytd-page-manager[video-id]')?.playerData;
 
          // if (user_settings.rate_apply_music == 'expanded') {
          //    // 【MAD】,『MAD』,「MAD」
          //    // warn false finding ex: "AUDIO visualizer" 'underCOVER','VOCALoid','write THEME','UI THEME','photo ALBUM', 'lolyPOP', 'ascENDING', speeED, 'LapOP' 'Ambient AMBILIGHT lighting', 'CD Projekt RED', 'Remix OS, TEASER
          //    if (titleStr.split(' - ').length === 2  // search for a hyphen. Ex.:"Artist - Song", "Sound Test" (https://www.youtube.com/watch?v=gLSTUhRY2-s)
-         //       || ['【', '『', '「', 'SOUND', 'REMIX', 'CD', 'PV', 'AUDIO', 'EXTENDED', 'FULL', 'TOP', 'TRACK', 'TRAP', 'THEME', 'PIANO', 'POP', '8-BIT', 'HITS'].some(i => titleWordsList?.map(w => w.toUpperCase()).includes(i))
+         //       || ['【', '『', '「', 'SOUND', 'REMIX', 'CD', 'PV', 'AUDIO', 'EXTENDED', 'FULL', 'TOP', 'TRACK', 'TRAP', 'THEME', 'PIANO', 'POP', '8-BIT', 'HITS', 'CLASSIC'].some(i => titleWordsList?.map(w => w.toUpperCase()).includes(i))
          //    ) {
          //       return true;
          //    }
          // }
 
          return [
-            titleStr,
-            document.URL, // 'music.youtube.com' or 'youtube.com#music'
+            titleStr, // ex. - https://www.youtube.com/watch?v=mjLSQMPr6ak
+            location.host, // music.youtube.com
+            location.hash, // youtube.com#music
             channelName,
             // video genre
             playerData?.microformat?.playerMicroformatRenderer.category, // exclude embed page
             // playlistTitle
-            playerData?.title, // ex. - https://www.youtube.com/watch?v=cEdVLDfV1e0&list=PLVrIzE02N3EE9mplAPO8BGleeenadCSNv&index=2
+            playerData?.videoDetails?.title, // ex. - https://www.youtube.com/watch?v=cEdVLDfV1e0&list=PLVrIzE02N3EE9mplAPO8BGleeenadCSNv&index=2
 
             // ALL BELOW - not updated after page transition!
             // window.ytplayer?.config?.args.title,
@@ -1248,7 +1471,7 @@ const NOVA = {
             || (channelName && /(MUSIC|ROCK|SOUNDS|SONGS)/.test(channelName.toUpperCase())) // https://www.youtube.com/channel/UCj-Wwx1PbCUX3BUwZ2QQ57A https://www.youtube.com/@RelaxingSoundsOfNature
 
             // word - https://www.youtube.com/watch?v=N67yRMOVk1s
-            || titleWordsList?.length && ['🎵', '♫', 'SONG', 'SONGS', 'SOUNDTRACK', 'LYRIC', 'LYRICS', 'AMBIENT', 'MIX', 'VEVO', 'CLIP', 'KARAOKE', 'OPENING', 'COVER', 'COVERED', 'VOCAL', 'INSTRUMENTAL', 'ORCHESTRAL', 'DUBSTEP', 'DJ', 'DNB', 'BASS', 'BEAT', 'ALBUM', 'PLAYLIST', 'DUBSTEP', 'CHILL', 'RELAX', 'CLASSIC', 'CINEMATIC']
+            || titleWordsList?.length && ['🎵', '♫', 'SONG', 'SONGS', 'SOUNDTRACK', 'LYRIC', 'LYRICS', 'AMBIENT', 'MIX', 'VEVO', 'CLIP', 'KARAOKE', 'OPENING', 'COVER', 'COVERED', 'VOCAL', 'INSTRUMENTAL', 'ORCHESTRAL', 'SYMPHONY', 'CONCERT', 'DUBSTEP', 'DJ', 'DNB', 'BASS', 'BEAT', 'ALBUM', 'PLAYLIST', 'DUBSTEP', 'CHILL', 'RELAX', 'CINEMATIC', 'KBPS']
                .some(i => titleWordsList.includes(i))
 
             // words ("feat." miss - https://www.youtube.com/watch?v=7ubvobYxgBk)
@@ -1256,7 +1479,7 @@ const NOVA = {
                .some(i => titleStr.includes(i))
 
             // word (case sensitive)
-            || titleWordsList?.length && ['OP', 'ED', 'MV', 'OST', 'NCS', 'BGM', 'EDM', 'GMV', 'AMV', 'MMD', 'MAD']
+            || titleWordsList?.length && ['OP', 'ED', 'MV', 'OST', 'NCS', 'BGM', 'EDM', 'GMV', 'AMV', 'MMD', 'MAD', 'HQ']
                .some(i => titleWordsList.includes(i));
       }
    },
@@ -1458,16 +1681,16 @@ const NOVA = {
          date = this.getDate(),
          year = this.getFullYear(),
          monthIdx = this.getMonth(),
-         dayWeekIdx = this.getDay(),
+         weekIdx = this.getDay(),
          hours = this.getHours(),
          minutes = this.getMinutes(),
          seconds = this.getSeconds();
 
       return format
          // .replace(/a|A|Z|S(SS)?|ss?|mm?|HH?|hh?|D{1,4}|M{1,4}|YY(YY)?|'([^']|'')*'/g, partPattern => { // full
-         .replace(/A|Z|S(SS)?|ss?|mm?|HH?|hh?|D{1,4}|M{1,4}|YY(YY)?|'([^']|'')*'/g, partPattern => { // remove key "a" for use text "at"
+         .replace(/A|Z|S(SS)?|ss?|mm?|HH?|hh?|D{1,4}|M{1,4}|YY(YY)?|'([^']|'')*'/gi, pattern => { // remove key "a" for use text "at"
             let out;
-            switch (partPattern) {
+            switch (pattern) {
                case 'YY': out = year.substr(2); break;
                case 'YYYY': out = year; break;
                case 'M': out = monthIdx + 1; break;
@@ -1476,8 +1699,8 @@ const NOVA = {
                case 'MMMM': out = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][monthIdx]; break;
                case 'D': out = date; break;
                case 'DD': out = twoDigit(date); break;
-               case 'DDD': out = ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'][dayWeekIdx]; break;
-               case 'DDDD': out = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayWeekIdx]; break;
+               case 'DDD': out = ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'][weekIdx]; break;
+               case 'DDDD': out = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][weekIdx]; break;
                case 'h': out = (hours % 12) || 12; break;
                case 'H': out = hours; break;
                case 'HH': out = twoDigit(hours); break;
@@ -1493,7 +1716,7 @@ const NOVA = {
                   .replace(/^\D?(\D)/, "$1")
                   .replace(/^(.)(.)$/, "$10$2") + '00';
                   break;
-               // default: console.debug('skiped:', partPattern); break;
+               // default: console.debug('skiped:', pattern); break;
             }
             return out;
          });
@@ -1577,7 +1800,7 @@ const NOVA = {
          return url.toString();
       },
 
-      getHashParam: (query = required(), url_string) => location.hash && new URLSearchParams(new URL(url_string || location).hash.substring(1)).get(query.toString()),
+      getFromHash: (query = required(), url_string) => location.hash && new URLSearchParams(new URL(url_string || location).hash.substring(1)).get(query.toString()),
    },
 
    request: (() => {
@@ -1693,7 +1916,7 @@ const NOVA = {
       document.addEventListener('canplay', ({ target }) => {
          target.matches(videoSelector) && (NOVA.videoElement = target);
       }, { capture: true, once: true });
-      // update
+      // update (redundancy. if canplay is initialized but this script not runing)
       document.addEventListener('play', ({ target }) => {
          target.matches(videoSelector) && (NOVA.videoElement = target);
       }, true);
@@ -1721,13 +1944,14 @@ const NOVA = {
             || window.ytInitialData
          )
             ?.metadata?.channelMetadataRenderer?.externalId,
+         // ex https://www.youtube.com/c/<ChannelId>
          document.head.querySelector('link[itemprop="url"][href]')?.href.split('/')[4],
          location.pathname.split('/')[2],
          // playlist page
          document.body.querySelector('#video-owner a[href]')?.href.split('/')[4],
          document.body.querySelector('a.ytp-ce-channel-title[href]')?.href.split('/')[4],
          // watch page
-         document.body.querySelector('ytd-watch-flexy')?.playerData?.videoDetails?.channelId, // exclude embed page
+         document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.videoDetails?.channelId, // exclude embed page
          // document.body.querySelector('#owner #channel-name a[href]')?.href.split('/')[4], // outdated
          // ALL BELOW - not updated after page transition!
          // || window.ytplayer?.config?.args.ucid
@@ -1735,15 +1959,17 @@ const NOVA = {
          // || document.body.querySelector('ytd-player')?.player_.getCurrentVideoConfig()?.args.raw_player_response.videoDetails.channelId
          // embed page
          ((typeof ytcfg === 'object') && (obj = ytcfg.data_?.PLAYER_VARS?.embedded_player_response)
-            && NOVA.seachInObjectBy.key({
+            && NOVA.searchInObjectBy.key({
                'obj': JSON.parse(obj),
-               'keys': 'channelId',
+               'key': 'channelId',
             })?.data),
-         // ((typeof ytcfg === 'object') && (obj = document.getElementById('page-manager')?.getCurrentData())
-         //    && NOVA.seachInObjectBy.key({
-         //       'obj': JSON.parse(obj),
-         //       'keys': 'channelId',
-         //    })?.data),
+         // (typeof window.ytInitialData === 'object'
+         ((obj = document.getElementById('page-manager')?.getCurrentData())
+            && NOVA.searchInObjectBy.key({
+               //'obj': JSON.parse(obj),
+               'obj': obj,
+               'key': 'channelId',
+            })?.data),
       ]
          .find(i => isChannelId(i));
       // console.debug('channelId (local):', result);
@@ -1901,115 +2127,105 @@ const NOVA = {
       },
    },
 
-   seachInObjectBy: {
+   // findPathInObj
+   searchInObjectBy: {
       // ex:
-      // NOVA.seachInObjectBy.key({
+      // NOVA.searchInObjectBy.key({
       //    'obj': window.ytplayer,
-      //    'keys': 'ucid',
+      //    'key': 'ucid',
       //    'match_fn': val => {},
       // });
-      // ex test array: NOVA.seachInObjectBy.key({ obj: { a: [1, {"ucid": 11}] }, keys: "ucid" })
+      // ex test array: NOVA.searchInObjectBy.key({ obj: { a: [1, {"ucid": 11}] }, key: "ucid" })
       /**
        * @param  {object} obj
-       * @param  {string} keys
+       * @param  {string} key
        * @param  {function*} match_fn
        * @param  {boolean*} multiple
-       * @return {object} {path: '.config.args.ucid', data: 'UCMDQxm7cUx3yXkfeHa5zJIQ'}
+       * @param  {int*} maxDepth
+       * @return {object} {path, data, depth}
       */
       key({
          obj = required(),
-         keys = required(),
-         match_fn = data => data.constructor.name !== 'Object', // exclude objects type
+         key = required(),
          multiple = false,
-         path = ''
+         // match_fn = data => data.constructor.name !== 'Object', // exclude objects type
+         maxDepth = 10,
       }) {
          // if (typeof obj !== 'object') {
-         //    return console.error('seachInObjectBy > keys is not Object:', ...arguments);
+         //    return console.error('seachInObjectBy > key is not Object:', ...arguments);
          // }
-         const setPath = d => (path ? path + '.' : '') + d;
-         let hasKey, results = [];
+         let results = [];
 
-         for (const prop in obj) {
-            if (obj.hasOwnProperty(prop) && obj[prop]) {
-               hasKey = keys.constructor.name === 'String' ? (keys === prop) : keys.indexOf(prop) > -1;
+         return searchInternal({ 'obj': obj }) || (multiple && results);
 
-               // if (hasKey && obj[prop].constructor.name !== 'Object' && (!match_fn || match_fn(obj[prop]))) {
-               if (hasKey && (!match_fn || match_fn(obj[prop]))) {
-                  if (multiple) {
-                     results.push({
+         function searchInternal({ obj = required(), path = '', depth = 0 }) {
+            const setPath = d => (path ? path + '.' : '') + d;
+
+            for (const prop in obj) {
+               if (obj.hasOwnProperty(prop) && (typeof obj[prop] !== 'undefined')) {
+                  // if (hasKey && )) {
+                  if ((key === prop) && (typeof match_fn !== 'function' || match_fn(obj[prop]))) {
+                     const result = {
                         'path': setPath(prop),
                         'data': obj[prop],
-                     });
-                  }
-                  else {
-                     return {
-                        'path': setPath(prop),
-                        'data': obj[prop],
+                        'depth': depth,
                      };
+                     if (multiple) results.push(result);
+                     else return result;
                   }
-               }
-               // in deeper (recursive)
-               else {
-                  // switch (obj[prop].constructor) {
-                  switch (obj[prop].constructor.name) {
-                     case 'Object':
-                        if (result = this.key({
-                           'obj': obj[prop],
-                           'keys': keys,
-                           // 'path': path + '.' + prop,
-                           'path': setPath(prop),
-                           'match_fn': match_fn,
-                        })) {
-                           if (multiple) results.push(result);
-                           else return result;
-                        }
-                        break;
-
-                     case 'Array':
-                        for (let i = 0; i < obj[prop].length; i++) {
-                           if (result = this.key({
-                              'obj': obj[prop][i],
-                              'keys': keys,
-                              'path': path + `[${i}]`,
-                              'match_fn': match_fn,
+                  // in deeper (recursive)
+                  else if (depth < maxDepth) {
+                     switch (obj[prop].constructor.name) {
+                        case 'Object':
+                           if (result = searchInternal({
+                              'obj': obj[prop],
+                              // 'path': path + '.' + prop,
+                              'path': setPath(prop),
+                              // 'match_fn': match_fn,
+                              'depth': depth + 1,
                            })) {
                               if (multiple) results.push(result);
                               else return result;
                            }
-                        }
-                        break;
+                           break;
 
-                     case 'Function':
-                        if (Object.keys(obj[prop]).length) {
-                           for (const j in obj[prop]) {
-                              if (typeof obj[prop][j] !== 'undefined') {
-                                 // recursive
-                                 if (result = this.key({
-                                    'obj': obj[prop][j],
-                                    'keys': keys,
-                                    'path': setPath(prop) + '.' + j,
-                                    'match_fn': match_fn,
+                        case 'Array':
+                           for (let i = 0; i < obj[prop].length; i++) {
+                              if (typeof obj[prop][i] !== 'undefined') {
+                                 if (result = searchInternal({
+                                    'obj': obj[prop][i],
+                                    'path': path + `[${i}]`,
+                                    // 'match_fn': match_fn,
+                                    'depth': depth + 1,
                                  })) {
                                     if (multiple) results.push(result);
                                     else return result;
                                  }
                               }
                            }
-                        }
-                        break;
+                           break;
 
-                     // case 'String': break;
-                     // case 'Number': break;
-                     // case 'Boolean': break;
-                     // case 'Function': break;
-
-                     // default: break;
+                        // case 'Function':
+                        //    for (const j in obj[prop]) {
+                        //       if (typeof obj[prop][j] !== 'undefined') {
+                        //          // recursive
+                        //          if (result = searchInternal({
+                        //             'obj': obj[prop][j],
+                        //             'path': setPath(prop) + '.' + j,
+                        //             // 'match_fn': match_fn,
+                        //             'depth': depth + 1,
+                        //          })) {
+                        //             if (multiple) results.push(result);
+                        //             else return result;
+                        //          }
+                        //       }
+                        //    }
+                        //    break;
+                     }
                   }
                }
             }
          }
-
-         if (multiple) return results;
       },
    },
 

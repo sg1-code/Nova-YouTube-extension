@@ -35,7 +35,8 @@ window.nova_plugins.push({
    // 'desc:ua': '',
    _runtime: user_settings => {
 
-      // alt - https://greasyfork.org/en/scripts/458907-youtube-video-download-buttons
+      // alt11 - https://greasyfork.org/en/scripts/396936-yt-not-interested-in-one-click
+      // alt2 - https://greasyfork.org/en/scripts/458907-youtube-video-download-buttons
 
       const
          SELECTOR_OVERLAY_ID_NAME = 'nova-thumb-overlay', // shared container for [thumbs-watch-later] plugin
@@ -53,7 +54,13 @@ window.nova_plugins.push({
             .map(i => `${i}:not(.${SELECTOR_CLASS_NAME})`)
             .join(',');
 
-      // page update event
+      // Solution 1 (HTML5). page update event
+      document.addEventListener('scrollend', function self() {
+         if (typeof self.timeout === 'number') clearTimeout(self.timeout);
+         self.timeout = setTimeout(patchThumb, 50); // 50ms
+      });
+
+      // Solution 2 (API). page update event
       document.addEventListener('yt-action', evt => {
          // console.debug(evt.detail?.actionName);
          switch (evt.detail?.actionName) {
@@ -71,42 +78,8 @@ window.nova_plugins.push({
                // case 'yt-service-request': // results, watch
 
                // console.debug(evt.detail?.actionName); // flltered
-               switch (NOVA.currentPage) {
-                  // case 'home':
-                  // case 'results':
-                  case 'feed':
-                  // case 'channel':
-                  case 'watch':
-                     document.body.querySelectorAll(thumbsSelectors)
-                        .forEach(thumb => {
-                           thumb.classList.add(SELECTOR_CLASS_NAME);
-
-                           if (container = thumb.querySelector('a#thumbnail.ytd-thumbnail')) {
-                              if (user_settings['thumbs-watch-later']) {
-                                 NOVA.waitSelector(`#${SELECTOR_OVERLAY_ID_NAME}`, { 'container': container })
-                                    .then(container => {
-                                       container.append(renderButton(thumb));
-                                    });
-                              }
-                              else {
-                                 const div = document.createElement('div');
-                                 div.id = SELECTOR_OVERLAY_ID_NAME;
-                                 div.append(renderButton(thumb));
-                                 container.append(div);
-                              }
-                           }
-                           // if (vidId = NOVA.queryURL.get('v', thumb.href)) {
-                           // }
-                        });
-                     break;
-
-                  // default:
-                  //    break;
-               }
+               patchThumb();
                break;
-
-            // default:
-            //    break;
          }
       });
 
@@ -136,14 +109,33 @@ window.nova_plugins.push({
       function renderButton(thumb = required()) {
          const btn = document.createElement('button');
          btn.className = SELECTOR_CLASS_NAME;
-         // btn.textContent = '[no int]';
-         // btn.textContent = '🕓';
-         btn.innerHTML =
-            `<svg viewBox="0 0 24 24" height="100%" width="100%">
-               <g fill="currentColor">
-                  <path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zM3 12c0 2.31.87 4.41 2.29 6L18 5.29C16.41 3.87 14.31 3 12 3c-4.97 0-9 4.03-9 9zm15.71-6L6 18.71C7.59 20.13 9.69 21 12 21c4.97 0 9-4.03 9-9 0-2.31-.87-4.41-2.29-6z" />
-               </g>
-            </svg>`;
+         // // btn.textContent = '[no int]';
+         // // btn.textContent = '🕓';
+         // btn.innerHTML = NOVA.createSafeHTML(
+         //    `<svg viewBox="0 0 24 24" height="100%" width="100%">
+         //       <g fill="currentColor">
+         //          <path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zM3 12c0 2.31.87 4.41 2.29 6L18 5.29C16.41 3.87 14.31 3 12 3c-4.97 0-9 4.03-9 9zm15.71-6L6 18.71C7.59 20.13 9.69 21 12 21c4.97 0 9-4.03 9-9 0-2.31-.87-4.41-2.29-6z" />
+         //       </g>
+         //    </svg>`);
+         // fix - This document requires 'TrustedHTML' assignment.
+         btn.append((function createSvgIcon() {
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('height', '100%');
+            svg.setAttribute('width', '100%');
+
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('fill', 'currentColor');
+
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zM3 12c0 2.31.87 4.41 2.29 6L18 5.29C16.41 3.87 14.31 3 12 3c-4.97 0-9 4.03-9 9zm15.71-6L6 18.71C7.59 20.13 9.69 21 12 21c4.97 0 9-4.03 9-9 0-2.31-.87-4.41-2.29-6z');
+
+            g.append(path);
+            svg.append(g);
+
+            return svg;
+         })());
+
          btn.title = 'Not Interested';
          // btn.style.cssText = '';
          // Object.assign(btn.style, {
@@ -179,6 +171,41 @@ window.nova_plugins.push({
             }
          });
          return btn;
+      }
+
+      function patchThumb() {
+         switch (NOVA.currentPage) {
+            // case 'home':
+            // case 'results':
+            case 'feed':
+            // case 'channel':
+            case 'watch':
+               document.body.querySelectorAll(thumbsSelectors)
+                  .forEach(thumb => {
+                     thumb.classList.add(SELECTOR_CLASS_NAME);
+
+                     if (container = thumb.querySelector('a#thumbnail.ytd-thumbnail')) {
+                        if (user_settings['thumbs-watch-later']) {
+                           NOVA.waitSelector(`#${SELECTOR_OVERLAY_ID_NAME}`, { 'container': container })
+                              .then(container => {
+                                 container.append(renderButton(thumb));
+                              });
+                        }
+                        else {
+                           const div = document.createElement('div');
+                           div.id = SELECTOR_OVERLAY_ID_NAME;
+                           div.append(renderButton(thumb));
+                           container.append(div);
+                        }
+                     }
+                     // if (vidId = NOVA.queryURL.get('v', thumb.href)) {
+                     // }
+                  });
+               break;
+
+            // default:
+            //    break;
+         }
       }
 
    },

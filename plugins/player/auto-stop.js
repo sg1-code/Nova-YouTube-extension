@@ -40,15 +40,24 @@ window.nova_plugins.push({
    _runtime: user_settings => {
 
       // alt1 - https://greasyfork.org/en/scripts/448590-youtube-autoplay-disable
-      // alt2 - https://chrome.google.com/webstore/detail/afgfpcfjdgakemlmlgadojdfnejkpegd
+      // alt2 - https://chromewebstore.google.com/detail/afgfpcfjdgakemlmlgadojdfnejkpegd
 
       // if (user_settings['video-autopause']) return; // conflict with [video-autopause] plugin. This plugin has a higher priority. that's why it's disabled/commented
 
-      if (user_settings.video_autostop_embed && NOVA.currentPage != 'embed') return;
       // fix bug in google drive
       if (location.hostname.includes('youtube.googleapis.com')) return;
+
       // conflict with plugin [user_settings.player_buttons_custom_items?.indexOf('popup')], [embed-redirect-popup]
       if (NOVA.queryURL.has('popup')) return;
+
+      if (user_settings.video_autostop_embed && NOVA.currentPage != 'embed'
+         // for video_autostop_comment_link
+         && (!user_settings.video_autostop_comment_link
+            || (user_settings.video_autostop_comment_link && !NOVA.queryURL.has('lc')) //!location.search.includes('$lc=')
+         )
+      ) {
+         return;
+      }
 
       // skip stoped embed - https://www.youtube.com/embed/668nUCeBHyY?autoplay=1
       if (NOVA.currentPage == 'embed'
@@ -60,7 +69,7 @@ window.nova_plugins.push({
       // works. But annoying iframe reload
       // else location.assign(NOVA.queryURL.set({ 'autoplay': false }));
 
-      // Strategy 1
+      // Solution 1
       // NOVA.waitSelector('#movie_player')
       //    .then(movie_player => {
       //       // save backup
@@ -87,7 +96,7 @@ window.nova_plugins.push({
             }`);
       }
 
-      // Strategy 2
+      // Solution 2
       NOVA.waitSelector('#movie_player')
          .then(async movie_player => {
             let disableStop;
@@ -102,16 +111,18 @@ window.nova_plugins.push({
             movie_player.addEventListener('onStateChange', onPlayerStateChange.bind(this));
 
             function onPlayerStateChange(state) {
-               // console.debug('onStateChange', NOVA.getPlayerState(state), document.visibilityState);
-               if (user_settings.video_autostop_ignore_playlist && location.search.includes('list=')) return;
-               // if (user_settings.video_autostop_ignore_playlist && (NOVA.queryURL.has('list')/* || !movie_player?.getPlaylistId()*/)) return;
-               // // stop inactive tab
-               // if (user_settings.video_autostop_ignore_active_tab && document.visibilityState == 'visible') {
-               //    // console.debug('cancel stop in active tab');
-               //    return;
-               // }
+               if (!user_settings.video_autostop_comment_link || (user_settings.video_autostop_comment_link && !NOVA.queryURL.has('lc'))) {
+                  // console.debug('onStateChange', NOVA.getPlayerState(state), document.visibilityState);
+                  if (user_settings.video_autostop_ignore_playlist && location.search.includes('list=')) return;
+                  // if (user_settings.video_autostop_ignore_playlist && (NOVA.queryURL.has('list')/* || !movie_player?.getPlaylistId()*/)) return;
+                  // // stop inactive tab
+                  // if (user_settings.video_autostop_ignore_active_tab && document.visibilityState == 'visible') {
+                  //    // console.debug('cancel stop in active tab');
+                  //    return;
+                  // }
 
-               if (user_settings.video_autostop_ignore_live && movie_player.getVideoData().isLive) return;
+                  if (user_settings.video_autostop_ignore_live && movie_player.getVideoData().isLive) return;
+               }
 
                // -1: unstarted
                // 0: ended
@@ -144,9 +155,9 @@ window.nova_plugins.push({
             navigator.mediaSession.setActionHandler('play', disableHoldStop); // add Media hotkeys support
             document.addEventListener('click', evt => {
                if (evt.isTrusted
-                  // Strategy 1 (Universal), click is inside the player
+                  // Solution 1 (Universal), click is inside the player
                   && evt.target.closest('#movie_player') // movie_player.contains(document.activeElement)
-                  // Strategy 2. Click from some elements
+                  // Solution 2. Click from some elements
                   // && ['button[class*="play-button"]',
                   //    '.ytp-cued-thumbnail-overlay-image',
                   //    '.ytp-player-content'
@@ -225,7 +236,7 @@ window.nova_plugins.push({
       },
       video_autostop_ignore_playlist: {
          _tagName: 'input',
-         label: 'Ignore playlist',
+         label: 'Ignore in playlist',
          'label:zh': '忽略播放列表',
          'label:ja': 'プレイリストを無視する',
          // 'label:ko': '재생목록 무시',
@@ -283,7 +294,7 @@ window.nova_plugins.push({
       // },
       video_autostop_peview_thumbnail: {
          _tagName: 'input',
-         label: 'Display preview thumbnail',
+         label: 'Display preview thumbnail on video',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',
@@ -313,6 +324,7 @@ window.nova_plugins.push({
          // 'title:pl': '',
          // 'label:ua': '',
          'data-dependent': { 'video_autostop_embed': false },
+         // 'data-dependent': { 'video_autostop_comment_link': false },
       },
       // video_autostop_ignore_active_tab: {
       //    _tagName: 'input',
@@ -346,5 +358,37 @@ window.nova_plugins.push({
       //    // 'title:pl': '',
       //    // 'label:ua': '',
       // },
+      video_autostop_comment_link: {
+         _tagName: 'input',
+         label: 'Apply if URL has link to comment',
+         // 'label:zh': '',
+         // 'label:ja': '',
+         // 'label:ko': '',
+         // 'label:vi': '',
+         // 'label:id': '',
+         // 'label:es': '',
+         // 'label:pt': '',
+         // 'label:fr': '',
+         // 'label:it': '',
+         // 'label:tr': '',
+         // 'label:de': '',
+         // 'label:pl': '',
+         // 'label:ua': '',
+         type: 'checkbox',
+         title: 'Stop playback if you have opened the url with link to comment',
+         // 'title:zh': '',
+         // 'title:ja': '',
+         // 'title:ko': '',
+         // 'label:vi': '',
+         // 'label:id': '',
+         // 'title:es': '',
+         // 'title:pt': '',
+         // 'title:fr': '',
+         // 'title:it': '',
+         // 'title:tr': '',
+         // 'title:de': '',
+         // 'title:pl': '',
+         // 'label:ua': '',
+      },
    }
 });

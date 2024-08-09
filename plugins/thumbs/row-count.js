@@ -27,20 +27,22 @@ window.nova_plugins.push({
       // alt2 - https://greasyfork.org/en/scripts/459337-youtube-force-compact-grid-increases-max-videos-per-row
       // alt3 - https://greasyfork.org/en/scripts/465840-youtube-videos-per-row-fix
       // alt4 - https://greasyfork.org/en/scripts/452667-youtube-subscriptions-elderly-mode
-      // alt5 - https://chrome.google.com/webstore/detail/dcnjhgnfnmijfkmcddcmffeamphmmeed
+      // alt5 - https://chromewebstore.google.com/detail/dcnjhgnfnmijfkmcddcmffeamphmmeed
       // alt6 - https://greasyfork.org/en/scripts/465840-youtube-row-fixer
+      // alt7 - https://greasyfork.org/en/scripts/484695-youtube-revert-4-row-thumbnails-on-home-and-subscription-pages
+      // alt8 - https://greasyfork.org/en/scripts/487935-youtube-gigantic-search-result-thumbnails-fix
 
-      // Strategy 1
+      // Solution 1
       const
-         MathMin_orig = Math.min,
+         MathMin_orig = Math.min, // get original fn
          addRowCount = +user_settings.thumbs_grid_count || 1;
 
       Math.min = function () {
-         return MathMin_orig.apply(Math, arguments)
+         return MathMin_orig.apply(Math, arguments) // forward to native code
             + (/calcElementsPerRow/img.test(Error().stack || '') ? addRowCount - 1 : 0);
       };
 
-      // Strategy 2
+      // Solution 2
       // const videosPerRow = +user_settings.thumbs_grid_count;
       // 4
       // `.ytd-rich-grid-renderer {
@@ -163,13 +165,13 @@ window.nova_plugins.push({
 
 
       // set size
-      // Strategy 1
+      // Solution 1
       // NOVA.css.push(
       //    `#contents.ytd-rich-grid-renderer:not([page-subtype="channels"] #contents.ytd-rich-grid-renderer) {
       //       width: calc(100% - 2.4 * 1vw);
       //       max-width: calc(var(--ytd-rich-grid-items-per-row) * (var(--ytd-rich-grid-item-max-width) + var(--ytd-rich-grid-item-margin)));
       //    }`);
-      // // Strategy 2
+      // // Solution 2
       // NOVA.css.push(
       //    `ytd-rich-grid-video-renderer[mini-mode] #video-title.ytd-rich-grid-video-renderer {
       //       font-size: 1.4rem;

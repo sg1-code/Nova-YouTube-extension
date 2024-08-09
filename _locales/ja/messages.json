@@ -90,7 +90,7 @@
       "message": "開いているタブは変更されません"
    },
    "opt_btn_api_key_input": {
-      "message": "API key"
+      "message": "YouTube API key"
    },
    "opt_api_key_generate": {
       "message": "Generate API key"

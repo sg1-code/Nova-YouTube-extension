@@ -11,6 +11,9 @@
 // https://www.youtube.com/watch?v=D4KROpdUkrM - The following content may contain graphic or violent imagery
 // https://www.youtube.com/watch?v=oiuyhxp4w9I
 
+// unavailable
+// https://www.youtube.com/watch?v=De9tzM1XxKY - This video has been removed for violating YouTube's Terms of Service
+
 window.nova_plugins.push({
    id: 'video-unblock-warn-content',
    title: 'Skip inappropriate/offensive content warn',
@@ -47,8 +50,8 @@ window.nova_plugins.push({
 
       // alt - https://greasyfork.org/en/scripts/445870-remove-overlay-messages-on-youtube
 
-      // NOVA.waitSelector('ytd-watch-flexy[player-unavailable] yt-player-error-message-renderer #button.yt-player-error-message-renderer button', { destroy_after_page_leaving: true })
-      NOVA.waitSelector('ytd-watch-flexy[player-unavailable] #player-error-message-container #info button', { destroy_after_page_leaving: true })
+      // NOVA.waitSelector('.ytd-page-manager[video-id][player-unavailable] yt-player-error-message-renderer #button.yt-player-error-message-renderer button', { destroy_after_page_leaving: true })
+      NOVA.waitSelector('.ytd-page-manager[video-id][player-unavailable] #player-error-message-container #info button', { destroy_after_page_leaving: true })
          .then(btn => btn.click()); // click "I understand and wish to proceed"
 
    },

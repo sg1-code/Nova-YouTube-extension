@@ -78,7 +78,7 @@ window.nova_plugins.push({
                         );
                      };
 
-                  // Strategy 1 (API)
+                  // Solution 1 (API)
                   if (ytd_watch.calculateCurrentPlayerSize_ && ytd_watch.updateStyles) {
                      const backupFn = ytd_watch.calculateCurrentPlayerSize_;
                      // const backupFn = ytd_watch.calculateNormalPlayerSize_;
@@ -118,7 +118,7 @@ window.nova_plugins.push({
                         ytd_watch.calculateCurrentPlayerSize_();
                      }
                   }
-                  // Strategy 2. Now broken ".ytp-chrome-bottom" (https://www.youtube.com/watch?v=U9mUwZ47z3E)
+                  // Solution 2. Now broken ".ytp-chrome-bottom" (https://www.youtube.com/watch?v=U9mUwZ47z3E)
                   else {
                      // watch on the ytd_watch is change
                      new MutationObserver(mutationRecordsArray => {
@@ -156,10 +156,10 @@ window.nova_plugins.push({
       //       const aspectRatio = NOVA.aspectRatio.getAspectRatio(video.videoWidth, video.videoHeight);
       //       console.debug('>', aspectRatio, video.videoWidth, height);
       //       // update only height ratio
-      //       // Strategy 1 (HTML)
+      //       // Solution 1 (HTML)
       //       // ytd_watch.style.setProperty('--ytd-watch-flexy-height-ratio', aspectRatioHeightList[aspectRatio]);
 
-      //       // Strategy 2 (API)
+      //       // Solution 2 (API)
       //       ytd_watch.updateStyles({
       //          '--ytd-watch-flexy-width-ratio': 1,
       //          '--ytd-watch-flexy-height-ratio': .5625,

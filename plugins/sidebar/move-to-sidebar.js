@@ -21,7 +21,7 @@ window.nova_plugins.push({
    // restart_on_location_change: true,
    section: 'sidebar',
    // desc: '',
-   'plugins-conflict': 'description-popup',
+   'plugins-conflict': 'description-dropdown',
    // 'plugins-conflict': 'playlist-extended',
    _runtime: user_settings => {
 
@@ -29,7 +29,7 @@ window.nova_plugins.push({
       if (user_settings.move_to_sidebar_target != 'info' && location.search.includes('list=')) return;
 
       const
-         SELECTOR_CONTAINER = 'ytd-watch-flexy:not([fullscreen])',
+         SELECTOR_CONTAINER = '.ytd-page-manager[video-id]:not([fullscreen])',
          SELECTOR_BELOW = `${SELECTOR_CONTAINER} #below`,
          SELECTOR_SECONDARY = `${SELECTOR_CONTAINER} #secondary`;
 
@@ -41,7 +41,7 @@ window.nova_plugins.push({
          // move description on the right
          case 'description':
             // alt - https://greasyfork.org/en/scripts/452405-youtube-scrollable-right-side-description
-            if (user_settings['description-popup']) return;
+            if (user_settings['description-dropdown']) return;
             // ytd-watch-metadata #description.ytd-watch-metadata
             NOVA.waitSelector(`${SELECTOR_BELOW} #description.ytd-watch-metadata`, { destroy_after_page_leaving: true })
                .then(description => {
@@ -55,7 +55,7 @@ window.nova_plugins.push({
                         // channel info
                         moveChannelInfo();
                         // views and date
-                        if (!user_settings['description-popup'] && !user_settings['video-date-format']) {
+                        if (!user_settings['description-dropdown'] && !user_settings['video-date-format']) {
                            document.body.querySelector(`${SELECTOR_BELOW} ytd-watch-metadata #title`)
                               ?.append(document.body.querySelector(`${SELECTOR_SECONDARY} #info-container`));
                         }
@@ -92,7 +92,7 @@ window.nova_plugins.push({
          case 'comments':
             // alt1 - https://github.com/yakisova41/move-youtube-comments-to-sidebar
             if (user_settings.comments_visibility_mode == 'disable'
-               || user_settings['comments-popup']
+               || user_settings['comments-dropdown']
             ) {
                return;
             }
@@ -101,7 +101,7 @@ window.nova_plugins.push({
                .then(comments => {
                   if (document.body.querySelector('#chat:not([collapsed])')) return; // exclude opened chat
 
-                  document.body.querySelector(`${SELECTOR_SECONDARY}`)?.appendChild(comments);
+                  document.body.querySelector(`${SELECTOR_SECONDARY}`)?.append(comments);
                   // make the conmments scrollable
                   comments.style.cssText = 'height:100vh; overflow-y:auto;';
                   // Object.assign(comments.style, {
@@ -125,7 +125,7 @@ window.nova_plugins.push({
             .then(related => {
                if (document.body.querySelector('#chat:not([collapsed])')) return; // exclude opened chat
 
-               document.body.querySelector('#below')?.appendChild(related);
+               document.body.querySelector('#below')?.append(related);
             });
       }
 

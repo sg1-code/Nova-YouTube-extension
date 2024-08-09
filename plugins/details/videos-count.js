@@ -85,7 +85,7 @@ window.nova_plugins.push({
 
          await NOVA.delay(500); // dirty hack
 
-         const channelId = NOVA.getChannelId();
+         const channelId = NOVA.getChannelId(user_settings['user-api-key']);
          if (!channelId) return console.error('setVideoCount channelId: empty', channelId);
 
          // has in cache
@@ -106,8 +106,8 @@ window.nova_plugins.push({
                         insertToHTML({ 'text': videoCount, 'container': container });
                         // save cache in tabs
                         sessionStorage.setItem(CACHE_PREFIX + channelId, videoCount);
-
-                     } else console.warn('API is change', item);
+                     }
+                     else console.warn('API is change', item);
                   });
                });
          }
@@ -117,9 +117,24 @@ window.nova_plugins.push({
             if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
 
             (document.getElementById(SELECTOR_ID) || (function () {
-               container.insertAdjacentHTML('beforeend',
-                  `<span class="date style-scope ytd-video-secondary-info-renderer" style="margin-right:5px;"> • <span id="${SELECTOR_ID}">${text}</span> videos</span>`);
-               return document.getElementById(SELECTOR_ID);
+               // container.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(
+               //    `<span class="date style-scope ytd-video-secondary-info-renderer" style="margin-right:5px;"> • <span id="${SELECTOR_ID}">${text}</span> videos</span>`));
+               // return document.getElementById(SELECTOR_ID);
+               // fix - This document requires 'TrustedHTML' assignment.
+               const outerSpan = document.createElement('span');
+               outerSpan.classList.add('date', 'style-scope', 'ytd-video-secondary-info-renderer');
+               outerSpan.style.marginRight = '5px';
+
+               const innerSpan = document.createElement('span');
+               innerSpan.id = SELECTOR_ID;
+               innerSpan.textContent = text;
+
+               outerSpan.append(document.createTextNode(' • '));
+               outerSpan.append(innerSpan);
+
+               container.append(outerSpan);
+
+               return innerSpan;
             })())
                .textContent = text;
 

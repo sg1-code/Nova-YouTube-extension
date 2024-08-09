@@ -41,7 +41,6 @@ window.nova_plugins.push({
          // btn <span>
          SELECTOR_BTN_TITLE_ID = SELECTOR_BTN_CLASS_NAME + '-title';
 
-
       // inset button + list
       // NOVA.waitSelector('#movie_player .ytp-left-controls .ytp-play-button')
       NOVA.waitSelector('#movie_player .ytp-right-controls')
@@ -54,7 +53,7 @@ window.nova_plugins.push({
                   await NOVA.storage_obj_manager.initStorage();
                   // const
                   //    CACHE_PREFIX = 'nova-channels-state:',
-                  //    channelId = NOVA.getChannelId();
+                  //    channelId = NOVA.getChannelId(user_settings['user-api-key']);
                   // // init storage
                   // NOVA.storage_obj_manager.STORAGE_NAME = CACHE_PREFIX + channelId;
 
@@ -64,7 +63,7 @@ window.nova_plugins.push({
                   else {
                      const btn = document.createElement('button');
                      btn.id = SELECTOR_BTN_ID;
-                     btn.className = `ytp-button ${SELECTOR_BTN_CLASS_NAME}`;
+                     btn.classList.add('ytp-button', SELECTOR_BTN_CLASS_NAME);
                      // empty opacity
                      // if (!NOVA.storage_obj_manager.read()) {
                      //    btn.style.opacity = .5;
@@ -72,23 +71,41 @@ window.nova_plugins.push({
                      // btn.style.minWidth = getComputedStyle(container).width || '48px';
                      btn.title = 'Save channel state';
                      // btnPopup.setAttribute('aria-label','');
-                     // btn.innerHTML = `save`;
+                     // btn.textContent = `save`;
 
                      const btnTitle = document.createElement('span');
                      btnTitle.id = SELECTOR_BTN_TITLE_ID;
                      btnTitle.style.display = 'flex';
-                     btnTitle.innerHTML =
-                        `<svg width="100%" height="100%" viewBox="0 0 36 36">
-                           <g fill="currentColor">
-                              <path d="M23.4 24.2c-.3.8-1.1 1.4-2 1.4-.9 0-1.7-.6-2-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.5 2.1-1.5s1.8.6 2.1 1.5h3.2c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.4zm-7.7-5.3c-.3.9-1.1 1.5-2.1 1.5s-1.8-.6-2.1-1.5H9.3c-.3 0-.6-.3-.6-.6V18c0-.3.3-.6.6-.6h2.2c.3-.8 1.1-1.4 2.1-1.4s1.8.6 2.1 1.4h11.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6H15.7zm7.9-5.4c-.3.8-1.1 1.4-2.1 1.4-.9 0-1.7-.6-2.1-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.6 2.1-1.6s1.9.7 2.1 1.6h3.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.1z" />
-                           </g>
-                        </svg>`;
+                     // btnTitle.innerHTML = NOVA.createSafeHTML(
+                     //    `<svg width="100%" height="100%" viewBox="0 0 36 36">
+                     //       <g fill="currentColor">
+                     //          <path d="M23.4 24.2c-.3.8-1.1 1.4-2 1.4-.9 0-1.7-.6-2-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.5 2.1-1.5s1.8.6 2.1 1.5h3.2c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.4zm-7.7-5.3c-.3.9-1.1 1.5-2.1 1.5s-1.8-.6-2.1-1.5H9.3c-.3 0-.6-.3-.6-.6V18c0-.3.3-.6.6-.6h2.2c.3-.8 1.1-1.4 2.1-1.4s1.8.6 2.1 1.4h11.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6H15.7zm7.9-5.4c-.3.8-1.1 1.4-2.1 1.4-.9 0-1.7-.6-2.1-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.6 2.1-1.6s1.9.7 2.1 1.6h3.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.1z" />
+                     //       </g>
+                     //    </svg>`;
                      // `<svg width="100%" height="100%" viewBox="-300 -300 1000 1000">
                      //    <g fill="currentColor">
                      //       <path d="M388.49,0H0.022v453.03h452.986V64.561L388.49,0z M385.017,221.834H110.68V25.691h274.337V221.834z"/>
                      //       <rect x="272.568" y="46.701" width="80.718" height="154.102" />
                      //    </g>
-                     // </svg>`;
+                     // </svg>`);
+                     // fix - This document requires 'TrustedHTML' assignment.
+                     btnTitle.append((function createSvgIcon() {
+                        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        svg.setAttribute('width', '100%');
+                        svg.setAttribute('height', '100%');
+                        svg.setAttribute('viewBox', '0 0 36 36');
+
+                        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                        g.setAttribute('fill', 'currentColor');
+
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                        path.setAttribute('d', 'M23.4 24.2c-.3.8-1.1 1.4-2 1.4-.9 0-1.7-.6-2-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.5 2.1-1.5s1.8.6 2.1 1.5h3.2c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.4zm-7.7-5.3c-.3.9-1.1 1.5-2.1 1.5s-1.8-.6-2.1-1.5H9.3c-.3 0-.6-.3-.6-.6V18c0-.3.3-.6.6-.6h2.2c.3-.8 1.1-1.4 2.1-1.4s1.8.6 2.1 1.4h11.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6H15.7zm7.9-5.4c-.3.8-1.1 1.4-2.1 1.4-.9 0-1.7-.6-2.1-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.6 2.1-1.6s1.9.7 2.1 1.6h3.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.1z');
+
+                        g.append(path);
+                        svg.append(g);
+
+                        return svg;
+                     })());
 
                      btn.prepend(btnTitle);
                      btn.append(genList());
@@ -105,11 +122,11 @@ window.nova_plugins.push({
          document.getElementById(SELECTOR_BTN_TITLE_ID)
             // .style.color = state ? '#27a6e5' : 'inherit';
             // .style.setProperty('color', state ? '#27a6e5' : '');
-            .style.setProperty('opacity', state ? 1 : .3);
+            ?.style.setProperty('opacity', state ? 1 : .3);
       }
 
       function genList() {
-         // qualityList.innerHTML = '';
+         // qualityList.textContent = '';
          const ul = document.createElement('ul');
          ul.id = SELECTOR_BTN_LIST_ID;
 
@@ -117,12 +134,14 @@ window.nova_plugins.push({
          let listItem = [];
          // if (user_settings['subtitles']) {
          listItem.push({
+            // alt - https://greasyfork.org/en/scripts/479068-youtube-subtitle
             name: 'subtitles',
-            getCurrentState: () => {
-               movie_player.toggleSubtitlesOn(); // enable on check
+            // to enable on change
+            get_current_state: () => {
+               movie_player.toggleSubtitlesOn();
                return true;
             },
-            customApply: () => {
+            custom_apply: () => {
                // Doesn't work
                // NOVA.waitSelector('#movie_player.playing-mode')
                //    .then(movie_player => movie_player.toggleSubtitlesOn());
@@ -146,17 +165,17 @@ window.nova_plugins.push({
          // }
          // the same name as in the corresponding option inside the plugin
          if (user_settings['video-quality']) {
-            listItem.push({ name: 'quality', getCurrentState: movie_player.getPlaybackQuality });
+            listItem.push({ name: 'quality', get_current_state: movie_player.getPlaybackQuality });
          }
          if (user_settings['video-rate']) {
-            // listItem.push({ name: 'speed', getCurrentState: movie_player.getPlaybackRate });
-            listItem.push({ name: 'speed', getCurrentState: () => NOVA.videoElement.playbackRate });
+            // listItem.push({ name: 'speed', get_current_state: movie_player.getPlaybackRate });
+            listItem.push({ name: 'speed', get_current_state: () => NOVA.videoElement.playbackRate });
          }
          if (user_settings['video-volume']) {
-            listItem.push({ name: 'volume', getCurrentState: () => Math.round(movie_player.getVolume()) });
+            listItem.push({ name: 'volume', get_current_state: () => Math.round(movie_player.getVolume()) });
          }
          if (user_settings['player-resume-playback']) {
-            listItem.push({ name: 'ignore-playback', label: 'unsave playback time', getCurrentState: () => true });
+            listItem.push({ name: 'ignore-playback', label: 'unsave playback time' });
          }
          if (user_settings['player-loop']) {
             listItem.push({ name: 'loop' });
@@ -166,45 +185,59 @@ window.nova_plugins.push({
          }
          if (user_settings['video-zoom']) {
             listItem.push({
-               name: 'zoom', getCurrentState: () => NOVA.extractAsNum.float(
-                  document.body.querySelector('.html5-video-container').style.transform
-               )
+               name: 'zoom',
+               get_current_state: () => NOVA.extractAsNum.float(document.body.querySelector('.html5-video-container')?.style.transform)
             });
          }
 
          // input-checkbox
-         listItem.forEach(async element => {
-            const storage = NOVA.storage_obj_manager._getParam(element.name);
+         listItem.forEach(async el => {
+            const storage = NOVA.storage_obj_manager._getParam(el.name);
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.id = `checkbox-${element.name}`;
+            checkbox.id = `checkbox-${el.name}`;
             checkbox.checked = Boolean(storage);
             checkbox.className = 'ytp-menuitem-toggle-checkbox';
 
             const li = document.createElement('li');
-            li.innerHTML =
-               `<label for="checkbox-${element.name}">
-                  ${element.label || element.name} <span>${storage || ''}</span>
-               </label>`;
+            li.innerHTML = NOVA.createSafeHTML(
+               `<label for="checkbox-${el.name}">
+                  ${el.label || el.name} <span>${(el.hasOwnProperty('get_current_state') && storage) || ''}</span>
+               </label>`);
+
+            // // fix - This document requires 'TrustedHTML' assignment.
+            // const label = document.createElement('label');
+            // label.setAttribute('for', `checkbox-${el.name}`);
+
+            // label.append(document.createTextNode(`${el.label || el.name}`));
+
+            // if (el.hasOwnProperty('get_current_state') && storage) {
+            //    const span = document.createElement('span');
+            //    span.textContent = (el.hasOwnProperty('get_current_state') && storage) || '';
+            //    label.append(span);
+            // }
+            // li.append(label);
+            // // end fix - This document requires 'TrustedHTML' assignment.
+
             li.title = storage ? `Currently stored value ${storage}` : 'none';
 
-            if (Boolean(storage) && element.hasOwnProperty('customApply') && typeof element.customApply === 'function') {
-               element.customApply();
+            if (Boolean(storage) && el.hasOwnProperty('custom_apply') && typeof el.custom_apply === 'function') {
+               el.custom_apply();
             }
 
             checkbox.addEventListener('change', () => {
                let state;
                // update state
-               if (checkbox.checked && (state = element.hasOwnProperty('getCurrentState') ? element.getCurrentState() : true)) {
-                  NOVA.storage_obj_manager.save({ [element.name]: state });
+               if (checkbox.checked && (state = el.hasOwnProperty('get_current_state') ? el.get_current_state() : true)) {
+                  NOVA.storage_obj_manager.save({ [el.name]: state });
                }
                else {
-                  NOVA.storage_obj_manager.remove(element.name);
+                  NOVA.storage_obj_manager.remove(el.name);
                }
-               // echo state
-               li.title = state ? `Currently stored value ${state}` : 'none';
-               li.querySelector('span').textContent = state || '';
+               // show current state
+               li.title = state ? `Currently stored value "${state}"` : 'none';
+               if (el.hasOwnProperty('get_current_state')) li.querySelector('span').textContent = state || '';
                btnTitleStateUpdate(Boolean(state));
             });
 
@@ -231,10 +264,26 @@ window.nova_plugins.push({
             // slider.style.width = '30px';
 
             const li = document.createElement('li');
-            li.innerHTML =
-               `<label for="checkbox-${SLIDER_STORAGE_NAME}">
-                  ${SLIDER_LABEL} <span>${storage || ''}</span>
-               </label>`;
+            // li.innerHTML = NOVA.createSafeHTML(
+            //    `<label for="checkbox-${SLIDER_STORAGE_NAME}">
+            //       ${SLIDER_LABEL} <span>${storage || ''}</span>
+            //    </label>`);
+            // fix - This document requires 'TrustedHTML' assignment.
+            const label = document.createElement('label');
+            label.setAttribute('for', `checkbox-${SLIDER_STORAGE_NAME}`);
+
+            const labelText = document.createTextNode(SLIDER_LABEL);
+            label.append(labelText);
+
+            if (storage) {
+               const span = document.createElement('span');
+               span.textContent = storage;
+               label.append(span);
+            }
+
+            li.append(label);
+            // end fix - This document requires 'TrustedHTML' assignment.
+
             // li.title = storage ? `Currently stored value ${storage}` : 'none';
             li.title = 'Simple alternative SponsorBlock';
 
@@ -248,7 +297,7 @@ window.nova_plugins.push({
 
             // fot "slider.type = 'number'"
             // const li = document.createElement('li');
-            // li.innerHTML = `<label>${SLIDER_STORAGE_NAME}</label>`;
+            // li.innerHTML = NOVA.createSafeHTML(`<label>${SLIDER_STORAGE_NAME}</label>`);
             // li.title = 'Use arrow to set sec.';
 
             li.prepend(slider);

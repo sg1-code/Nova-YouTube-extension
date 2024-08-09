@@ -22,7 +22,7 @@ window.nova_plugins.push({
    _runtime: user_settings => {
 
       // prepare corrections
-      const href = location.href.replace(/&amp;/g, '&'); // // https://www.youtube.com/embed/yWUMMg3dmFY?wmode=opaque&amp;rel=0&amp;controls=0&amp;modestbranding=1&amp;showinfo=1&amp;enablejsapi=1 - amp;
+      const href = location.href.replace(/&amp;/g, '&'); // https://www.youtube.com/embed/yWUMMg3dmFY?wmode=opaque&amp;rel=0&amp;controls=0&amp;modestbranding=1&amp;showinfo=1&amp;enablejsapi=1
 
       // if (NOVA.queryURL.has('controls'))
       if (['0', 'false'].includes(NOVA.queryURL.get('controls', href))) {

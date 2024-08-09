@@ -19,8 +19,8 @@ window.nova_plugins.push({
    // desc: '',
    _runtime: user_settings => {
 
-      // alt1 - https://chrome.google.com/webstore/detail/fcchghcgfeadhdmkmpkedplecikkajnp
-      // alt2 - https://chrome.google.com/webstore/detail/mlaigmdigmkhpbnljmhajhleifegcchb
+      // alt1 - https://chromewebstore.google.com/detail/fcchghcgfeadhdmkmpkedplecikkajnp
+      // alt2 - https://chromewebstore.google.com/detail/mlaigmdigmkhpbnljmhajhleifegcchb
       // alt3 - https://greasyfork.org/en/scripts/472081-youtube-hide-tool
       // alt4 - https://greasyfork.org/en/scripts/467029-youtube-collapse-sidebar
 

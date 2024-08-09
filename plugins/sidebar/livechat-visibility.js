@@ -24,7 +24,8 @@ window.nova_plugins.push({
    // desc: '',
    _runtime: user_settings => {
 
-      // alt - https://chrome.google.com/webstore/detail/fcchghcgfeadhdmkmpkedplecikkajnp
+      // alt1 - https://github.com/skoshy/YouTubeHideChatByDefaultUserscript
+      // alt2 - https://chromewebstore.google.com/detail/fcchghcgfeadhdmkmpkedplecikkajnp
 
       // if (window['nova-lock-live-chat']) return;
 

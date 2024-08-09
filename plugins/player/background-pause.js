@@ -70,7 +70,7 @@ window.nova_plugins.push({
          instanceID = String(Math.random()), // Generate a random script instance ID
          removeStorage = () => localStorage.removeItem(storeName);
 
-      // Strategy 1. Working but dangerous method. Significant delay
+      // Solution 1. Working but dangerous method. Significant delay
       // // HTMLMediaElement.prototype.play = function (c) {
       // HTMLVideoElement.prototype.play = function (c) {
       //    return function () {
@@ -93,8 +93,9 @@ window.nova_plugins.push({
             ) {
                // fix https://github.com/raingart/Nova-YouTube-extension/issues/101
                // empty
-            } else {
-               // Strategy 2. Mark a playing
+            }
+            else {
+               // Solution 2. Mark a playing
                // video.addEventListener('play', checkInstance); // gaps in initialization
                video.addEventListener('playing', checkInstance); // more reliable way
                // remove mark if video stop play
@@ -186,7 +187,7 @@ window.nova_plugins.push({
          });
 
       // PiP auto enable
-      // alt https://chrome.google.com/webstore/detail/gcfcmfbcpibcjmcinnimklngkpkkcing
+      // alt https://chromewebstore.google.com/detail/gcfcmfbcpibcjmcinnimklngkpkkcing
       // NOVA.waitSelector('video')
       //    .then(video => {
       //       // Detect Picture-in-Picture Support

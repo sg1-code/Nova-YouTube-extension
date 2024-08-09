@@ -2,21 +2,24 @@ const Plugins = {
    list: [
       // 'plugins/_blank_plugin.js', // for example
 
-      'player/speed.js',
-      'player/volume.js',
-      'player/osd.js',
-      'player/quality.js',
-      'player/autostop.js',
-      'player/autopause.js',
-      'player/theater-mode.js',
-      'player/background-pause.js',
-      'player/resize-ratio.js',
+      'player/auto-stop.js',
+      'player/auto-pause.js',
       'player/embed-popup.js',
+      'player/background-pause.js',
+      'player/quality.js',
+      'player/volume.js',
+      'player/speed.js',
+      // 'player/osd.js',
+      'player/shorts-redirect.js',
+      'player/resume-playback.js',
+      'player/theater-mode.js',
+      'player/auto-buffer.js',
+      // 'player/subtitle-dual.js',
+      // 'player/-subtitle-dual.js',
+      'player/subtitle-style.js',
+      'player/resize-ratio.js',
       'player/pin.js',
       'player/no-sleep.js',
-      'player/resume-playback.js',
-      'player/auto-buffer.js',
-      'player/subtitle-style.js',
       'player/unblock-region.js',
       'player/unblock-warn-content.js',
       'player/fullscreen-scroll.js',
@@ -45,9 +48,10 @@ const Plugins = {
       'control-panel/download-video.js',
 
       'thumbs/block-title.js',
-      'thumbs/block-channel.js',
+      'thumbs/block-channels.js',
       'thumbs/filter.js',
       'thumbs/preview-clear.js',
+      'thumbs/title-full.js',
       'thumbs/title-normalize.js',
       'thumbs/watched.js',
       'thumbs/not-interested.js',
@@ -71,7 +75,6 @@ const Plugins = {
       'other/rss.js',
       'other/scroll-to-top.js',
       'other/copy-url.js',
-      'other/shorts-redirect.js',
       // 'other/collapse-navigation-panel.js',
       // 'other/channel-thumbs-row.js',
       // 'other/dark-theme.js',
@@ -84,7 +87,7 @@ const Plugins = {
       'details/ad-state.js',
       'details/auto-likes.js',
       'details/return-dislike.js',
-      'details/description-popup.js',
+      'details/description-dropdown.js',
       'details/transcript.js',
       'details/video-title-hashtag.js',
       'details/metadata-hide.js',
@@ -94,7 +97,7 @@ const Plugins = {
 
       'comments/visibility.js',
       'comments/square-avatars.js',
-      'comments/popup.js',
+      'comments/dropdown.js',
       'comments/expand.js',
       'comments/sort.js',
 
@@ -107,7 +110,7 @@ const Plugins = {
 
       'playlist/collapse.js',
       'playlist/extended.js',
-      'playlist/autoplay.js',
+      'playlist/auto-play-next.js',
       'playlist/duration.js',
       'playlist/reverse.js',
       // 'playlist/skip-liked.js',
@@ -198,7 +201,7 @@ const Plugins = {
       // https://www.youtube.com/@divr (https://www.youtube.com/channel/UC7tD6Ifrwbiy-BoaAHEinmQ)
 
       NOVA.currentPage = (function () {
-         // Strategy 1. Optimize
+         // Solution 1. Optimize
          const
             pathnameArray = location.pathname.split('/').filter(Boolean),
             { page, channelTab } = identifyCurrentPage(pathnameArray[0], pathnameArray.pop());
@@ -206,7 +209,7 @@ const Plugins = {
          NOVA.channelTab = channelTab;
 
          return page;
-         // Strategy 2. Clearly
+         // Solution 2. Clearly
          // const
          //    pathnameArray = location.pathname.split('/').filter(Boolean),
          //    [page, channelTab] = [pathnameArray[0], pathnameArray.pop()];

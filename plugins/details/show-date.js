@@ -27,11 +27,17 @@ window.nova_plugins.push({
    opt_api_key_warn: true,
    _runtime: user_settings => {
 
-      // alt1 - https://chrome.google.com/webstore/detail/amdebbajoolgbbgdhdnkhmgkkdlbkdgi
+      // alt1 - https://chromewebstore.google.com/detail/amdebbajoolgbbgdhdnkhmgkkdlbkdgi
       // alt2 - https://greasyfork.org/en/scripts/457850-youtube-video-info
       // alt3 - https://greasyfork.org/en/scripts/424068-youtube-exact-upload
       // alt4 - https://greasyfork.org/en/scripts/457478-show-youtube-s-video-date-behind-subscription-button
-      // alt5 - https://chrome.google.com/webstore/detail/nenoecmaibjcahoahnmeinahlapheblg
+      // alt5 - https://chromewebstore.google.com/detail/nenoecmaibjcahoahnmeinahlapheblg
+
+      // in thumbs
+      // alt1 - https://greasyfork.org/en/scripts/493024
+      // alt2 - https://chromewebstore.google.com/detail/amdebbajoolgbbgdhdnkhmgkkdlbkdgi
+
+      // partial conflict with [theater-mode] plugin - { 'player_full_viewport_mode': ['force', 'smart', 'offset'] },
 
       const
          CACHE_PREFIX = 'nova-video-date:',
@@ -57,14 +63,14 @@ window.nova_plugins.push({
             return insertToHTML({ 'text': storage.date, 'container': container });
          }
          // // from local
-         // else if (videoDate = document.body.querySelector('ytd-watch-flexy')?.playerData?.microformat?.playerMicroformatRenderer.publishDate ||
-         //    NOVA.seachInObjectBy.key({
-         //       'obj': (document.body.querySelector('ytd-watch-flexy')?.playerData
+         // else if (videoDate = document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.microformat?.playerMicroformatRenderer.publishDate ||
+         //    NOVA.searchInObjectBy.key({
+         //       'obj': (document.body.querySelector('.ytd-page-manager[video-id]')?.playerData
          //          || document.body.querySelector('ytd-app')?.__data?.data?.response
          //          || document.body.querySelector('ytd-app')?.data?.response
          //          || window.ytInitialData
          //       ),
-         //       'keys': 'publishDate',
+         //       'key': 'publishDate',
          //       match_fn: null,
          //    })?.data) {
          //    videoDate = videoDate.simpleText || videoDate;
@@ -137,7 +143,7 @@ window.nova_plugins.push({
 
                         outList.push(
                            // movie_player.getVideoData().isLive  // Doesn't work if the video is not running
-                           document.body.querySelector('ytd-watch-flexy')?.playerData?.videoDetails?.isLiveContent
+                           document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.videoDetails?.isLiveContent
                               ? 'Streamed'
                               : 'Premiered'
                         );
@@ -196,14 +202,19 @@ window.nova_plugins.push({
             (document.getElementById(DATE_SELECTOR_ID) || (() => {
                const el = document.createElement('span');
                el.id = DATE_SELECTOR_ID;
-               el.className = 'style-scope yt-formatted-string bold';
-               el.style.cssText = 'font-size: 1.35rem; line-height: 2rem; font-weight:400;';
+               el.classList.add('style-scope', 'yt-formatted-string', 'bold');
+               // el.style.cssText = 'font-size: 1.35rem; line-height: 2rem; font-weight: 400;';
+               Object.assign(el.style, {
+                  'font-size': '1.35rem',
+                  'line-height': '2rem',
+                  'font-weight': 400,
+               });
                container.after(el);
                // container.insertAdjacentElement('afterend', el);
                return el;
                // 62.88 % slower
-               // container.insertAdjacentHTML('afterend',
-               //    `<span id="${DATE_SELECTOR_ID}" class="style-scope yt-formatted-string bold" style="font-size: 1.35rem; line-height: 2rem; font-weight:400;">${text}</span>`);
+               // container.insertAdjacentHTML('afterend', NOVA.createSafeHTML(
+               //    `<span id="${DATE_SELECTOR_ID}" class="style-scope yt-formatted-string bold" style="font-size: 1.35rem; line-height: 2rem; font-weight:400;">${text}</span>`));
                // return document.getElementById(DATE_SELECTOR_ID);
             })())
                // .textContent = new Date(text).format(user_settings.video_date_format);
@@ -227,7 +238,8 @@ window.nova_plugins.push({
    options: {
       video_view_count: {
          _tagName: 'select',
-         label: 'Show views count format',
+         // label: 'Show views count format',
+         label: 'Views count format',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',

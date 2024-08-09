@@ -96,7 +96,7 @@ window.nova_plugins.push({
       });
 
       function insertButton() {
-         NOVA.waitSelector('ytd-watch-flexy.ytd-page-manager:not([hidden]) ytd-playlist-panel-renderer:not([collapsed]) #playlist-action-menu .top-level-buttons:not([hidden]), #secondary #playlist #playlist-action-menu #top-level-buttons-computed', { destroy_after_page_leaving: true })
+         NOVA.waitSelector('.ytd-page-manager[video-id]:not([hidden]) ytd-playlist-panel-renderer:not([collapsed]) #playlist-action-menu .top-level-buttons:not([hidden]), #secondary #playlist #playlist-action-menu #top-level-buttons-computed', { destroy_after_page_leaving: true })
             .then(el => renderCheckbox(el));
 
          function renderCheckbox(container = required()) {
@@ -105,7 +105,6 @@ window.nova_plugins.push({
             document.getElementById(SELECTOR_ID)?.remove(); // clear old
 
             const checkboxBtn = document.createElement('input');
-            // checkboxBtn.className = '';
             checkboxBtn.id = SELECTOR_ID;
             checkboxBtn.type = 'checkbox';
             checkboxBtn.title = 'Playlist toggle autoplay';
@@ -139,7 +138,7 @@ window.nova_plugins.push({
 
                // fix (https://github.com/raingart/Nova-YouTube-extension/issues/52)
                async function checkHiddenVideo() {
-                  const ytdWatch = document.body.querySelector('ytd-watch-flexy');
+                  const ytdWatch = document.body.querySelector('.ytd-page-manager[video-id]');
                   let vids_list;
                   await NOVA.waitUntil(() => {
                      if ((vids_list =

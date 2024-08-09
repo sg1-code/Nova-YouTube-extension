@@ -6,21 +6,20 @@
 // https://www.youtube.com/watch?v=oOaDiHHrPSI - without hash symbol
 
 window.nova_plugins.push({
-   id: 'description-popup',
-   title: 'Description section in popup',
-   'title:zh': '弹出窗口中的描述部分',
-   'title:ja': 'ポップアップの説明セクション',
-   // 'title:ko': '팝업의 설명 섹션',
+   id: 'description-dropdown',
+   title: 'Description section in dropdown menu',
+   'title:zh': '下拉菜单中的描述部分',
+   // 'title:ko': '',
    // 'title:vi': '',
-   // 'title:id': 'Bagian deskripsi dalam popup',
-   // 'title:es': 'Sección de descripción en ventana emergente',
-   // 'title:pt': 'Seção de descrição no pop-up',
-   // 'title:fr': 'Section de description dans la fenêtre contextuelle',
-   // 'title:it': 'Sezione Descrizione nel popup',
-   // 'title:tr': 'Açılır pencerede açıklama bölümü',
-   // 'title:de': 'Beschreibungsabschnitt im Popup',
-   'title:pl': 'Opis w osobnym oknie',
-   // 'title:ua': 'Розділ опису у спливаючому вікні',
+   // 'title:id': '',
+   // 'title:es': '',
+   // 'title:pt': '',
+   // 'title:fr': '',
+   // 'title:it': '',
+   // 'title:tr': '',
+   // 'title:de': '',
+   // 'title:pl': '',
+   // 'title:ua': '',
    run_on_pages: 'watch, -mobile',
    section: 'details',
    // desc: '',
@@ -30,7 +29,7 @@ window.nova_plugins.push({
 
       // alt1 - https://greasyfork.org/en/scripts/409893-youtube-widescreen-new-design-polymer
       // alt2 - https://greasyfork.org/en/scripts/446269-youtube-sticky-show-less-button
-      // alt3 - https://chrome.google.com/webstore/detail/nojdofjkkahhdklccleaaeinfklmlaga
+      // alt3 - https://chromewebstore.google.com/detail/nojdofjkkahhdklccleaaeinfklmlaga
       // alt4 - https://greasyfork.org/en/scripts/428651-tabview-youtube
 
       // if (user_settings['video-description-expand']) return; // conflict with plugin [video-description-expand]. This plugin has a higher priority. that's why it's disabled/commented
@@ -57,7 +56,9 @@ window.nova_plugins.push({
 
                /* button */
                ${DESCRIPTION_SELECTOR}:not(:hover):before {
-                  content: "info ▼";
+                  /* content: "info \\25B4\\25BE"; */
+                  /* content: "info ▼"; */
+                  content: "info ▽";
                   cursor: pointer;
                   visibility: visible;
                   /*transform: rotate(-90deg) translateX(-100%);*/
@@ -146,20 +147,20 @@ window.nova_plugins.push({
       function restoreDateLine() {
          NOVA.waitSelector('#title h1')
             .then(container => {
-               // // Strategy 1
-               // // date = document.body.querySelector('ytd-watch-flexy')?.playerData?.microformat?.playerMicroformatRenderer.publishDate;
-               // if (videoDate = NOVA.seachInObjectBy.key({
-               //    'obj': (document.body.querySelector('ytd-watch-flexy')?.playerData
+               // // Solution 1
+               // // date = document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.microformat?.playerMicroformatRenderer.publishDate;
+               // if (videoDate = NOVA.searchInObjectBy.key({
+               //    'obj': (document.body.querySelector('.ytd-page-manager[video-id]')?.playerData
                //       || document.body.querySelector('ytd-app')?.__data?.data?.response
                //       || document.body.querySelector('ytd-app')?.data?.response
                //       || window.ytInitialData
                //    ),
-               //    'keys': 'publishDate',
+               //    'key': 'publishDate',
                //    match_fn: null,
                // })?.data) {
                //    insertToHTML({ 'text': videoDate.simpleText || videoDate, 'container': container });
                // }
-               // // Strategy 2
+               // // Solution 2
                // else {
                NOVA.waitSelector('ytd-watch-metadata #description.ytd-watch-metadata')
                   .then(async textDateEl => {
@@ -208,14 +209,19 @@ window.nova_plugins.push({
             (document.getElementById(DATE_SELECTOR_ID) || (function () {
                const el = document.createElement('span');
                el.id = DATE_SELECTOR_ID;
-               el.className = 'style-scope yt-formatted-string bold';
-               el.style.cssText = 'font-size: 1.35rem; line-height: 2rem; font-weight:400;';
+               el.classList.add('style-scope', 'yt-formatted-string', 'bold');
+               // el.style.cssText = 'font-size: 1.35rem; line-height: 2rem; font-weight: 400;';
+               Object.assign(el.style, {
+                  'font-size': '1.35rem',
+                  'line-height': '2rem',
+                  'font-weight': 400,
+               });
                container.after(el);
                // container.insertAdjacentElement('afterend', el);
                return el;
                // 62.88 % slower
-               // container.insertAdjacentHTML('afterend',
-               //    `<span id="${DATE_SELECTOR_ID}" class="style-scope yt-formatted-string bold" style="font-size: 1.35rem; line-height: 2rem; font-weight:400;">${text}</span>`);
+               // container.insertAdjacentHTML('afterend', NOVA.createSafeHTML(
+               //    `<span id="${DATE_SELECTOR_ID}" class="style-scope yt-formatted-string bold" style="font-size: 1.35rem; line-height: 2rem; font-weight:400;">${text}</span>`));
                // return document.getElementById(DATE_SELECTOR_ID);
             })())
                .textContent = text;
