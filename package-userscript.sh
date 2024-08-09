@@ -5,25 +5,25 @@
 outFile="/tmp/nova-tube.user.js"
 
 # Remove existing output file
-rm -f $(outFile)
+rm -f "$outFile"
 
 # Concatenate core files in order
-cat ./Userscript/meta.js >> $(outFile)
-cat ./Userscript/compatibility.js >> $(outFile)
-cat ./Userscript/plugins-container.js >> $(outFile)
+cat ./Userscript/meta.js >> "$outFile"
+cat ./Userscript/compatibility.js >> "$outFile"
+cat ./Userscript/plugins-container.js >> "$outFile"
 
 # Concatenate plugins without cleaning
-find ./plugins/* -type f -name "*.js" ! -iname "-*" ! -iname "plugin_example.js" | xargs cat >> $(outFile)
+find ./plugins/* -type f -name "*.js" ! -iname "-*" ! -iname "plugin_example.js" | xargs cat >> "$outFile"
 
 # Concatenate plugins registration logic
-# cat ./js/plugins.js >> $(outFile)
-cat ./js/plugins.js | sed -e "/   list\:/,/   run: (/c\   run: ({ user_settings, app_ver }) => {" >> $(outFile)
+# cat ./js/plugins.js >> "$outFile"
+cat ./js/plugins.js | sed -e "/   list\:/,/   run: (/c\   run: ({ user_settings, app_ver }) => {" >> "$outFile"
 
 # Concatenate user script logic
-cat ./Userscript/user.js >> $(outFile)
+cat ./Userscript/user.js >> "$outFile"
 
 # Open the generated output file
-command -v VSCodium.AppImage >/dev/null && VSCodium.AppImage $(outFile) || xdg-open $(outFile)
+command -v VSCodium.AppImage >/dev/null && VSCodium.AppImage "$outFile" || xdg-open "$outFile"
 
 
 # AFTER build:
