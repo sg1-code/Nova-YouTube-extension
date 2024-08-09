@@ -10,7 +10,7 @@ rm -f $(outFile)
 # Concatenate core files in order
 cat ./Userscript/meta.js >> $(outFile)
 cat ./Userscript/compatibility.js >> $(outFile)
-cat ./Userscript/plugin-container.js >> $(outFile)
+cat ./Userscript/plugins-container.js >> $(outFile)
 
 # Concatenate plugins without cleaning
 find ./plugins/* -type f -name "*.js" ! -iname "-*" ! -iname "plugin_example.js" | xargs cat >> $(outFile)

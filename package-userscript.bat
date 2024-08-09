@@ -7,7 +7,7 @@ del /q %outFile%
 (
 type .\Userscript\meta.js
 type .\Userscript\compatibility.js
-type .\Userscript\plugin-container.js
+type .\Userscript\plugins-container.js
 
 for /f "delims=" %%i in ('dir /b /s .\plugins\*.js ^| findstr /i /v "\\-"') do type "%%i
 
