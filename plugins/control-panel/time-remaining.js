@@ -180,9 +180,9 @@ window.nova_plugins.push({
          options: [
             // ready-made examples
             { label: '0:10/0:44 (1.75)', value: '{done}/{duration} ({rate})' },
-            { label: '0:05/0:25 (23%)', value: '{done^}/{duration^} {done%}' },
+            { label: '0:05/0:25 (23%)', value: '{done^}/{duration^} ({done%})' },
             { label: '-0:34/0:44 (1.75)', value: '{left}/{duration} ({rate})' },
-            { label: '-0:19/0:25 (-77%)', value: '{left^}/{duration^} {left%}' },
+            { label: '-0:19/0:25 -77%', value: '{left^}/{duration^} {left%}' },
             // all available parts
             { label: '1.75', value: '{rate}' },
             { label: '-0:34', value: '{left}' },
