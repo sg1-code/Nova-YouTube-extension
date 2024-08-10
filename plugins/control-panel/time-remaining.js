@@ -88,7 +88,7 @@ window.nova_plugins.push({
                    },
                    getPercent = (partialValue, totalValue) => floatRound(partialValue * 100 / totalValue, totalValue) + '%';
 
-               const patternHandler = pattern => {
+               const patternHandlers = pattern => {
                   switch (pattern) {
                      case '{rate}': return playbackRate === 1 ? '' : playbackRate; break;
                      case '{left}': return '-' + NOVA.formatTimeOut.HMS.digit(left); break;
@@ -102,6 +102,16 @@ window.nova_plugins.push({
                       // default: console.debug('skiped:', partPattern); break;
                   }
                };
+
+               const defaultHandler = pattern => {
+                  console.debug('Skipped pattern:', pattern);
+                  return pattern;
+               };
+
+               const patternHandler = pattern => {
+                  return patternHandlers(pattern);
+               }
+
 
                const text = user_settings.time_remaining_format
                   .replace(/\{(rate|left|done|duration)(\^|%)?\}/g, patternHandler);
