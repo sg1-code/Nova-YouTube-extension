@@ -128,10 +128,10 @@ window.nova_plugins.push({
          // sort Button
          if (!user_settings.save_to_playlist_sort) {
 
-            const sortButton = document.createElement('button');
-            sortButton.textContent = 'A-Z ↓';
-            // sortButton.style.cssText = '';
-            Object.assign(sortButton.style, {
+            const sortBtn = document.createElement('button');
+            sortBtn.textContent = 'A-Z ↓';
+            // sortBtn.style.cssText = '';
+            Object.assign(sortBtn.style, {
                padding: '.4em .6em',
                border: 0,
                outline: 0,
@@ -142,21 +142,21 @@ window.nova_plugins.push({
                'cursor': 'pointer',
             });
 
-            sortButton.addEventListener('click', () => {
-               sortButton.remove(); // self
+            sortBtn.addEventListener('click', () => {
+               sortBtn.remove(); // self
                sortPlaylistsMenu(document.body.querySelector('tp-yt-paper-dialog #playlists'));
 
-               // sortButton.toggleAttribute('actived');
-               // sortButton.textContent = sortButton.hasAttribute('actived')
-               //    ? sortButton.textContent.replace('↓', '↑')
-               //    : sortButton.textContent.replace('↑', '↓');
+               // sortBtn.toggleAttribute('actived');
+               // sortBtn.textContent = sortBtn.hasAttribute('actived')
+               //    ? sortBtn.textContent.replace('↓', '↑')
+               //    : sortBtn.textContent.replace('↑', '↓');
 
                // elPlaylistItem.style.order
                // var originalSortOrder = index;
                // originalSortOrder = elPlaylistItem.getAttribute('data-origOrder');
             }, { capture: true, once: true });
 
-            containerDiv.append(sortButton);
+            containerDiv.append(sortBtn);
          }
 
          containerDiv.append(searchInput);

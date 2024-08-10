@@ -75,7 +75,7 @@ window.nova_plugins.push({
          // alt1 - https://greasyfork.org/en/scripts/414234-youtube-auto-hide-header
          // alt2 - https://greasyfork.org/en/scripts/405614-youtube-polymer-engine-fixes (Unstick header bar from top of the screen)
          // alt3 - https://greasyfork.org/en/scripts/399404-scroll-theater-mode-video
-         createArrowButton();
+         insertArrowButton();
          // scroll
          document.addEventListener('yt-action', evt => {
             // console.debug(evt.detail?.actionName);
@@ -100,7 +100,7 @@ window.nova_plugins.push({
          // create arrow button
          // alt1 - https://greasyfork.org/en/scripts/33218-new-youtube-obnoxious-bar-fix
          // alt2 - https://greasyfork.org/en/scripts/488486-youtube-collapsible-top-bar
-         function createArrowButton() {
+         function insertArrowButton() {
             const scrollDownButton = document.createElement('button');
             // scrollDownButton.textContent = '▼';
             // scrollDownButton.innerHTML = NOVA.createSafeHTML(

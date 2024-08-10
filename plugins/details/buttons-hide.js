@@ -82,29 +82,29 @@ window.nova_plugins.push({
 
          // To above v105 https://developer.mozilla.org/en-US/docs/Web/CSS/:has
          if (CSS.supports('selector(:has(*))')) {
-            const buttonSelectors = [
+            const buttonsSelector = [
                `${SELECTOR_BTN_CONTAINER} ytd-button-renderer`,
                `${SELECTOR_BTN_CONTAINER} button`,
                'ytd-popup-container ytd-menu-service-item-renderer', // thanks overflow menu
             ];
 
             if (user_settings.details_buttons_hide.includes('share')) {
-               stylesList.push(buttonSelectors.map(e => `\n${e}:has(path[d^="M15 5.63 20.66"])`));
+               stylesList.push(buttonsSelector.map(e => `\n${e}:has(path[d^="M15 5.63 20.66"])`));
             }
             if (user_settings.details_buttons_hide.includes('thanks')) {
-               stylesList.push(buttonSelectors.map(e => `\n${e}:has(path[d^="M11 17h2v-1h1c.55"])`));
+               stylesList.push(buttonsSelector.map(e => `\n${e}:has(path[d^="M11 17h2v-1h1c.55"])`));
             }
             if (user_settings.details_buttons_hide.includes('clip')) {
-               stylesList.push(buttonSelectors.map(e => `\n${e}:has(path[d^="M8 7c0 .55-.45"])`));
+               stylesList.push(buttonsSelector.map(e => `\n${e}:has(path[d^="M8 7c0 .55-.45"])`));
             }
             if (user_settings.details_buttons_hide.includes('save')) {
-               stylesList.push(buttonSelectors.map(e => `\n${e}:has(path[d^="M22 13h-4v4h"])`));
+               stylesList.push(buttonsSelector.map(e => `\n${e}:has(path[d^="M22 13h-4v4h"])`));
             }
             if (user_settings.details_buttons_hide.includes('report')) {
-               stylesList.push(buttonSelectors.map(e => `\n${e}:has(path[d^="m13.18 4 .24 "])`));
+               stylesList.push(buttonsSelector.map(e => `\n${e}:has(path[d^="m13.18 4 .24 "])`));
             }
             if (user_settings.details_buttons_hide.includes('transcript')) {
-               stylesList.push(buttonSelectors.map(e => `\n${e}:has(path[d^="M5,11h2v2H5V11z"])`));
+               stylesList.push(buttonsSelector.map(e => `\n${e}:has(path[d^="M5,11h2v2H5V11z"])`));
             }
          }
 

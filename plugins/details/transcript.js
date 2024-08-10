@@ -91,7 +91,7 @@ window.nova_plugins.push({
          }
       });
 
-      // render button
+      // insert button
       switch (user_settings.transcript_visibility_mode) {
          case 'button':
             // NOVA.waitSelector('ytd-watch-metadata #actions ytd-menu-renderer')

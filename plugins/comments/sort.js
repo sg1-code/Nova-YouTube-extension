@@ -122,7 +122,7 @@ window.nova_plugins.push({
                   btn.dispatchEvent(new CustomEvent(MODAL_NAME_SELECTOR_ID, { bubbles: true, detail: 'test' }));
                }, { capture: true });
 
-               // append css
+               // add css
                // Object.assign(btn.style,
                //    (user_settings['comments-dropdown'] && user_settings['header-unfixed'])
                //       ? {
@@ -385,7 +385,7 @@ window.nova_plugins.push({
                      </td>
                      <td sorttable_customkey="${comment.textOriginal.length}">
                         <span class="text-overflow-dynamic-ellipsis">${comment.textDisplay}</span>
-                        ${appendReplies()?.outerHTML || ''}
+                        ${renderReplies()?.outerHTML || ''}
                      </td>`);
                   // fix - This document requires 'TrustedHTML' assignment.
                   // function createCommentCell(text, sortKey) {
@@ -447,8 +447,8 @@ window.nova_plugins.push({
                   //    span.textContent = comment.textDisplay;
 
                   //    td.append(span);
-                  //    // Assuming appendReplies() creates content
-                  //    if (repliesDom = appendReplies()) td.append(repliesDom);
+                  //    // Assuming renderReplies() creates content
+                  //    if (repliesDom = renderReplies()) td.append(repliesDom);
 
                   //    return td;
                   // }
@@ -484,8 +484,7 @@ window.nova_plugins.push({
                      // ?.append(checkbox);
                   }
 
-                  createReplyItem
-                  function appendReplies() {
+                  function renderReplies() {
                      if (!+comment.totalReplyCount) return '';
 
                      const table = document.createElement('table');
@@ -551,7 +550,7 @@ window.nova_plugins.push({
                            li.append(authorCell);
                            li.append(contentCell);
 
-                           table.append(li); // append
+                           table.append(li);
                         });
                      return table;
                   }

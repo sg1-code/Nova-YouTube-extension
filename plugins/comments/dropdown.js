@@ -34,7 +34,7 @@ window.nova_plugins.push({
          COMMENTS_SELECTOR = 'html:not(:fullscreen) #page-manager #comments:not([hidden]):not(:empty)',
          counterAttrName = 'data-counter';
 
-      // append (recalc) count
+      // insert (recalc) count
       NOVA.runOnPageLoad(() => {
          if (NOVA.currentPage == 'watch') {
             NOVA.waitSelector('ytd-comments-header-renderer #title #count:not(:empty)', { destroy_after_page_leaving: true })

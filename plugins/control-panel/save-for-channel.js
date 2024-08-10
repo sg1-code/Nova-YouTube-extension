@@ -130,7 +130,7 @@ window.nova_plugins.push({
          const ul = document.createElement('ul');
          ul.id = SELECTOR_BTN_LIST_ID;
 
-         // append buttons based on activated plugins
+         // add buttons based on activated plugins
          let listItem = [];
          // if (user_settings['subtitles']) {
          listItem.push({

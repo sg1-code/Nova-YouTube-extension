@@ -131,7 +131,7 @@ window.nova_plugins.push({
                      }
                   }, 2000); // 2s
 
-                  // Warning! don't use "NOVA.waitUntil" below. Incorrect update of current currentIndex
+                  // Warning! don't use "NOVA.waitUntil" below. Incorrect update of current currentIdx
                   // const playlistList = await NOVA.waitUntil(() => {
                   //    const
                   //       playlistLength = movie_player.getPlaylist()?.length, // || document.body.querySelector('ytd-player')?.player_?.getPlaylist()?.length,
@@ -147,19 +147,19 @@ window.nova_plugins.push({
                   // }, 2000); // 2sec
 
                   function getPlaylistDuration(total_list) {
-                     const currentIndex = movie_player.getPlaylistIndex();// || playlistList?.findIndex(c => c.playlistPanelVideoRenderer.selected);
+                     const currentIdx = movie_player.getPlaylistIndex();// || playlistList?.findIndex(c => c.playlistPanelVideoRenderer.selected);
 
                      let elapsedList = [...total_list];
                      // if (window.nova_playlistReversed) playlistDuration = playlistDuration.reverse();
 
                      switch (user_settings.playlist_duration_progress_type) {
                         case 'done':
-                           elapsedList.splice(currentIndex);
+                           elapsedList.splice(currentIdx);
                            // console.debug('done vids_list.length:', vids_list.length);
                            break;
 
                         case 'left':
-                           elapsedList.splice(0, currentIndex);
+                           elapsedList.splice(0, currentIdx);
                            // console.debug('left vids_list.length:', vids_list.length);
                            break;
 

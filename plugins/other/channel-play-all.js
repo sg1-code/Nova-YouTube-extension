@@ -194,8 +194,8 @@ window.nova_plugins.push({
                   //       a.textContent = item.label;
                   //       a.title = 'Open with ' + item.label;
 
-                  //       li.append(a); // append
-                  //       ul.append(li); // append
+                  //       li.append(a);
+                  //       ul.append(li);
                   //    });
 
                   // container.append(ul);

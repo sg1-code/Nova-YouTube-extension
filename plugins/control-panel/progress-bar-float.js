@@ -61,7 +61,7 @@ window.nova_plugins.push({
                bufferEl = document.getElementById(`${SELECTOR_ID}-buffer`),
                progressEl = document.getElementById(`${SELECTOR_ID}-progress`);
 
-            renderChapters.init(video); // init "resetBar()"
+            insertChapters.init(video); // init "resetBar()"
 
             // resetBar on new video loaded
             video.addEventListener('progress', () => container.classList.add('transition'), { capture: true, once: true }); // skip on init transition
@@ -131,7 +131,7 @@ window.nova_plugins.push({
                progressEl.style.transform = 'scaleX(0)';
                container.classList.add('transition');
 
-               renderChapters.init(video);
+               insertChapters.init(video);
             }
 
             function notInteractiveToRender() {
@@ -360,7 +360,7 @@ window.nova_plugins.push({
       }
 
       // alt - https://chromewebstore.google.com/detail/jahmafmcpgdedfjfknmfkhaiejlfdcfc
-      const renderChapters = {
+      const insertChapters = {
          async init(vid) {
             if (NOVA.currentPage == 'watch' && !(vid instanceof HTMLElement)) {
                return console.error('vid not HTMLElement:', chaptersContainer);
@@ -388,7 +388,7 @@ window.nova_plugins.push({
                      && chaptersContainer?.children.length > 1
                      , 1000); // 1sec
 
-                  this.renderChaptersMarkers(vid.duration) || this.from_div(chaptersContainer);
+                  this.insertChaptersMarkers(vid.duration) || this.from_div(chaptersContainer);
                   break;
             }
          },
@@ -403,18 +403,18 @@ window.nova_plugins.push({
             // search in description (#structured-description)
             // NOVA.waitSelector(`ytd-watch-metadata #description #video-lockups a`)
             NOVA.waitSelector(`ytd-watch-metadata #description.ytd-watch-metadata ${selectorTimestampLink}`, { destroy_after_page_leaving: true })
-               .then(() => this.renderChaptersMarkers(duration));
+               .then(() => this.insertChaptersMarkers(duration));
 
             // search in comments
             NOVA.waitSelector(`#comments #comment #comment-content ${selectorTimestampLink}`, { destroy_after_page_leaving: true })
                .then(() => {
                   // skip if get successfully from description
                   if (document.body.querySelector(`${SELECTOR}-chapters > span[time]`)) return;
-                  this.renderChaptersMarkers(duration);
+                  this.insertChaptersMarkers(duration);
                });
             // search in first/pinned comment
             // NOVA.waitSelector(`#comments ytd-comment-thread-renderer:first-child #content ${selectorTimestampLink}`)
-            //    .then(() => this.renderChaptersMarkers(duration));
+            //    .then(() => this.insertChaptersMarkers(duration));
          },
 
          from_div(chapters_container = required()) {
@@ -436,8 +436,8 @@ window.nova_plugins.push({
             }
          },
 
-         renderChaptersMarkers(duration = required()) {
-            // console.debug('renderChaptersMarkers', ...arguments);
+         insertChaptersMarkers(duration = required()) {
+            // console.debug('insertChaptersMarkers', ...arguments);
             if (isNaN(duration)) return console.error('duration isNaN:', duration);
 
             if (chaptersContainer = document.getElementById(`${SELECTOR_ID}-chapters`)) {
@@ -472,7 +472,7 @@ window.nova_plugins.push({
                   chaptersContainer && chaptersContainer.append(newChapter);
                });
 
-            // console.debug('renderChaptersMarkers', chapterList);
+            // console.debug('insertChaptersMarkers', chapterList);
             return chapterList; // return dependency
          },
       };

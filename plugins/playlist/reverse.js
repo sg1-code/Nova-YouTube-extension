@@ -82,11 +82,11 @@ window.nova_plugins.push({
 
             const
                reverseBtn = document.createElement('div'),
-               renderTitle = () => reverseBtn.title = `Reverse playlist order is ${window.nova_playlistReversed ? 'ON' : 'OFF'}`;
+               updateTitle = () => reverseBtn.title = `Reverse playlist order is ${window.nova_playlistReversed ? 'ON' : 'OFF'}`;
 
             if (window.nova_playlistReversed) reverseBtn.className = CLASS_NAME_ACTIVE;
             reverseBtn.id = SELECTOR_ID;
-            renderTitle(); // refresh only after page transitionend
+            updateTitle(); // refresh only after page transitionend
             // reverseBtn.innerHTML = NOVA.createSafeHTML(
             //    `<yt-icon-button>
             //       <svg viewBox="0 0 381.399 381.399" height="100%" width="100%">
@@ -130,7 +130,7 @@ window.nova_plugins.push({
                if (window.nova_playlistReversed) {
                   reverseControl();
                   // movie_player.updatePlaylist();
-                  renderTitle(); // refresh before page transition
+                  updateTitle(); // refresh before page transition
                   fixConflictPlugins();
                }
                else location.reload(); // disable reverse

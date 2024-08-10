@@ -1,4 +1,4 @@
-:: Created by: raingart
+:: created by: raingart
 @echo off&cls
 
 set outFile="%temp%\nova-tube.user.js"

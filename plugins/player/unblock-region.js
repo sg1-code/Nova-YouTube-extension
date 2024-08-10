@@ -138,8 +138,8 @@ window.nova_plugins.push({
                      a.textContent = '→ Open with ' + domain.label;
                      a.title = 'Open with ' + domain.label;
 
-                     li.append(a); // append
-                     ul.append(li); // append
+                     li.append(a);
+                     ul.append(li);
                   });
 
                const liAtention = document.createElement('li');
@@ -150,7 +150,7 @@ window.nova_plugins.push({
                // ul.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(
                //    `<li class="bold style-scope yt-formatted-string">Enable map select allowed country in your VPN</li>`));
 
-               container.append(ul); // append
+               container.append(ul);
             }
          });
 

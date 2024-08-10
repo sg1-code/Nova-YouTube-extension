@@ -410,7 +410,7 @@ window.nova_plugins.push({
 
          const out = {};
 
-         // appends
+         // insert
          const right = document.createElement('div');
          right.className = 'ytp-menuitem-content';
          out.sliderCheckbox = right.appendChild(sliderCheckbox);
@@ -428,7 +428,7 @@ window.nova_plugins.push({
 
          return out;
 
-         // append final html code
+         // insert final html code
          // document.body.querySelector('.ytp-panel-menu')
          //    ?.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(
          //       `<div class="ytp-menuitem" id="rate-slider-menu">
@@ -527,7 +527,7 @@ window.nova_plugins.push({
       function reCalcOverlayTime() {
          const
             ATTR_MARK = 'nova-thumb-overlay-time-recalc';
-         // append icon
+         // insert "⚡" icon
          NOVA.css.push(
             `#thumbnail #overlays [${ATTR_MARK}]:not(:empty):before { content: '⚡'; }`);
 

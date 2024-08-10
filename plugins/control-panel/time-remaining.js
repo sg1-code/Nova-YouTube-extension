@@ -99,7 +99,7 @@ window.nova_plugins.push({
                         case '{rate}': return this.playbackRate === 1 ? '' : this.playbackRate; break;
                         case '{left}': return '-' + NOVA.formatTimeOut.HMS.digit(delta_); break;
                         case '{left^}': return '-' + NOVA.formatTimeOut.HMS.digit(delta_ / this.playbackRate); break;
-                        case '{left%}': return getPercent('left'); break;
+                        case '{left%}': return '-' + getPercent('left'); break;
                         case '{done}': return NOVA.formatTimeOut.HMS.digit(currentTime); break;
                         case '{done^}': return NOVA.formatTimeOut.HMS.digit(currentTime / this.playbackRate); break;
                         case '{done%}': return getPercent(); break;
@@ -119,7 +119,6 @@ window.nova_plugins.push({
                (document.getElementById(SELECTOR_ID) || (function () {
                   const el = document.createElement('span');
                   el.id = SELECTOR_ID;
-                  container.after(document.createTextNode('&nbsp;'));
                   container.after(el);
                   // container.insertAdjacentElement('afterend', el);
                   return el;
@@ -155,7 +154,8 @@ window.nova_plugins.push({
          type: 'text',
          list: 'time_remaining_format_help_list',
          // pattern: "",
-         title: 'Clear input to show hints',
+         // title: 'Clear input to show hints',
+         title: '[^] - correction current playback speed',
          // 'title:zh': '',
          // 'title:ja': '',
          // 'title:ko': '',
@@ -178,16 +178,21 @@ window.nova_plugins.push({
       time_remaining_format_help_list: {
          _tagName: 'datalist',
          options: [
-            { label: 'left/duration • -0:34/0:44', value: '{left}/{duration}' },
-            { label: 'rate • 1.75', value: '{rate}' },
-            { label: 'left • -0:34', value: '{left}' },
-            { label: 'left*speed • -0:19', value: '{left^}' },
-            { label: 'left% • 77%', value: '{left%}' },
-            { label: 'done • 0:10', value: '{done}' },
-            { label: 'done*speed • 0:05', value: '{done^}' },
-            { label: 'done% • 23%', value: '{done%}' },
-            { label: 'duration • 0:44', value: '{duration}' },
-            { label: 'duration*speed • 0:25', value: '{duration^}' },
+            // ready-made examples
+            { label: '0:10/0:44 (1.75)', value: '{done}/{duration} ({rate})' },
+            { label: '0:05/0:25 (23%)', value: '{done^}/{duration^} {done%}' },
+            { label: '-0:34/0:44 (1.75)', value: '{left}/{duration} ({rate})' },
+            { label: '-0:19/0:25 (-77%)', value: '{left^}/{duration^} {left%}' },
+            // all available parts
+            { label: '1.75', value: '{rate}' },
+            { label: '-0:34', value: '{left}' },
+            { label: '-0:19', value: '{left^}' },
+            { label: '-77%', value: '{left%}' },
+            { label: '0:10', value: '{done}' },
+            { label: '0:05', value: '{done^}' },
+            { label: '23%', value: '{done%}' },
+            { label: '0:44', value: '{duration}' },
+            { label: '0:25', value: '{duration^}' },
          ],
       },
       // Solution 2 (list + input)

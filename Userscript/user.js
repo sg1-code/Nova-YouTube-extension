@@ -342,7 +342,6 @@ function actualizeStorageVer() {
       'comments_popup_width': 'comments_dropdown_width',
       'comments_popup_hide_textarea': 'comments_dropdown_hide_textarea',
       'thumbs_title_show_full': 'thumbs-title-show-full',
-      id: '',
    });
 
    function renameStorageKeys(key_template_obj = required()) {
@@ -353,8 +352,8 @@ function actualizeStorageVer() {
             needSave = true;
             delete Object.assign(user_settings, { [newKey]: user_settings[oldKey] })[oldKey];
          }
-         if (needSave) GM_setValue(configStoreName, user_settings);
       }
+      if (needSave) GM_setValue(configStoreName, user_settings);
    }
 }
 
@@ -384,19 +383,21 @@ function insertSettingButton() {
                   </g>
                </svg>
             </yt-icon-button>`);
-         // `<svg viewBox="0 0 24 24" style="height:24px;">
-         //    <path d="M3 1.8v20.4L21 12L3 1.8z M6 7l9 5.1l-9 5.1V7z"/>
-         // </svg>`);
+            // `<yt-icon-button class="style-scope ytd-button-renderer style-default size-default">
+            //    <svg viewBox="-4 0 20 16">
+            //       <polygon points="0,16 14,8 0,0" fill="deepskyblue" />
+            //    </svg>
+            // </yt-icon-button>`);
          // btn.style.cssText = '';
          Object.assign(btn.style, {
             'font-size': '24px',
-            'color': 'deepskyblue !important',
+            color: 'deepskyblue',
             'text-decoration': 'none',
-            'padding': '0 10px',
+            padding: '0 10px',
          });
          btn.addEventListener('click', null, { capture: true }); // fix hide <tp-yt-iron-dropdown>
 
-         // append tooltip
+         // insert tooltip
          // btn.setAttribute('tooltip', title); // css (ahs bug on hover search buttom)
          // yt-api
          btn.title = title;
@@ -436,8 +437,19 @@ function insertSettingButton() {
             }
 
             #${SETTING_BTN_ID}:hover {
-               opacity: 1 !important;
+               opacity: 1;
             }
+
+            /*
+            #${SETTING_BTN_ID} polygon {
+               fill: deepskyblue;
+               transition: fill 600ms;
+            }
+
+            #${SETTING_BTN_ID}:hover polygon {
+               fill: #0095ff;
+            }
+            */
 
             #${SETTING_BTN_ID} path,
             #${SETTING_BTN_ID} polygon {

@@ -807,7 +807,7 @@ window.nova_plugins.push({
                      });
 
                      // container.append(watchLaterBtn);
-                     [...document.getElementsByClassName(SELECTOR_BTN_CLASS_NAME)].pop() // append after last custom btn
+                     [...document.getElementsByClassName(SELECTOR_BTN_CLASS_NAME)].pop() // insert after last custom btn
                         ?.after(watchLaterBtn);
 
                      function renderIcon() {
@@ -815,7 +815,7 @@ window.nova_plugins.push({
                         // fix - This document requires 'TrustedHTML' assignment.
                         if (watchLaterIconClone = watchLaterDefault.querySelector('.ytp-spinner-container, svg')?.cloneNode(true)) {
                            watchLaterBtn.textContent = ''; // Clear existing content
-                           watchLaterBtn.append(watchLaterIconClone); // Append the cloned icon
+                           watchLaterBtn.append(watchLaterIconClone);
                         }
 
                         // return alt

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name            Nova YouTube
 // @namespace       yt-nova
-// @version         0.50.1b
+// @version         0.50.0
 // @description     Powerful control on YouTube
 
 // @author          raingart <raingart+scriptaddons@protonmail.com>

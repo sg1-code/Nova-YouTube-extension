@@ -45,7 +45,7 @@ window.nova_plugins.push({
             // 'ytd-playlist-renderer', // results
             // 'ytd-grid-video-renderer', // feed (old)
             'ytd-compact-video-renderer', // sidepanel in watch
-            'yt-append-continuation-items-action', // sidepanel append in watch
+            'yt-append-continuation-items-action', // adding a sidebar in watch
             'ytm-compact-video-renderer', // mobile /results page (ytm-rich-item-renderer)
             'ytm-item-section-renderer' // mobile /subscriptions page
          ]

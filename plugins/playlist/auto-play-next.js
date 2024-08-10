@@ -38,7 +38,7 @@ window.nova_plugins.push({
 
       let sesionAutoplayState = user_settings.playlist_autoplay;
 
-      // init checkboxBtn style
+      // init autoplayCheckbox style
       NOVA.css.push(
          `#playlist-action-menu .top-level-buttons {
             align-items: center;
@@ -97,70 +97,67 @@ window.nova_plugins.push({
 
       function insertButton() {
          NOVA.waitSelector('.ytd-page-manager[video-id]:not([hidden]) ytd-playlist-panel-renderer:not([collapsed]) #playlist-action-menu .top-level-buttons:not([hidden]), #secondary #playlist #playlist-action-menu #top-level-buttons-computed', { destroy_after_page_leaving: true })
-            .then(el => renderCheckbox(el));
+            .then(el => insertrCheckbox(el));
 
-         function renderCheckbox(container = required()) {
+         function insertrCheckbox(container = required()) {
             if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
 
             document.getElementById(SELECTOR_ID)?.remove(); // clear old
 
-            const checkboxBtn = document.createElement('input');
-            checkboxBtn.id = SELECTOR_ID;
-            checkboxBtn.type = 'checkbox';
-            checkboxBtn.title = 'Playlist toggle autoplay';
-            checkboxBtn.addEventListener('change', ({ target }) => {
-               // setAssociatedAutoplay(target.checked);
+            const autoplayCheckbox = document.createElement('input');
+            autoplayCheckbox.id = SELECTOR_ID;
+            autoplayCheckbox.type = 'checkbox';
+            autoplayCheckbox.title = 'Playlist toggle autoplay';
+            autoplayCheckbox.addEventListener('change', ({ target }) => {
                sesionAutoplayState = target.checked;
                setAssociatedAutoplay();
             });
-            container.append(checkboxBtn);
+            container.append(autoplayCheckbox);
 
-            checkboxBtn.checked = sesionAutoplayState; // set default state
-            // setAssociatedAutoplay(sesionAutoplayState);
+            autoplayCheckbox.checked = sesionAutoplayState; // set default state
             setAssociatedAutoplay();
 
-            // function setAssociatedAutoplay(state) {
             function setAssociatedAutoplay() {
                // get playlist manager
                if (manager = document.body.querySelector('yt-playlist-manager')) {
                   manager.interceptedForAutoplay = true;
-                  manager.canAutoAdvance_ = checkboxBtn.checked;
+                  manager.canAutoAdvance_ = autoplayCheckbox.checked;
                   // let currentExpected = true
                   // manager.onYtNavigateStart_ = function () { this.canAutoAdvance_ = currentExpected = false }
-                  // manager.onYtNavigateFinish_ = function () { currentExpected = true; this.canAutoAdvance_ = checkboxBtn.checked ? currentExpected : false }
+                  // manager.onYtNavigateFinish_ = function () { currentExpected = true; this.canAutoAdvance_ = autoplayCheckbox.checked ? currentExpected : false }
                   // checkbox update state
-                  checkboxBtn.checked = manager?.canAutoAdvance_;
-                  checkboxBtn.title = `Playlist Autoplay is ${manager?.canAutoAdvance_ ? 'ON' : 'OFF'}`;
+                  autoplayCheckbox.checked = manager?.canAutoAdvance_;
+                  autoplayCheckbox.title = `Playlist Autoplay is ${manager?.canAutoAdvance_ ? 'ON' : 'OFF'}`;
 
-                  if (checkboxBtn.checked) checkHiddenVideo();
+                  if (autoplayCheckbox.checked) checkHiddenVideo();
                }
-               else console.error('Error playlist-autoplay. Playlist manager is', manager);
+               else console.error('Error playlist-autoplay. Playlist manager:', manager);
 
                // fix (https://github.com/raingart/Nova-YouTube-extension/issues/52)
                async function checkHiddenVideo() {
-                  const ytdWatch = document.body.querySelector('.ytd-page-manager[video-id]');
-                  let vids_list;
-                  await NOVA.waitUntil(() => {
-                     if ((vids_list =
-                        // default
-                        ytdWatch?.data?.contents?.twoColumnWatchNextResults?.playlist?.playlist?.contents
-                        // after [playlist-reverse] plugin
-                        || ytdWatch?.data?.playlist?.playlist?.contents
-                     )
-                        && vids_list.length) return true;
-                  }, 1000); // 1sec
+                  const watchManager = document.body.querySelector('.ytd-page-manager[video-id]');
+                  let playlistItems;
+
+                  await NOVA.waitUntil(() => (playlistItems = getPlaylistContents(watchManager)) && playlistItems.length, 1000); // 1 sec
 
                   const
-                     currentIndex = movie_player.getPlaylistIndex(),
-                     lastAvailableIdx = vids_list.findIndex(i => i.hasOwnProperty('messageRenderer')) - 1;
+                     currentIdx = movie_player.getPlaylistIndex(),
+                     lastAvailableIdx = playlistItems.findIndex(i => i.hasOwnProperty('messageRenderer')) - 1;
 
-                  // console.debug(currentIndex, lastAvailableIdx)
+                  // console.debug(currentIdx, lastAvailableIdx)
 
-                  if (currentIndex === lastAvailableIdx) {
+                  if (currentIdx === lastAvailableIdx) {
                      // ex: https://www.youtube.com/watch?v=-whp15J2n_M&list=FLsWT--HCC3qCRRPDqDCCGKA
                      manager.canAutoAdvance_ = false;
                      alert('Nova [playlist-toggle-autoplay]:\nPlaylist has hide video. Playlist autoplay disabled');
-                     checkboxBtn.checked = false;
+                     autoplayCheckbox.checked = false;
+                  }
+
+                  function getPlaylistContents(manager) {
+                     return (
+                        manager?.data?.contents?.twoColumnWatchNextResults?.playlist?.playlist?.contents ||
+                        manager?.data?.playlist?.playlist?.contents
+                     );
                   }
                }
             }

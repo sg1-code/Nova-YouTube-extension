@@ -123,7 +123,7 @@ const Opt = {
                      p += (plugin.section && document.body.querySelector(p + targetSection)) ? targetSection : '> #other';
                   }
 
-                  document.body.querySelector(p).append(li); // append to section tab
+                  document.body.querySelector(p).append(li); // insert to section tab
 
                } catch (error) {
                   console.error('Error plugin generate:\n', error.stack + '\n', plugin);
