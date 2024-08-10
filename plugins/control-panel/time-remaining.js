@@ -76,6 +76,7 @@ window.nova_plugins.push({
                ) return;
 
                const
+                  playbackRate = this.playbackRate,
                   currentTime = Math.trunc(this.currentTime),
                   duration = Math.trunc(this.duration),
                   left = duration - currentTime, // tiny optimization
@@ -96,15 +97,15 @@ window.nova_plugins.push({
                const text = user_settings.time_remaining_format
                   .replace(/\{(rate|left|done|duration)(\^|%)?\}/g, pattern => {
                      switch (pattern) {
-                        case '{rate}': return this.playbackRate === 1 ? '' : this.playbackRate; break;
+                        case '{rate}': return playbackRate === 1 ? '' : playbackRate; break;
                         case '{left}': return '-' + NOVA.formatTimeOut.HMS.digit(left); break;
-                        case '{left^}': return '-' + NOVA.formatTimeOut.HMS.digit(left / this.playbackRate); break;
+                        case '{left^}': return '-' + NOVA.formatTimeOut.HMS.digit(left / playbackRate); break;
                         case '{left%}': return '-' + getPercent('left'); break;
                         case '{done}': return NOVA.formatTimeOut.HMS.digit(currentTime); break;
-                        case '{done^}': return NOVA.formatTimeOut.HMS.digit(currentTime / this.playbackRate); break;
+                        case '{done^}': return NOVA.formatTimeOut.HMS.digit(currentTime / playbackRate); break;
                         case '{done%}': return getPercent(); break;
                         case '{duration}': return NOVA.formatTimeOut.HMS.digit(duration); break;
-                        case '{duration^}': return NOVA.formatTimeOut.HMS.digit(duration / this.playbackRate); break;
+                        case '{duration^}': return NOVA.formatTimeOut.HMS.digit(duration / playbackRate); break;
                         // default: console.debug('skiped:', partPattern); break;
                      }
                   });
