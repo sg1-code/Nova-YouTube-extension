@@ -178,13 +178,13 @@ window.nova_plugins.push({
       time_remaining_format_help_list: {
          _tagName: 'datalist',
          options: [
-            { label: 'left/duration • 0:10/0:44', value: '{left}/{duration}' },
+            { label: 'left/duration • -0:34/0:44', value: '{left}/{duration}' },
             { label: 'rate • 1.75', value: '{rate}' },
-            { label: 'left • -0:34', value: '{left%}' },
+            { label: 'left • -0:34', value: '{left}' },
             { label: 'left*speed • -0:19', value: '{left^}' },
             { label: 'left% • 77%', value: '{left%}' },
             { label: 'done • 0:10', value: '{done}' },
-            { label: 'done^ • 0:05', value: '{done^}' },
+            { label: 'done*speed • 0:05', value: '{done^}' },
             { label: 'done% • 23%', value: '{done%}' },
             { label: 'duration • 0:44', value: '{duration}' },
             { label: 'duration*speed • 0:25', value: '{duration^}' },
