@@ -88,21 +88,23 @@ window.nova_plugins.push({
                    },
                    getPercent = (partialValue, totalValue) => floatRound(partialValue * 100 / totalValue, totalValue) + '%';
 
+               const patternHandler = pattern => {
+                  switch (pattern) {
+                     case '{rate}': return playbackRate === 1 ? '' : playbackRate; break;
+                     case '{left}': return '-' + NOVA.formatTimeOut.HMS.digit(left); break;
+                     case '{left^}': return '-' + NOVA.formatTimeOut.HMS.digit(left / playbackRate); break;
+                     case '{left%}': return '-' + getPercent(left, duration); break;
+                     case '{done}': return NOVA.formatTimeOut.HMS.digit(currentTime); break;
+                     case '{done^}': return NOVA.formatTimeOut.HMS.digit(currentTime / playbackRate); break;
+                     case '{done%}': return getPercent(currentTime, duration); break;
+                     case '{duration}': return NOVA.formatTimeOut.HMS.digit(duration); break;
+                     case '{duration^}': return NOVA.formatTimeOut.HMS.digit(duration / playbackRate); break;
+                      // default: console.debug('skiped:', partPattern); break;
+                  }
+               };
+
                const text = user_settings.time_remaining_format
-                  .replace(/\{(rate|left|done|duration)(\^|%)?\}/g, pattern => {
-                     switch (pattern) {
-                        case '{rate}': return playbackRate === 1 ? '' : playbackRate; break;
-                        case '{left}': return '-' + NOVA.formatTimeOut.HMS.digit(left); break;
-                        case '{left^}': return '-' + NOVA.formatTimeOut.HMS.digit(left / playbackRate); break;
-                        case '{left%}': return '-' + getPercent(left, duration); break;
-                        case '{done}': return NOVA.formatTimeOut.HMS.digit(currentTime); break;
-                        case '{done^}': return NOVA.formatTimeOut.HMS.digit(currentTime / playbackRate); break;
-                        case '{done%}': return getPercent(currentTime, duration); break;
-                        case '{duration}': return NOVA.formatTimeOut.HMS.digit(duration); break;
-                        case '{duration^}': return NOVA.formatTimeOut.HMS.digit(duration / playbackRate); break;
-                        // default: console.debug('skiped:', partPattern); break;
-                     }
-                  });
+                  .replace(/\{(rate|left|done|duration)(\^|%)?\}/g, patternHandler);
 
                if (text) insertToHTML({ 'text': text, 'container': container });
             }
