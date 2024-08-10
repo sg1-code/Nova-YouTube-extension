@@ -188,6 +188,8 @@ window.nova_plugins.push({
             { label: '0:05/0:25 1.75x', value: '{done^}/{duration^} {rate}' },
             { label: '-0:34/0:44 • -77%', value: '{left}/{duration} • {left%}' },
             { label: '-0:19/0:25 1.75x', value: '{left^}/{duration^} {rate}' },
+            { label: '-2:24/18:00 • -0:48/6:00 (87%) 3x', value: '{left}/{duration} • {left^}/{duration^} ({done%}) {rate}' },
+            { label: '-2:24 -0:48 -13% • 15:36 5:12 87% • 18:00 6:00 • 3x', value: '{left} {left^} {left%} • {done} {done^} {done%} • {duration} {duration^} • {rate}' },
             // all available parts
             { label: '1.75x', value: '{rate}' },
             { label: '-0:34', value: '{left}' },
