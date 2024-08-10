@@ -78,7 +78,7 @@ window.nova_plugins.push({
                const
                   currentTime = Math.trunc(this.currentTime),
                   duration = Math.trunc(this.duration),
-                  delta_ = duration - currentTime, // tiny optimization
+                  left = duration - currentTime, // tiny optimization
                   getPercent = percentage_type_left => {
                      const
                         floatRound = pt => (this.duration > 3600)
@@ -87,7 +87,7 @@ window.nova_plugins.push({
                               ? pt.toFixed(1) // >25 minutes
                               : Math.round(pt),
                         calcPercentage = percentage_type_left
-                           ? delta_ * 100 / duration
+                           ? left * 100 / duration
                            : currentTime * 100 / duration;
 
                      return floatRound(calcPercentage) + '%';
@@ -97,8 +97,8 @@ window.nova_plugins.push({
                   .replace(/\{(rate|left|done|duration)(\^|%)?\}/g, pattern => {
                      switch (pattern) {
                         case '{rate}': return this.playbackRate === 1 ? '' : this.playbackRate; break;
-                        case '{left}': return '-' + NOVA.formatTimeOut.HMS.digit(delta_); break;
-                        case '{left^}': return '-' + NOVA.formatTimeOut.HMS.digit(delta_ / this.playbackRate); break;
+                        case '{left}': return '-' + NOVA.formatTimeOut.HMS.digit(left); break;
+                        case '{left^}': return '-' + NOVA.formatTimeOut.HMS.digit(left / this.playbackRate); break;
                         case '{left%}': return '-' + getPercent('left'); break;
                         case '{done}': return NOVA.formatTimeOut.HMS.digit(currentTime); break;
                         case '{done^}': return NOVA.formatTimeOut.HMS.digit(currentTime / this.playbackRate); break;
