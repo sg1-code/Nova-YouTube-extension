@@ -827,7 +827,7 @@ const NOVA = {
                const btn = document.createElement('a');
                btn.textContent = `Load ${label}`;
                btn.id = selector_id;
-               btn.classList.add('more-button style-scope', 'ytd-video-secondary-info-renderer');
+               btn.classList.add('more-button', 'style-scope', 'ytd-video-secondary-info-renderer');
                // btn.className = 'ytd-vertical-list-renderer';
                // btn.style.cssText = '';
                Object.assign(btn.style, {

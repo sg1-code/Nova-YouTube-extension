@@ -401,7 +401,7 @@ function insertSettingButton() {
          // yt-api
          btn.title = title;
          const tooltip = document.createElement('tp-yt-paper-tooltip');
-         tooltip.className.classList.add('style-scope', 'ytd-topbar-menu-button-renderer');
+         tooltip.classList.add('style-scope', 'ytd-topbar-menu-button-renderer');
          // tooltip.setAttribute('role', 'tooltip');
          tooltip.textContent = title;
          btn.append(tooltip);
