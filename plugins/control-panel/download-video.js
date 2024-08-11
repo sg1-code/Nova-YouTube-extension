@@ -25,17 +25,17 @@ window.nova_plugins.push({
          .then(container => {
             const
                // container <a>
-               SELECTOR_BTN_CLASS_NAME = 'nova-video-download',
-               SELECTOR_BTN = '.' + SELECTOR_BTN_CLASS_NAME,
-               containerBtn = document.createElement('a'),
+               SELECTOR_BTN_CONTAINER_CLASS_NAME = 'nova-video-download',
+               SELECTOR_BTN_CONTAINER = '.' + SELECTOR_BTN_CONTAINER_CLASS_NAME,
+               containerBtn = document.createElement('div'),
                // list <ul>
-               SELECTOR_BTN_LIST_ID = SELECTOR_BTN_CLASS_NAME + '-list',
+               SELECTOR_BTN_LIST_ID = SELECTOR_BTN_CONTAINER_CLASS_NAME + '-list',
                SELECTOR_BTN_LIST = '#' + SELECTOR_BTN_LIST_ID,
                dropdownMenu = document.createElement('ul'),
                // btn <span>
-               SELECTOR_BTN_TITLE_ID = SELECTOR_BTN_CLASS_NAME + '-title',
-               SELECTOR_BTN_TITLE = '#' + SELECTOR_BTN_TITLE_ID,
-               dowloadBtn = document.createElement('span');
+               SELECTOR_BTN_LABEL_ID = SELECTOR_BTN_CONTAINER_CLASS_NAME + '-label',
+               SELECTOR_BTN_LABEL = '#' + SELECTOR_BTN_LABEL_ID,
+               labelBtn = document.createElement('span');
 
             NOVA.runOnPageLoad(() => {
                if (NOVA.currentPage == 'watch') {
@@ -49,7 +49,7 @@ window.nova_plugins.push({
 
             // custon tooltip (with animation)
             // NOVA.css.push(
-            //    `${SELECTOR_BTN_TITLE}[tooltip]::before {
+            //    `${SELECTOR_BTN_LABEL}[tooltip]::before {
             //       content: attr(tooltip);
             //       position: absolute;
             //       top: -3em;
@@ -67,15 +67,11 @@ window.nova_plugins.push({
             //       transition: 50ms transform;
             //       transform-origin: bottom center;
             //    }
-            //    ${SELECTOR_BTN_TITLE}[tooltip]:hover::before {
+            //    ${SELECTOR_BTN_LABEL}[tooltip]:hover::before {
             //       --scale: 1
             //    }`);
             NOVA.css.push(
-               `${SELECTOR_BTN_TITLE} {
-                  /* display: block; */
-                  height: inherit;
-               }
-               ${SELECTOR_BTN_TITLE}[tooltip]:hover::before {
+               `${SELECTOR_BTN_LABEL}[tooltip]:hover::before {
                   content: attr(tooltip);
                   position: absolute;
                   top: -3em;
@@ -85,80 +81,83 @@ window.nova_plugins.push({
                   border-radius: .3em;
                   padding: 5px 9px;
                   color: white;
+                  font-size: initial;
                   font-weight: bold;
                   white-space: nowrap;
                }
                /* for embed */
-               html[data-cast-api-enabled] ${SELECTOR_BTN_TITLE}[tooltip]:hover::before {
+               html[data-cast-api-enabled] ${SELECTOR_BTN_LABEL}[tooltip]:hover::before {
                   font-weight: normal;
                }`);
 
             NOVA.css.push(
-               SELECTOR_BTN + ` {
-               overflow: visible !important;
-               position: relative;
-               text-align: center !important;
-               vertical-align: top;
-               font-weight: bold;
-            }
+               `${SELECTOR_BTN_CONTAINER} {
+                  overflow: visible !important;
+                  position: relative;
+                  text-align: center !important;
+                  vertical-align: top;
+                  font-weight: bold;
+               }
 
-            ${SELECTOR_BTN}:hover { color: #66afe9 !important; }
-            ${SELECTOR_BTN}:active { color: #2196f3 !important; }
+               ${SELECTOR_BTN_CONTAINER}:hover { color: #66afe9 !important; }
+               ${SELECTOR_BTN_CONTAINER}:active { color: #2196f3 !important; }
 
-            ${SELECTOR_BTN_LIST} {
-               position: absolute;
-               bottom: 2.5em !important;
-               left: -2.2em;
-               list-style: none;
-               padding-bottom: 1.5em !important;
-               z-index: ${1 + Math.max(NOVA.css.get('.ytp-progress-bar', 'z-index'), 31)};
-            }
+               ${SELECTOR_BTN_LABEL} {
+                  /* display: block; */
+                  display: inline;
+                  height: inherit;
+                  line-height: 1.7;
+                  font-size: 2em;
+                  vertical-align: bottom;
+               }
 
-            /* for embed */
-            html[data-cast-api-enabled] ${SELECTOR_BTN_LIST} {
-               margin: 0;
-               padding: 0;
-               bottom: 3.3em;
-               /* --yt-spec-brand-button-background: #c00; */
-            }
+               ${SELECTOR_BTN_LIST} {
+                  position: absolute;
+                  bottom: 2.5em !important;
+                  left: -2.2em;
+                  list-style: none;
+                  padding-bottom: 1.5em !important;
+                  z-index: ${1 + Math.max(NOVA.css.get('.ytp-progress-bar', 'z-index'), 31)};
+               }
 
-            ${SELECTOR_BTN}:not(:hover) ${SELECTOR_BTN_LIST} {
-               display: none;
-            }
+               /* for embed */
+               html[data-cast-api-enabled] ${SELECTOR_BTN_LIST} {
+                  margin: 0;
+                  padding: 0;
+                  bottom: 3.3em;
+                  /* --yt-spec-brand-button-background: #c00; */
+               }
 
-            ${SELECTOR_BTN_LIST} li {
-               cursor: pointer;
-               white-space: nowrap;
-               line-height: 1.4;
-               background-color: rgba(28, 28, 28, .9);
-               margin: .1em 0;
-               padding: .5em 2em;
-               border-radius: .3em;
-               color: white;
-            }
+               ${SELECTOR_BTN_CONTAINER}:not(:hover) ${SELECTOR_BTN_LIST} {
+                  display: none;
+               }
 
-            /* ${SELECTOR_BTN_LIST} li .menu-item-label-badge {
-               position: absolute;
-               right: .5em;
-               font-size: .1em;
-            } */
+               ${SELECTOR_BTN_LIST} li {
+                  cursor: pointer;
+                  white-space: nowrap;
+                  line-height: 1.4;
+                  background-color: rgba(28, 28, 28, .9);
+                  margin: .1em 0;
+                  padding: .5em 2em;
+                  border-radius: .3em;
+                  color: white;
+               }
 
-            ${SELECTOR_BTN_LIST} li:hover { background-color: #c00; }`);
+               /* ${SELECTOR_BTN_LIST} li .menu-item-label-badge {
+                  position: absolute;
+                  right: .5em;
+                  font-size: .1em;
+               } */
 
-            containerBtn.classList.add('ytp-button', SELECTOR_BTN_CLASS_NAME, SELECTOR_BTN_CLASS_NAME, 'nova-right-custom-button');
+               ${SELECTOR_BTN_LIST} li:hover { background-color: #c00; }`);
+
+            containerBtn.classList.add('ytp-button', SELECTOR_BTN_CONTAINER_CLASS_NAME, 'nova-right-custom-button');
             // btn <span>
-            dowloadBtn.id = SELECTOR_BTN_TITLE_ID;
-            // dowloadBtn.title = 'Nova video download';
-            dowloadBtn.setAttribute('tooltip', 'Nova video download');
-            dowloadBtn.textContent = '🡇'; // '🖫'
-            // dowloadBtn.style.cssText = 'font-size: 2em; line-height: 1.6; vertical-align: bottom; display: inline;';
-            Object.assign(dowloadBtn.style, {
-               'font-size': '2em',
-               'line-height': 1.6,
-               'vertical-align': 'bottom',
-               display: 'inline',
-            });
-            // // dowloadBtn.innerHTML =  NOVA.createSafeHTML(
+            labelBtn.id = SELECTOR_BTN_LABEL_ID;
+            // labelBtn.title = 'Nova video download';
+            labelBtn.setAttribute('tooltip', 'Nova video download');
+            labelBtn.textContent = '🡇'; // '🖫'
+            // // labelBtn.innerHTML =  NOVA.createSafeHTML(
             // //    `< svg viewBox = "0 0 120 120" width = "100%" height = "100%" style = "scale: .6;" >
             // //       <g fill="currentColor">
             // //          <path d="M96.215 105h-72.18c-3.33 0-5.94-2.61-5.94-5.94V75.03c0-3.33 2.61-5.94 5.94-5.94 3.33 0 5.94 2.61 5.94 5.94v18h60.03v-18c0-3.33 2.61-5.94 5.94-5.94 3.33 0 5.94 2.61 5.94 5.94v24.03c.27 3.33-2.34 5.94-5.67 5.94Zm-32.4-34.47c-2.07 1.89-5.4 1.89-7.56 0l-18.72-17.19c-2.07-1.89-2.07-4.86 0-6.84 2.07-1.98 5.4-1.89 7.56 0l8.91 8.19V20.94c0-3.33 2.61-5.94 5.94-5.94 3.33 0 5.94 2.61 5.94 5.94V54.6l8.91-8.19c2.07-1.89 5.4-1.89 7.56 0 2.07 1.89 2.07 4.86 0 6.84l-18.54 17.28Z" />
@@ -171,7 +170,7 @@ window.nova_plugins.push({
             // // //    </g>
             // // // </svg>`);
             // // fix - This document requires 'TrustedHTML' assignment.
-            // dowloadBtn.append((function createSvgIcon() {
+            // labelBtn.append((function createSvgIcon() {
             //    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             //    svg.setAttribute('width', '100%');
             //    svg.setAttribute('height', '100%');
@@ -193,7 +192,7 @@ window.nova_plugins.push({
             // list <ul>
             dropdownMenu.id = SELECTOR_BTN_LIST_ID;
 
-            containerBtn.prepend(dowloadBtn);
+            containerBtn.prepend(labelBtn);
             containerBtn.append(dropdownMenu);
 
             container.prepend(containerBtn);
@@ -204,11 +203,11 @@ window.nova_plugins.push({
 
                   APIs.videoId = NOVA.queryURL.get('v') || movie_player.getVideoData().video_id;
                   // save original icon
-                  const dowloadBtnCloned = dowloadBtn.cloneNode(true);
+                  const labelBtnCloned = labelBtn.cloneNode(true);
                   // icon "wait" state
                   // containerBtn.textContent = '⏱';
-                  dowloadBtn.textContent = '🕓';
-                  dowloadBtn.cursor = 'wait';
+                  labelBtn.textContent = '🕓';
+                  labelBtn.cursor = 'wait';
 
                   let downloadVideoList = [];
                   switch (user_settings.download_video_mode) {
@@ -285,13 +284,13 @@ window.nova_plugins.push({
                   // container.append(select);
 
                   // restore icon
-                  dowloadBtn.replaceWith(dowloadBtnCloned);
+                  labelBtn.replaceWith(labelBtnCloned);
                   // fix - This document requires 'TrustedHTML' assignment.
-                  // if (parentElement = dowloadBtn.parentNode) {
+                  // if (parentElement = labelBtn.parentNode) {
                   //    parentElement.appendChild(clonedElement);
                   //    parentElement.removeChild(originalElement);
                   // }
-                  dowloadBtn.removeProperty('cursor');
+                  labelBtn.removeProperty('cursor');
                }
             }
          });
@@ -838,53 +837,53 @@ window.nova_plugins.push({
          d.remove();
       }
 
-      function fmtBitrate(size) {
-         return fmtSize(size, ['kbps', 'Mbps', 'Gbps'], 1000);
-      }
+      // function fmtBitrate(size) {
+      //    return fmtSize(size, ['kbps', 'Mbps', 'Gbps'], 1000);
+      // }
 
-      function fmtSize(size, units = ['kB', 'MB', 'GB'], divisor = 1024) {
-         size = Math.abs(+size);
-         if (size === 0) return 'n/a';
-         size /= divisor;
-         for (let i = 0; i < units.length; ++i) {
-            if (size < 10) return Math.round(size * 100) / 100 + units[i];
-            else if (size < 100) return Math.round(size * 10) / 10 + units[i];
-            else if (size < 1000 || i == (units.length - 1)) return Math.round(size) + units[i];
-         }
-      }
-
-      function convertSizeToBytes(size) {
-         const units = {
-            B: 1,
-            KB: 1024,
-            MB: 1024 * 1024,
-            GB: 1024 * 1024 * 1024,
-         };
-
-         const regex = /^(\d+(?:\.\d+)?)\s*([A-Z]+)$/i;
-         const match = size.match(regex);
-
-         if (!match) return 0;
-
-         const value = parseFloat(match[1]);
-         const unit = match[2].toUpperCase();
-
-         if (!units.hasOwnProperty(unit)) return 0;
-
-         return value * units[unit];
-      }
-
-      // function bytesToSize(bytes, sizes = ['Bytes', 'kB', 'MB', 'GB', 'TB'], divisor = 1024) {
-      //    bytes = Math.abs(+bytes);
-      //    if (bytes === 0 || isNaN(num)) return 'n/a';
-      //    const i = Math.floor(Math.log(bytes) / Math.log(divisor));
-      //    return (i === 0 ? bytes : round(bytes / Math.pow(divisor, i))) + sizes[i];
-
-      //    function round(n, sig = 2) {
-      //       const prec = Math.pow(10, sig);
-      //       return Math.round(n * prec) / prec;
+      // function fmtSize(size, units = ['kB', 'MB', 'GB'], divisor = 1024) {
+      //    size = Math.abs(+size);
+      //    if (size === 0) return 'n/a';
+      //    size /= divisor;
+      //    for (let i = 0; i < units.length; ++i) {
+      //       if (size < 10) return Math.round(size * 100) / 100 + units[i];
+      //       else if (size < 100) return Math.round(size * 10) / 10 + units[i];
+      //       else if (size < 1000 || i == (units.length - 1)) return Math.round(size) + units[i];
       //    }
       // }
+
+      // function convertSizeToBytes(size) {
+      //    const units = {
+      //       B: 1,
+      //       KB: 1024,
+      //       MB: 1024 * 1024,
+      //       GB: 1024 * 1024 * 1024,
+      //    };
+
+      //    const regex = /^(\d+(?:\.\d+)?)\s*([A-Z]+)$/i;
+      //    const match = size.match(regex);
+
+      //    if (!match) return 0;
+
+      //    const value = parseFloat(match[1]);
+      //    const unit = match[2].toUpperCase();
+
+      //    if (!units.hasOwnProperty(unit)) return 0;
+
+      //    return value * units[unit];
+      // }
+
+      // // function bytesToSize(bytes, sizes = ['Bytes', 'kB', 'MB', 'GB', 'TB'], divisor = 1024) {
+      // //    bytes = Math.abs(+bytes);
+      // //    if (bytes === 0 || isNaN(num)) return 'n/a';
+      // //    const i = Math.floor(Math.log(bytes) / Math.log(divisor));
+      // //    return (i === 0 ? bytes : round(bytes / Math.pow(divisor, i))) + sizes[i];
+
+      // //    function round(n, sig = 2) {
+      // //       const prec = Math.pow(10, sig);
+      // //       return Math.round(n * prec) / prec;
+      // //    }
+      // // }
 
    },
    options: {
