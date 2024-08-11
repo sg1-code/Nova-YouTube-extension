@@ -736,6 +736,7 @@ window.nova_plugins.push({
                --text-off-press: 'HIDE?';
                /* --text-on: attr(text-off); */
 
+               display: block;
                appearance: none;
                -webkit-appearance: none;
                position: relative;

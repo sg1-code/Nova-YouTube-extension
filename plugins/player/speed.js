@@ -741,7 +741,7 @@ window.nova_plugins.push({
          // 'label:ua': 'Гаряча клавіша',
          options: [
             // { label: 'none', /* value: false */ }, // fill value if no "selected" mark another option
-            { label: 'none', value: false }, // need for for 'data-dependent' in rate_max
+            { label: 'none', value: 'false' }, // need for for 'data-dependent' in "rate_max". "rate_step"
             { label: 'alt+wheel', value: 'altKey', selected: true },
             { label: 'shift+wheel', value: 'shiftKey' },
             { label: 'ctrl+wheel', value: 'ctrlKey' },
@@ -937,6 +937,7 @@ window.nova_plugins.push({
          min: 0.05,
          max: 0.5,
          value: 0.25,
+         'data-dependent': { 'rate_hotkey': ['!false'] },
       },
       rate_max: {
          _tagName: 'input',
@@ -974,7 +975,7 @@ window.nova_plugins.push({
          min: 2,
          max: 5, // rate_default
          value: 2,
-         'data-dependent': { 'rate_hotkey': ['!false', '!'] },
+         'data-dependent': { 'rate_hotkey': ['!false'] },
       },
    }
 });

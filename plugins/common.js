@@ -1525,7 +1525,7 @@ const NOVA = {
          }
          return t + +parts.pop();
       },
-
+      // HMS mean: Hours, Minutes, Seconds
       HMS: {
          parseTime(time_sec) {
             const ts = Math.abs(+time_sec);
