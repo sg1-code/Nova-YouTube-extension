@@ -76,38 +76,43 @@ window.nova_plugins.push({
                ) return;
 
                const
-                  currentTime = Math.trunc(this.currentTime),
-                  duration = Math.trunc(this.duration),
-                  delta_ = duration - currentTime, // tiny optimization
-                  getPercent = percentage_type_left => {
-                     const
-                        floatRound = pt => (this.duration > 3600)
-                           ? pt.toFixed(2) // >1 hour
-                           : (this.duration > 1500)
-                              ? pt.toFixed(1) // >25 minutes
-                              : Math.round(pt),
-                        calcPercentage = percentage_type_left
-                           ? delta_ * 100 / duration
-                           : currentTime * 100 / duration;
+                   playbackRate = this.playbackRate,
+                   currentTime = Math.trunc(this.currentTime),
+                   duration = Math.trunc(this.duration),
+                   left = duration - currentTime, // tiny optimization
+                   floatRound = (value, total) => {
+                      const precision = total > 3600 ? 2 // >1 hour
+                          : total > 1500 ? 1 // >25 minutes
+                              : 0;
+                      return value.toFixed(precision);
+                   },
+                   getPercent = (partialValue, totalValue) => floatRound(partialValue * 100 / totalValue, totalValue) + '%';
 
-                     return floatRound(calcPercentage) + '%';
-                  };
+               const patternHandlers = {
+                  '{rate}': () => playbackRate === 1 ? '' : playbackRate + 'x',
+                  '{left}': () => '-' + NOVA.formatTimeOut.HMS.digit(left),
+                  '{left^}': () => '-' + NOVA.formatTimeOut.HMS.digit(left / playbackRate),
+                  '{left%}': () => '-' + getPercent(left, duration),
+                  '{done}': () => NOVA.formatTimeOut.HMS.digit(currentTime),
+                  '{done^}': () => NOVA.formatTimeOut.HMS.digit(currentTime / playbackRate),
+                  '{done%}': () => getPercent(currentTime, duration),
+                  '{duration}': () => NOVA.formatTimeOut.HMS.digit(duration),
+                  '{duration^}': () => NOVA.formatTimeOut.HMS.digit(duration / playbackRate),
+               };
+
+               const defaultHandler = pattern => {
+                  console.debug('Skipped pattern:', pattern);
+                  return pattern;
+               };
+
+               const patternHandler = pattern => {
+                  const handler = patternHandlers[pattern];
+                  return handler ? handler.call(this) : defaultHandler(pattern);
+               }
+
 
                const text = user_settings.time_remaining_format
-                  .replace(/\{(rate|left|done|duration)(\^|%)?\}/g, pattern => {
-                     switch (pattern) {
-                        case '{rate}': return this.playbackRate === 1 ? '' : this.playbackRate; break;
-                        case '{left}': return '-' + NOVA.formatTimeOut.HMS.digit(delta_); break;
-                        case '{left^}': return '-' + NOVA.formatTimeOut.HMS.digit(delta_ / this.playbackRate); break;
-                        case '{left%}': return '-' + getPercent('left'); break;
-                        case '{done}': return NOVA.formatTimeOut.HMS.digit(currentTime); break;
-                        case '{done^}': return NOVA.formatTimeOut.HMS.digit(currentTime / this.playbackRate); break;
-                        case '{done%}': return getPercent(); break;
-                        case '{duration}': return NOVA.formatTimeOut.HMS.digit(duration); break;
-                        case '{duration^}': return NOVA.formatTimeOut.HMS.digit(duration / this.playbackRate); break;
-                        // default: console.debug('skiped:', partPattern); break;
-                     }
-                  });
+                  .replace(/\{(rate|left|done|duration)([\^%])?}/g, patternHandler);
 
                if (text) insertToHTML({ 'text': text, 'container': container });
             }
@@ -180,11 +185,14 @@ window.nova_plugins.push({
          options: [
             // ready-made examples
             { label: '0:10/0:44 (23%)', value: '{done}/{duration} ({done%})' },
-            { label: '0:05/0:25 1.75', value: '{done^}/{duration^} {rate}' },
+            { label: '0:05/0:25 1.75x', value: '{done^}/{duration^} {rate}' },
             { label: '-0:34/0:44 • -77%', value: '{left}/{duration} • {left%}' },
-            { label: '-0:19/0:25 1.75', value: '{left^}/{duration^} {rate}' },
+            { label: '-0:19/0:25 1.75x', value: '{left^}/{duration^} {rate}' },
+            { label: '-2:24/18:00 • -0:48/6:00 (87%) 3x', value: '{left}/{duration} • {left^}/{duration^} ({done%}) {rate}' },
+            { label: '-2:24 -0:48 -13% • 15:36 5:12 87% • 18:00 6:00 • 3x', value: '{left} {left^} {left%} • {done} {done^} {done%} • {duration} {duration^} • {rate}' },
+            { label: 'For a custom template, you can use these fields:', value: ' ' },
             // all available parts
-            { label: '1.75', value: '{rate}' },
+            { label: '1.75x', value: '{rate}' },
             { label: '-0:34', value: '{left}' },
             { label: '-0:19', value: '{left^}' },
             { label: '-77%', value: '{left%}' },
