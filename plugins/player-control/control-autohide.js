@@ -3,8 +3,8 @@ window.nova_plugins.push({
    // title: 'Hide controls on player',
    // title: 'Hide player controls panel',
    title: 'Hide player control panel if not hovered',
-   'title:zh': '播放器上的自动隐藏控件',
-   'title:ja': 'プレーヤーのコントロールを自動非表示',
+   // 'title:zh': '播放器上的自动隐藏控件',
+   // 'title:ja': 'プレーヤーのコントロールを自動非表示',
    // 'title:ko': '플레이어의 자동 숨기기 컨트롤',
    // 'title:vi': '',
    // 'title:id': 'Sembunyikan kontrol pada pemutar',
@@ -17,7 +17,7 @@ window.nova_plugins.push({
    'title:pl': 'Ukrywaj elementy w odtwarzaczu',
    // 'title:ua': 'Приховати панель керування у відтворювачі',
    run_on_pages: 'watch, embed, -mobile',
-   section: 'control-panel',
+   section: 'player-control',
    desc: 'Hover controls to display it',
    'desc:zh': '将鼠标悬停在它上面以显示它',
    'desc:ja': 'カーソルを合わせると表示されます',
@@ -48,11 +48,19 @@ window.nova_plugins.push({
             selectorGradientHide = '#movie_player:not(:hover) .ytp-gradient-bottom';
 
             // fixControlFreeze on hover
-            NOVA.waitSelector('#movie_player')
+            // NOVA.waitSelector('#movie_player') // for some reason it doesn't work
+            NOVA.waitSelector('#ytd-player')
                .then(movie_player => {
-                  movie_player.addEventListener('mouseover', fixControlFreeze);
+                  let waiting;
+                  // movie_player.addEventListener('mouseenter', fixControlFreeze);
+                  movie_player.addEventListener('mouseover', function () {
+                     if (waiting) return;
+                     waiting = true;
+                     fixControlFreeze();
+                  });
                   movie_player.addEventListener('mouseout', function () {
-                     clearInterval(fixControlFreeze.mouseMoveIntervalId)
+                     clearInterval(fixControlFreeze.intervalId);
+                     waiting = false;
                   });
                });
 
@@ -93,18 +101,18 @@ window.nova_plugins.push({
       if (user_settings.player_control_autohide_show_on_seek) {
          // NOVA.waitSelector('#movie_player video')
          //    .then(video => {
-         let timeout;
+         let timeoutId;
 
          // video.addEventListener('seeked', () => {
          document.addEventListener('seeked', ({ target }) => {
             if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
 
             if (el = document.body.querySelector('#movie_player .ytp-chrome-bottom')) {
-               clearTimeout(timeout);
+               clearTimeout(timeoutId);
                el.style.opacity = 1;
-               timeout = setTimeout(() => el.style.removeProperty('opacity'), 1500); // 1.5s
+               timeoutId = setTimeout(() => el.style.removeProperty('opacity'), 1500); // 1.5s
                // el.removeAttribute('hidden');
-               // timeout = setTimeout(() => el.setAttribute('hidden', true), 1500); // 1.5s
+               // timeoutId = setTimeout(() => el.setAttribute('hidden', true), 1500); // 1.5s
             }
          });
          // });
@@ -112,15 +120,17 @@ window.nova_plugins.push({
 
       // moveMousePeriodic
       function fixControlFreeze(ms = 2000) { // copy of the function in plugin [player-control-below]
+         // console.debug('fixControlFreeze', ms);
          // reset timeout
-         if (typeof fixControlFreeze.mouseMoveIntervalId === 'number') clearTimeout(fixControlFreeze.mouseMoveIntervalId);
-         fixControlFreeze.mouseMoveIntervalId = setInterval(() => {
-            if ((NOVA.currentPage == 'watch' || NOVA.currentPage == 'embed')
-               && document.visibilityState == 'visible'
+         if (typeof fixControlFreeze.intervalId === 'number') clearTimeout(fixControlFreeze.intervalId);
+         fixControlFreeze.intervalId = setInterval(() => {
+            if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
+
+            if (document.visibilityState == 'visible'
                && movie_player.classList.contains('playing-mode')
                && !document.fullscreenElement // Doesn't work in fullscreen mode
             ) {
-               // console.debug('moveMouse event');
+               // console.debug('wakeUpControls');
                // movie_player.dispatchEvent(new Event('mousemove'));
                movie_player.wakeUpControls();
             }

@@ -1,15 +1,13 @@
-console.debug('init options.js');
-
-const PopulateForm = {
-   fill(settings, container) {
+const FormManager = {
+   fill(settings, container = document.body) {
       // console.debug("Load from Storage: %s=>%s", container?.id, JSON.stringify(settings));
 
       for (const key in settings) {
          const val = settings[key];
-         // const el = document.body.getElementsByName(key)[0] || document.getElementById(key);
-         if (el = (container || document.body).querySelector(`[name="${key}"]`)
-            || (container || document.body).querySelector('#' + key)) {
-            // console.debug('>opt %s#%s=%s', el.tagName, key, val);
+         const el = container.querySelector(`[name="${key}"]`) || container.querySelector('#' + key);
+
+         if (el) {
+            // console.debug('FormManager.fill %s#%s=%s', el.tagName, key, val);
 
             switch (el.tagName.toLowerCase()) {
                // case 'div': // for isContentEditable (contenteditable="true")
@@ -24,15 +22,23 @@ const PopulateForm = {
                   break;
 
                case 'select':
-                  (Array.isArray(val) ? val : [val])
-                     .forEach(value => setSelectOption(el, value)); // select multiple
+                  if (Array.isArray(val)) {
+                     val.forEach(value => setSelectOption(el, value)); // select multiple
+                  }
+                  else {
+                     setSelectOption(el, val);
+                  }
                   break;
 
                case 'input':
                   switch (el.type.toLowerCase()) {
                      case 'checkbox':
-                        (Array.isArray(val) ? val : [val])
-                           .forEach(value => (el.checked = value) ? true : false); // multiple Check/Uncheck
+                        if (Array.isArray(val)) {
+                           val.forEach(value => el.checked = value ? true : false); // multiple Check/Uncheck
+                        }
+                        else {
+                           el.checked = val ? true : false;
+                        }
                         break;
 
                      case 'radio':
@@ -57,73 +63,65 @@ const PopulateForm = {
       }
    },
 
-   attrDependencies() {
+   applyDataDependencyRules() {
       const attributeName = 'data-dependent';
-      document.body.querySelectorAll(`[${attributeName}]`)
-         .forEach(targetEl => {
-            // let dependentsList = targetEl.getAttribute(attributeName).split(',').map(i => i.trim());
-            const rules = JSON.parse(targetEl.getAttribute(attributeName).toString());
-            const handler = () => showOrHide(targetEl, rules);
-            // document.getElementById(Object.keys(rules))?.addEventListener('change', handler);
-            document.getElementsByName(Object.keys(rules))
-               .forEach(el => el.addEventListener('change', handler));
-            // init state
-            handler();
-         });
+      // Find all elements with data-dependent attribute
+      const dependentElements = document.body.querySelectorAll(`[${attributeName}]`);
 
-      function showOrHide(targetEl, rules) {
-         // console.debug('showOrHide', ...arguments);
-         for (const parrentName in rules) {
-            // console.debug(`dependent_data.${name} = ${dependent_data[name]}`);
-            const subtargetEl = Array.from(document.getElementsByName(parrentName))
-               .find(e => (e.type == 'radio') ? e.checked : e); // return radio:checked or document.getElementsByName(parrentName)[0]
+      dependentElements.forEach(element => {
+         const rules = JSON.parse(element.getAttribute(attributeName));
+         // init
+         showOrHide(element, rules);
+         // on change
+         document.getElementsByName(Object.keys(rules))
+            .forEach(el => el.addEventListener('change', () => showOrHide(element, rules)));
+      });
 
-            if (subtargetEl) {
-               const ruleValues = Array.isArray(rules[parrentName])
-                  ? rules[parrentName]
-                  : [rules[parrentName]];
-
-               const currentValuesList = (function () {
-                  // for options
-                  if (options = subtargetEl?.selectedOptions) {
-                     return Array.from(options).map(({ value }) => value);
-                  }
-                  return [subtargetEl.value];
-                  // return [(subtargetEl.type == 'checkbox') ? subtargetEl.checked : subtargetEl.value];
-               })();
-
-               // if (parrentName == '')
-               //    console.debug(parrentName, ruleValues, currentValuesList);
-
-               if (ruleValues.length // filter value present
-                  && ( // element has value or checked
-                     (subtargetEl.checked && !subtargetEl.matches('[type="radio"]')) // skip radio (which is always checked. Unlike a checkbox)
-                     || ruleValues.some(i => currentValuesList.includes(i.toString())) // has value
-                  )
-                  // || (ruleValues.startsWith('!') && subtargetEl.value !== ruleValues.replace('!', '')) // inverse value
-                  || ruleValues.some(i =>
-                     i.toString().startsWith('!') && !currentValuesList.includes(i.toString().replace('!', '')) // inverse value
-                  )
-               ) {
-                  // console.debug('show:', parrentName);
-                  targetEl.classList.remove('hide');
-                  childInputDisable(false);
-               }
-               else {
-                  // console.debug('hide:', parrentName);
-                  targetEl.classList.add('hide');
-                  childInputDisable(true);
-               }
+      function showOrHide(element, rules) {
+         // Iterate through each rule (parent name and its values) in the rules object.
+         for (const [parentName, values] of Object.entries(rules)) {
+            // Find the corresponding dependent element(s) by their name.
+            // const parentElement = document.getElementsByName(parentName)[0];
+            const parentElement = document.body.querySelector(`[name="${parentName}"]`);
+            if (!parentElement) {
+               console.error('showOrHide not found:', parentElement);
+               continue;
             }
-            else console.error('error showOrHide:', parrentName);
+            const parentValue = parentElement.checked
+               || (parentElement.selectedOptions && [...parentElement.selectedOptions].map(x => x.value)) // options-multiple (Warning! before ".value")
+               || parentElement.value;
+
+            let shouldHide = true;
+
+            (Array.isArray(values) ? values : [values]) // conver all values to array
+               .some(ruleValue => {
+                  ruleValue = ruleValue.toString();
+                  if (parentElement.selectedOptions
+                     ? ruleValue.startsWith('!')
+                        ? !parentValue.includes(ruleValue.slice(1)) // inverted
+                        : parentValue.includes(ruleValue)
+                     // non options-multiple
+                     : ruleValue.startsWith('!')
+                        ? parentValue?.toString() !== ruleValue.slice(1) // inverted
+                        : parentValue?.toString() === ruleValue
+                  ) {
+                     shouldHide = false;
+                     return true; // Stop searching within the current value array.
+                  }
+               });
+
+            if (shouldHide) {
+               element.classList.add('hide');
+            }
+            else {
+               element.classList.remove('hide');
+            }
+            childInputDisable(shouldHide);
          }
 
-         function childInputDisable(status = false) {
-            targetEl.querySelectorAll('input, textarea, select')
-               .forEach(el => {
-                  el.disabled = Boolean(status);
-                  // targetEl.readOnly = Boolean(status);
-               });
+         function childInputDisable(disabled = false) {
+            element.querySelectorAll('input, textarea, select')
+               .forEach(child => child.disabled = Boolean(disabled));
          }
       }
    },
@@ -133,7 +131,7 @@ const PopulateForm = {
       let newSettings = {};
 
       for (const [key, value] of new FormData(form)) {
-         // SerializedArray
+         // SerializedArray from select-option
          if (newSettings.hasOwnProperty(key)) {
             newSettings[key] += ',' + value; // add new
             newSettings[key] = newSettings[key].split(','); // to array [old, new]
@@ -141,12 +139,16 @@ const PopulateForm = {
          else {
             // convert string to boolean
             switch (value) {
-               case 'true': newSettings[key] = true; break;
-               case 'false': newSettings[key] = false; break;
-               case 'undefined': newSettings[key] = undefined; break;
-               default: newSettings[key] = value;
+               case 'on': newSettings[key] = true; break; // checkbox
+               case 'true': newSettings[key] = true; break; // fix for applyDataDependencyRules
+               case 'false': newSettings[key] = false; break; // fix for applyDataDependencyRules
+               case 'undefined': newSettings[key] = undefined; break; // fix for applyDataDependencyRules
+               default:
+                  // if (typeof value === 'string') value = value.trim();
+                  // if (value === '') continue;
+                  newSettings[key] = value;
             }
-         };
+         }
       }
 
       Storage.setParams(newSettings, storageMethod);
@@ -154,12 +156,12 @@ const PopulateForm = {
       // notify background page
       // browser.extension.sendMessage({ // manifest v2
       // browser.runtime.sendMessage({ // manifest v3
-      //    "action": 'setOptions',
-      //    "settings": newSettings
+      //    action: 'setOptions',
+      //    settings: newSettings
       // });
    },
 
-   btnSubmitAnimation: {
+   submitBtnAnimation: {
       // submitBtns: document.body.querySelectorAll('form [type=submit]'),
 
       _process() {
@@ -176,57 +178,61 @@ const PopulateForm = {
             this.submitBtns.forEach(e => {
                e.textContent = i18n('opt_btn_save_settings');
                e.removeAttribute('disabled');
-               document.body.style.cursor = 'default';
+               document.body.style.cursor = '';
             });
          }, 300); // 300ms
       },
    },
 
-   // Register the event handlers.
    registerEventListeners() {
+      this.submitBtnAnimation.submitBtns = document.body.querySelectorAll('form [type=submit]');
+
+      let isSubmitting = false;
       // form submit
       document.addEventListener('submit', evt => {
-         // console.debug('submit', event.target);
          evt.preventDefault();
-
-         this.btnSubmitAnimation._process();
+         // btnSubmit update
+         this.submitBtnAnimation._process();
          this.saveOptions(evt.target);
-         this.btnSubmitAnimation._defaut();
+         this.submitBtnAnimation._defaut();
       }, { capture: true });
+
       // hotkey ctrl+s
       document.addEventListener('keydown', evt => {
+         if (isSubmitting) return; // Prevent new submissions when use keydown
+
          if (evt.ctrlKey && evt.code == 'KeyS') {
+            isSubmitting = true;
             // Prevent the Save dialog to open
             evt.preventDefault();
             // send form
-            // document.getElementsByName('form')[0]
-            document.getElementsByTagName('form')[0]
+            document.querySelector('form')
                .dispatchEvent(new Event('submit'));
             // .submit(); // reload page
          }
       });
+      document.addEventListener('keyup', evt => {
+         if (evt.ctrlKey && evt.code == 'KeyS') isSubmitting = false;
+      });
+
       // form unsave
       document.addEventListener('change', ({ target }) => {
          // console.debug('change', target, 'name:', target.name);
          // if (!target.matches('input[type=search]')) return;
          if (!target.name || target.name == 'tabs') return; // fix/ignore switch tabs
-         this.btnSubmitAnimation.submitBtns.forEach(e => e.classList.add('unSaved'));
-         // textarea trim value
-         if (target.tagName.toLowerCase() == 'textarea') target.value = target.value.trim();
+         this.submitBtnAnimation.submitBtns.forEach(e => e.classList.add('unSaved'));
+         if (target.tagName.toLowerCase() != 'select') target.value = target.value.trim(); // trim all input
       });
    },
 
    init() {
       Storage.getParams(settings => {
          this.fill(settings);
-         this.attrDependencies();
+         this.applyDataDependencyRules();
          this.registerEventListeners();
          document.body.classList.remove('preload');
-         // auto selects value on focus
-         document.body.querySelectorAll('form input[type]').forEach(i => i.addEventListener('focus', i.select));
-         this.btnSubmitAnimation.submitBtns = document.body.querySelectorAll('form [type=submit]');
       }, storageMethod);
    },
 }
 
-// window.addEventListener('load', PopulateForm.init, { capture: true, once: true });
+// window.addEventListener('load', FormManager.init.apply(FormManager), { capture: true, once: true });

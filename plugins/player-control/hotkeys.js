@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'player-hotkeys-focused',
    title: 'Player shortcuts always active',
-   'title:zh': '播放器热键始终处于活动状态',
-   'title:ja': 'プレーヤーのホットキーは常にアクティブです',
+   // 'title:zh': '播放器热键始终处于活动状态',
+   // 'title:ja': 'プレーヤーのホットキーは常にアクティブです',
    // 'title:ko': '플레이어 단축키는 항상 활성화되어 있습니다',
    // 'title:vi': '',
    // 'title:id': 'Tombol pintas pemain selalu aktif',
@@ -15,7 +15,7 @@ window.nova_plugins.push({
    'title:pl': 'Klawisze skrótów dla graczy zawsze aktywne',
    // 'title:ua': 'Гарячі клавіші відтворювача завжди активні',
    run_on_pages: 'watch, embed, -mobile',
-   section: 'control-panel',
+   section: 'player-control',
    // desc: 'Player hotkeys always active【SPACE/F】etc.',
    _runtime: user_settings => {
 
@@ -27,35 +27,34 @@ window.nova_plugins.push({
       // alt6 - https://greasyfork.org/en/scripts/479994-disable-youtube-player-focus
       // alt7 - https://greasyfork.org/en/scripts/478857-youtube-spacebar-to-play-pause-videos
 
-      // document.addEventListener('keydown', evt => {
       document.addEventListener('keyup', evt => {
-         if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
-
-         setPlayerFocus(evt.target);
-
-         // alt - https://greasyfork.org/en/scripts/491283-youtube-usability
-         if (user_settings.hotkeys_disable_numpad && evt.code.startsWith('Numpad')) {
-            // console.debug('evt.code', evt.code);
-            evt.preventDefault();
-            evt.stopPropagation();
-            evt.stopImmediatePropagation();
+         switch (NOVA.currentPage) {
+            case 'watch':
+            case 'embed':
+               if (NOVA.editableFocused(evt.target)) return;
+               setPlayerFocus();
+               break;
          }
-         // }, { capture: true });
       });
 
-      document.addEventListener('click', evt => evt.isTrusted && setPlayerFocus(evt.target));
-
+      // alt - https://greasyfork.org/en/scripts/491283-youtube-usability
+      if (user_settings.hotkeys_disable_numpad) {
+         document.addEventListener('keydown', evt => {
+            if (evt.code.startsWith('Numpad')) {
+               evt.preventDefault();
+               evt.stopPropagation();
+               // evt.stopImmediatePropagation();
+            }
+         }, { capture: true });
+      }
 
       function setPlayerFocus(target) {
-         // movie_player.contains(document.activeElement) // don't use! stay overline
-         if (['input', 'textarea', 'select'].includes(target.localName) || target.isContentEditable) return;
-
          // focus without scrolling
          // NOVA.videoElement?.focus({ preventScroll: true });
          movie_player.focus({ preventScroll: true });
 
          // document.activeElement.style.border = '2px solid red'; // mark for test
-         // console.debug('active element', target.localName);
+         // console.debug('active element', document.activeElement);
       }
 
    },

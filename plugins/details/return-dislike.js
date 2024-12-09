@@ -4,8 +4,8 @@ https://www.youtube.com/watch?v=eB6txyhHFG4 - many dislike count
 window.nova_plugins.push({
    id: 'return-dislike',
    title: 'Show dislike count',
-   'title:zh': '显示不喜欢计数',
-   'title:ja': '嫌いな数を表示',
+   // 'title:zh': '显示不喜欢计数',
+   // 'title:ja': '嫌いな数を表示',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -60,7 +60,6 @@ window.nova_plugins.push({
 
       NOVA.runOnPageLoad(() => {
          if (NOVA.currentPage != 'watch') return;
-
          // on page update
          document.addEventListener('yt-action', dislikeIsUpdated);
       });
@@ -104,7 +103,7 @@ window.nova_plugins.push({
          async function getDislikeCount() {
             const videoId = NOVA.queryURL.get('v') || movie_player.getVideoData().video_id;
             // https://www.returnyoutubedislike.com/docs/fetching
-            const fetchAPI = () => fetch(`https://returnyoutubedislikeapi.com/votes?videoId=${videoId}`,
+            const fetchAPI = () => NOVA.fetch(`https://returnyoutubedislikeapi.com/votes?videoId=${videoId}`,
                {
                   method: 'GET', // *GET, POST, PUT, DELETE, etc.
                   // mode: 'no-cors', // no-cors, *cors, same-origin
@@ -125,6 +124,7 @@ window.nova_plugins.push({
                .catch(error => {
                   // mute console warn
                   // console.warn(`returnyoutubedislikeapi: failed fetching skipSegments for ${ videoId }, reason: ${ error } `)
+                  // throw new Error(`API returnyoutubedislikeapi: failed fetching: ${error}`);
                });
 
             if (result = await fetchAPI()) {
@@ -136,7 +136,10 @@ window.nova_plugins.push({
 
          function insertToHTML({ data = required(), container = required() }) {
             // console.debug('insertToHTML', ...arguments);
-            if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+            if (!(container instanceof HTMLElement)) {
+               console.error('Container is not an HTMLElement:', container);
+               return;
+            }
 
             // const percent = Math.trunc(data.likes * 100 / (data.likes + data.dislikes)); // liked
             const percent = Math.trunc(data.dislikes * 100 / (data.likes + data.dislikes)); // disliked

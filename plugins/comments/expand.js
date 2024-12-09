@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'comments-expand',
    title: 'Expand comments',
-   'title:zh': '展开评论',
-   'title:ja': 'コメントを展開',
+   // 'title:zh': '展开评论',
+   // 'title:ja': 'コメントを展開',
    // 'title:ko': '댓글 펼치기',
    // 'title:vi': 'Mở rộng nhận xét',
    // 'title:id': 'Perluas komentar',
@@ -149,8 +149,8 @@ window.nova_plugins.push({
       comments_expand_mode: {
          _tagName: 'select',
          label: 'Expand comment',
-         'label:zh': '展开评论',
-         'label:ja': 'コメントを展開',
+         // 'label:zh': '展开评论',
+         // 'label:ja': 'コメントを展開',
          // 'label:ko': '댓글 펼치기',
          // 'label:vi': 'Mở rộng nhận xét',
          // 'label:id': 'Perluas balasan',
@@ -166,8 +166,8 @@ window.nova_plugins.push({
          options: [
             {
                label: 'always', value: 'always', selected: true,
-               'label:zh': '每次',
-               'label:ja': 'いつも',
+               // 'label:zh': '每次',
+               // 'label:ja': 'いつも',
                // 'label:ko': '언제나',
                // 'label:vi': '',
                // 'label:id': '',
@@ -182,8 +182,8 @@ window.nova_plugins.push({
             },
             {
                label: 'on hover', value: 'onhover',
-               'label:zh': '悬停时',
-               'label:ja': 'ホバー時に',
+               // 'label:zh': '悬停时',
+               // 'label:ja': 'ホバー時に',
                // 'label:ko': '호버에',
                // 'label:vi': '',
                // 'label:id': 'saat melayang',
@@ -217,8 +217,8 @@ window.nova_plugins.push({
       comments_view_reply: {
          _tagName: 'select',
          label: 'Expand reply',
-         'label:zh': '展开回复',
-         'label:ja': '返信を展開',
+         // 'label:zh': '展开回复',
+         // 'label:ja': '返信を展開',
          // 'label:ko': '답장 펼치기',
          // 'label:vi': '',
          // 'label:id': '',
@@ -234,8 +234,8 @@ window.nova_plugins.push({
          options: [
             {
                label: 'always', value: 'always',
-               'label:zh': '每次',
-               'label:ja': 'いつも',
+               // 'label:zh': '每次',
+               // 'label:ja': 'いつも',
                // 'label:ko': '언제나',
                // 'label:vi': 'luôn luôn',
                // 'label:vi': '',
@@ -251,8 +251,8 @@ window.nova_plugins.push({
             },
             {
                label: 'on hover', value: 'onhover', selected: true,
-               'label:zh': '悬停时',
-               'label:ja': 'ホバー時に',
+               // 'label:zh': '悬停时',
+               // 'label:ja': 'ホバー時に',
                // 'label:ko': '호버에',
                // 'label:vi': '',
                // 'label:id': 'saat melayang',

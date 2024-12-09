@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'save-to-playlist',
    title: 'Add sort/filter to "Save to playlist" menu',
-   'title:zh': '将排序/过滤器添加到“保存到播放列表”菜单',
-   'title:ja': '「プレイリストに保存」メニューにソート/フィルターを追加',
+   // 'title:zh': '将排序/过滤器添加到“保存到播放列表”菜单',
+   // 'title:ja': '「プレイリストに保存」メニューにソート/フィルターを追加',
    // 'title:ko': '"재생 목록에 저장" 메뉴에 정렬/필터 추가',
    // 'title:vi': '',
    // 'title:id': 'Tambahkan sortir/filter ke menu "Simpan ke daftar putar".',
@@ -46,7 +46,7 @@ window.nova_plugins.push({
                // (fix menu) reset state
                else if (searchInput) {
                   searchInput.value = '';
-                  searchInput.dispatchEvent(new Event('change')); // run searchFilterHTML
+                  searchInput.dispatchEvent(new Event('change'));
                }
             })
                .observe(container);
@@ -59,8 +59,7 @@ window.nova_plugins.push({
          if (!(playlists instanceof HTMLElement)) return console.error('playlists not HTMLElement:', playlists);
 
          playlists.append(
-            ...Array.from(playlists.childNodes)
-               .sort(sortByLabel)
+            ...Array.from(playlists.childNodes).sort(sortByLabel)
          );
 
          function sortByLabel(a, b) {
@@ -82,7 +81,10 @@ window.nova_plugins.push({
 
       function insertFilterInput(container = required()) {
          // console.debug('insertToHTML', ...arguments);
-         if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+         if (!(container instanceof HTMLElement)) {
+            console.error('Container is not an HTMLElement:', container);
+            return;
+         }
 
          const searchInput = document.createElement('input');
          searchInput.setAttribute('type', 'search');
@@ -99,24 +101,23 @@ window.nova_plugins.push({
             color: 'var(--ytd-searchbox-text-color)',
             'background-color': 'var(--ytd-searchbox-background)',
          });
-
          ['change', 'keyup'].forEach(evt => {
-            searchInput
-               .addEventListener(evt, function () {
-                  NOVA.searchFilterHTML({
-                     'keyword': this.value,
-                     // 'filter_selectors': 'ytd-playlist-add-to-option-renderer',
-                     'filter_selectors': '#playlists #checkbox',
-                     // 'highlight_selector': 'yt-formatted-string',
-                     'highlight_selector': '#label',
-                  });
+            searchInput.addEventListener(evt, function () {
+               NOVA.searchFilterHTML({
+                  'keyword': this.value,
+                  // 'search_selectors': 'ytd-playlist-add-to-option-renderer',
+                  'search_selectors': '#playlists #checkbox',
+                  // 'filter_selector': 'yt-formatted-string',
+                  'filter_selector': '#label',
                });
-            searchInput
-               .addEventListener('click', () => {
-                  searchInput.value = '';
-                  searchInput.dispatchEvent(new Event('change')); // run searchFilterHTML
-               });
+            });
          });
+         // clear search-box
+         searchInput.addEventListener('dblclick', () => {
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('change'));
+         });
+
          const containerDiv = document.createElement('div');
          // containerDiv.style.cssText = 'margin-top:.5em; display:inherit;';
          Object.assign(containerDiv.style, {
@@ -168,8 +169,8 @@ window.nova_plugins.push({
       save_to_playlist_sort: {
          _tagName: 'input',
          label: 'Default sorting alphabetically',
-         'label:zh': '默认按字母顺序排序',
-         'label:ja': 'デフォルトのアルファベット順のソート',
+         // 'label:zh': '默认按字母顺序排序',
+         // 'label:ja': 'デフォルトのアルファベット順のソート',
          // 'label:ko': '알파벳순 기본 정렬',
          // 'label:vi': '',
          // 'label:id': 'Penyortiran default menurut abjad',

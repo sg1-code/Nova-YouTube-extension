@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'copy-url',
    title: 'Copy URL to clipboard',
-   'title:zh': '将 URL 复制到剪贴板',
-   'title:ja': 'URLをクリップボードにコピー',
+   // 'title:zh': '将 URL 复制到剪贴板',
+   // 'title:ja': 'URLをクリップボードにコピー',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -25,14 +25,14 @@ window.nova_plugins.push({
          const hotkeyMod = user_settings.copy_url_hotkey || 'ctrlKey';
          // on selected text
          if (hotkeyMod == 'ctrlKey' && window.getSelection && window.getSelection().toString()) return;
-         // on edit
-         if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
-         // console.debug('evt.code', evt.code);
-         // evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey
+
+         if (NOVA.editableFocused(evt.target)) return;
+
+         // if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
          if (evt[hotkeyMod] && evt.code === 'KeyC') {
             evt.preventDefault();
             evt.stopPropagation();
-            evt.stopImmediatePropagation();
+            // evt.stopImmediatePropagation();
 
             // const url = (NOVA.currentPage == 'watch')
             //    ? 'https://youtu.be/' + (NOVA.queryURL.get('v') || movie_player.getVideoData().video_id)
@@ -47,7 +47,7 @@ window.nova_plugins.push({
                case 'channel':
                   url = (channelId = NOVA.getChannelId(user_settings['user-api-key']))
                      ? user_settings['channel-play-all']
-                        ? `https://${location.host}/playlist?list=UULF` + channelId.substring(2)
+                        ? `https://${location.host}/playlist?list=UULF` + channelId.slice(2)
                         : `https://${location.host}/channel/` + channelId
                      : location.href;
                   break
@@ -56,8 +56,6 @@ window.nova_plugins.push({
                case 'playlist':
                   url = location.href;
                   break
-               // default:
-               //    break;
             }
             if (url) {
                navigator.clipboard.writeText(url);
@@ -69,9 +67,9 @@ window.nova_plugins.push({
 
       function showNotification(msg) {
          // reset timeout
-         if (typeof showNotification.fade === 'number') {
-            clearTimeout(showNotification.fade);
-            clearTimeout(showNotification.hideСompletely);
+         if (typeof showNotification.fadeTimeout === 'number') {
+            clearTimeout(showNotification.fadeTimeout);
+            clearTimeout(showNotification.hideTimeout);
          }
 
          const notify = (document.getElementById(SELECTOR_ID) || (function () {
@@ -128,10 +126,10 @@ window.nova_plugins.push({
          // notify.addEventListener('click', notify.remove);
          // setTimeout(notify.remove, 3000);
 
-         showNotification.fade = setTimeout(() => {
+         showNotification.fadeTimeout = setTimeout(() => {
             notify.style.transition = 'opacity 200ms ease-out';
             notify.style.opacity = 0;
-            showNotification.hideСompletely = setTimeout(() => notify.style.visibility = 'hidden', 5000); // completely hide after 5s
+            showNotification.hideTimeout = setTimeout(() => notify.style.visibility = 'hidden', 5000); // completely hide after 5s
          }, 600); // 600ms
       }
 
@@ -140,8 +138,8 @@ window.nova_plugins.push({
       copy_url_hotkey: {
          _tagName: 'select',
          label: 'Hotkey',
-         'label:zh': '热键',
-         'label:ja': 'ホットキー',
+         // 'label:zh': '热键',
+         // 'label:ja': 'ホットキー',
          // 'label:ko': '단축키',
          // 'label:vi': '',
          // 'label:id': 'Tombol pintas',
@@ -315,8 +313,8 @@ window.nova_plugins.push({
          // value: '#DC143C',
          value: '#e85717',
          label: 'Color',
-         'label:zh': '颜色',
-         'label:ja': '色',
+         // 'label:zh': '颜色',
+         // 'label:ja': '色',
          // 'label:ko': '색깔',
          // 'label:vi': '',
          // 'label:id': 'Warna',

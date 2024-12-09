@@ -38,8 +38,8 @@
    "opt_appearance_player": {
       "message": "Відтворювач"
    },
-   "opt_appearance_control_panel": {
-      "message": "Control Panel"
+   "opt_appearance_player_control": {
+      "message": "Player Control"
    },
    "opt_appearance_playlist": {
       "message": "Playlist"

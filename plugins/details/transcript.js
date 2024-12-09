@@ -59,9 +59,9 @@ window.nova_plugins.push({
                      case 'button': transcriptExpand(); break;
 
                      case 'external':
-                     case 'external-popup':
-                        transcriptOpenLink();
-                        break;
+                     // case 'external-popup':
+                     //    transcriptOpenLink();
+                     //    break;
                   }
                });
             return; // runOnPageLoad
@@ -103,17 +103,17 @@ window.nova_plugins.push({
             break;
 
          case 'external':
-         case 'external-popup':
-            //    NOVA.waitSelector('ytd-watch-metadata #owner')
-            //       .then(container => {
-            //          insertToHTML({ 'container': container, 'position': 'beforeEnd' })
-            NOVA.waitSelector('ytd-watch-metadata #actions #top-level-buttons-computed')
-               .then(container => {
-                  insertToHTML({ 'container': container, 'position': 'beforebegin' })
-                     .addEventListener('click', transcriptOpenLink);
-                  // }, { capture: true });
-               });
-            break;
+         // case 'external-popup':
+         //    //    NOVA.waitSelector('ytd-watch-metadata #owner')
+         //    //       .then(container => {
+         //    //          insertToHTML({ 'container': container, 'position': 'beforeEnd' })
+         //    NOVA.waitSelector('ytd-watch-metadata #actions #top-level-buttons-computed')
+         //       .then(container => {
+         //          insertToHTML({ 'container': container, 'position': 'beforebegin' })
+         //             .addEventListener('click', transcriptOpenLink);
+         //          // }, { capture: true });
+         //       });
+         //    break;
 
          // // case 'expand':
          // default:
@@ -138,17 +138,20 @@ window.nova_plugins.push({
          }
       }
 
-      function transcriptOpenLink() {
-         // https://www.youtubetranscript.com/?v=wYNvrA4Y0oA
-         const url = 'https://www.youtubetranscript.com/' + location.search;
-         window.open(url, '_blank', user_settings.transcript_visibility_mode == 'external-popup'
-            ? `popup=1,toolbar=no,location=no,directories=no,status=no,menubar=no,resizable=yes,copyhistory=no`
-            : '')
-      }
+      // function transcriptOpenLink() {
+      //    // https://www.youtubetranscript.com/?v=wYNvrA4Y0oA
+      //    const url = 'https://www.youtubetranscript.com/' + location.search;
+      //    window.open(url, '_blank', user_settings.transcript_visibility_mode == 'external-popup'
+      //       ? `popup=1,toolbar=no,location=no,directories=no,status=no,menubar=no,resizable=yes,copyhistory=no`
+      //       : '')
+      // }
 
       function insertToHTML({ container = required(), position = 'beforebegin' }) {
          // console.debug('insertToHTML', ...arguments);
-         if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+         if (!(container instanceof HTMLElement)) {
+            console.error('Container is not an HTMLElement:', container);
+            return;
+         }
 
          return (document.getElementById(BTN_SELECTOR_ID) || (function () {
             // document.getElementById(BTN_SELECTOR_ID).style.cssText = '';
@@ -192,8 +195,8 @@ window.nova_plugins.push({
       transcript_visibility_mode: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',
@@ -254,22 +257,22 @@ window.nova_plugins.push({
                // 'label:pl': '',
                // 'label:ua': '',
             },
-            {
-               label: 'link to external (popup)', value: 'external-popup',
-               // 'label:zh': '',
-               // 'label:ja': '',
-               // 'label:ko': '',
-               // 'label:vi': '',
-               // 'label:id': '',
-               // 'label:es': '',
-               // 'label:pt': '',
-               // 'label:fr': '',
-               // 'label:it': '',
-               // 'label:tr': '',
-               // 'label:de': '',
-               // 'label:pl': '',
-               // 'label:ua': '',
-            },
+            // {
+            //    label: 'link to external (popup)', value: 'external-popup',
+            //    // 'label:zh': '',
+            //    // 'label:ja': '',
+            //    // 'label:ko': '',
+            //    // 'label:vi': '',
+            //    // 'label:id': '',
+            //    // 'label:es': '',
+            //    // 'label:pt': '',
+            //    // 'label:fr': '',
+            //    // 'label:it': '',
+            //    // 'label:tr': '',
+            //    // 'label:de': '',
+            //    // 'label:pl': '',
+            //    // 'label:ua': '',
+            // },
          ],
       },
    }

@@ -4,8 +4,8 @@
 window.nova_plugins.push({
    id: 'download-video',
    title: 'Download video',
-   'title:zh': '下载视频',
-   'title:ja': 'ビデオをダウンロードする',
+   // 'title:zh': '下载视频',
+   // 'title:ja': 'ビデオをダウンロードする',
    // 'title:ko': '',
    // 'title:id': '',
    // 'title:es': '',
@@ -17,9 +17,11 @@ window.nova_plugins.push({
    // 'title:pl': '',
    // 'title:ua': '',
    run_on_pages: 'watch, -mobile',
-   section: 'control-panel',
+   section: 'player-control',
    // desc: '',
    _runtime: user_settings => {
+
+      // alt - https://greasyfork.org/en/scripts/496975-gaston-s-video-image-downloader
 
       NOVA.waitSelector('#movie_player .ytp-right-controls')
          .then(container => {
@@ -27,7 +29,7 @@ window.nova_plugins.push({
                // container <a>
                SELECTOR_BTN_CONTAINER_CLASS_NAME = 'nova-video-download',
                SELECTOR_BTN_CONTAINER = '.' + SELECTOR_BTN_CONTAINER_CLASS_NAME,
-               containerBtn = document.createElement('div'),
+               containerBtn = document.createElement('button'),
                // list <ul>
                SELECTOR_BTN_LIST_ID = SELECTOR_BTN_CONTAINER_CLASS_NAME + '-list',
                SELECTOR_BTN_LIST = '#' + SELECTOR_BTN_LIST_ID,
@@ -156,9 +158,9 @@ window.nova_plugins.push({
             labelBtn.id = SELECTOR_BTN_LABEL_ID;
             // labelBtn.title = 'Nova video download';
             labelBtn.setAttribute('tooltip', 'Nova video download');
-            labelBtn.textContent = '🡇'; // '🖫'
+            // labelBtn.textContent = '🡇'; // '🖫'
             // // labelBtn.innerHTML =  NOVA.createSafeHTML(
-            // //    `< svg viewBox = "0 0 120 120" width = "100%" height = "100%" style = "scale: .6;" >
+            // //    `<svg viewBox="0 0 120 120" width="100%" height="100%" style="scale:.6;">
             // //       <g fill="currentColor">
             // //          <path d="M96.215 105h-72.18c-3.33 0-5.94-2.61-5.94-5.94V75.03c0-3.33 2.61-5.94 5.94-5.94 3.33 0 5.94 2.61 5.94 5.94v18h60.03v-18c0-3.33 2.61-5.94 5.94-5.94 3.33 0 5.94 2.61 5.94 5.94v24.03c.27 3.33-2.34 5.94-5.67 5.94Zm-32.4-34.47c-2.07 1.89-5.4 1.89-7.56 0l-18.72-17.19c-2.07-1.89-2.07-4.86 0-6.84 2.07-1.98 5.4-1.89 7.56 0l8.91 8.19V20.94c0-3.33 2.61-5.94 5.94-5.94 3.33 0 5.94 2.61 5.94 5.94V54.6l8.91-8.19c2.07-1.89 5.4-1.89 7.56 0 2.07 1.89 2.07 4.86 0 6.84l-18.54 17.28Z" />
             // //       </g>
@@ -175,7 +177,7 @@ window.nova_plugins.push({
             //    svg.setAttribute('width', '100%');
             //    svg.setAttribute('height', '100%');
             //    svg.setAttribute('viewBox', '0 0 120 120');
-            //    svg.style.scale = '0.6';
+            //    svg.style.scale = .6;
 
             //    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
             //    g.setAttribute('fill', 'currentColor');
@@ -188,13 +190,36 @@ window.nova_plugins.push({
 
             //    return svg;
             // })());
+            // labelBtn.innerHTML =  NOVA.createSafeHTML(
+            //    `<svg viewBox="0 0 582.207 582.207" width="100%" height="100%" style="scale:.7;">
+            //       <g fill="currentColor">
+            //          <path d="M389.752,324.006V125.105c0-6.249-5.066-11.316-11.316-11.316H203.771c-6.249,0-11.316,5.067-11.316,11.316v198.893 h-53.672c-15.618,0-19.327,8.955-8.28,20L271.11,484.605c11.047,11.047,28.955,11.047,40,0L451.711,344 c11.047-11.047,7.338-20.002-8.279-20.002h-53.68V324.006z" />
+            //       </g>
+            //    </svg>`);
+            // fix - This document requires 'TrustedHTML' assignment.
+            labelBtn.append((function createSvgIcon() {
+               const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+               svg.setAttribute('width', '100%');
+               svg.setAttribute('height', '100%');
+               svg.setAttribute('viewBox', '0 0 582.207 582.207');
+               svg.style.scale = .7;
+
+               const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+               g.setAttribute('fill', 'currentColor');
+
+               const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+               path.setAttribute('d', 'M389.752,324.006V125.105c0-6.249-5.066-11.316-11.316-11.316H203.771c-6.249,0-11.316,5.067-11.316,11.316v198.893 h-53.672c-15.618,0-19.327,8.955-8.28,20L271.11,484.605c11.047,11.047,28.955,11.047,40,0L451.711,344 c11.047-11.047,7.338-20.002-8.279-20.002h-53.68V324.006z');
+
+               g.append(path);
+               svg.append(g);
+
+               return svg;
+            })());
 
             // list <ul>
             dropdownMenu.id = SELECTOR_BTN_LIST_ID;
 
-            containerBtn.prepend(labelBtn);
-            containerBtn.append(dropdownMenu);
-
+            containerBtn.append(labelBtn, dropdownMenu);
             container.prepend(containerBtn);
 
             async function generateMenu() {
@@ -280,17 +305,16 @@ window.nova_plugins.push({
                   //    select.append(option);
                   // });
 
-                  // container.append(saveDownloadVideoButton);
-                  // container.append(select);
+                  // container.append(saveDownloadVideoButton, select);
 
                   // restore icon
                   labelBtn.replaceWith(labelBtnCloned);
                   // fix - This document requires 'TrustedHTML' assignment.
                   // if (parentElement = labelBtn.parentNode) {
-                  //    parentElement.appendChild(clonedElement);
+                  //    parentElement.append(clonedElement);
                   //    parentElement.removeChild(originalElement);
                   // }
-                  labelBtn.removeProperty('cursor');
+                  labelBtn.style.cursor = '';
                }
             }
          });
@@ -317,7 +341,8 @@ window.nova_plugins.push({
 
          // alt1 - https://greasyfork.org/en/scripts/479944-youtube-downloader/
          // alt2 - https://greasyfork.org/en/scripts/483370-simple-youtube-downloader
-         // alt6 - https://greasyfork.org/en/scripts/481954-youtube-direct-downloader
+         // alt3 - https://greasyfork.org/en/scripts/481954-youtube-direct-downloader
+         // alt4 - https://greasyfork.org/en/scripts/515230-cobalt-tools-youtube-direct-downloader
          /**
           * @param  {void}
           * @return {@object array} {codec, quality, data, custom_fn}
@@ -333,8 +358,8 @@ window.nova_plugins.push({
                         {
                            codec: codec,
                            quality: quality,
-                           'data': { 'vCodec': codec, 'vQuality': String(quality) },
-                           'custom_fn': CobaltAPI,
+                           data: { 'vCodec': codec, 'vQuality': String(quality) },
+                           custom_fn: CobaltAPI,
                         },
                         // { label: `${i} (max)`, data: { vCodec: i, codec: 'max' }, custom_fn: CobaltAPI },
                      ]);
@@ -354,7 +379,8 @@ window.nova_plugins.push({
             async function CobaltAPI(item) {
                // https://github.com/imputnet/cobalt (https://cobalt.tools/)
                // https://github.com/wukko/cobalt/blob/current/docs/api.md
-               const dlink = await fetch('https://co.wuk.sh/api/json',
+               // const dlink = await NOVA.fetch('https://co.wuk.sh/api/json',
+               const dlink = await NOVA.fetch('https://api.cobalt.tools/api/json',
                   {
                      method: 'POST', // *GET, POST, PUT, DELETE, etc.
                      // mode: 'no-cors', // no-cors, *cors, same-origin
@@ -382,11 +408,10 @@ window.nova_plugins.push({
                   // }
                   .then(json => json.url)
                   .catch(error => {
-                     // mute console warn
-                     console.warn(`Cobalt API: failed fetching: ${error}`)
+                     throw new Error(`Cobalt API: failed fetching: ${error}`);
                   });
 
-               if (!dlink) return console.debug('CobaltAPI empty dlink:', dlink);
+               if (!dlink) return console.error('CobaltAPI empty dlink:', dlink);
                downloadFile(dlink);
             }
          },
@@ -398,8 +423,19 @@ window.nova_plugins.push({
           * @return {@object array} {codec, quality, url, custom_fn}
          */
          // loaderTo() {
+         //    // download.php
          //    // const genLink = format => `https://loader.to/ajax/download.php?button=1&start=1&end=1&format=${format}&url=${encodeURIComponent('https://www.youtube.com/watch?v=' + APIs.videoId)}`;
-         //    const genLink = format => `https://loader.to/api/button/?url=${APIs.videoId}&f=${format}&color=0af`;
+
+         //    // button
+         //    const genLink = format => NOVA.queryURL.set({
+         //       // https://loader.to/api/button/?url=YOUR_YOUTUBE_VIDEO_URL&f=FORMAT_VALUE&color=COLOR_VALUE&linkUrl=AD_URL&css=CSS_URL
+         //       url: 'https://www.youtube.com/watch?v=' + APIs.videoId,
+         //       f: format,
+         //       color: '0af' // COLOR_VALUE
+         //       // linkUrl: '',// AD_URL
+         //       // css: '',// CSS_URL
+         //    }, 'https://loader.to/api/button/');
+
 
          //    const qualityAvailableList = this.getQualityAvailableList()?.filter(i => i > 240);
          //    let vidlist = [];
@@ -436,6 +472,7 @@ window.nova_plugins.push({
          //       { codec: 'wav', url: genLink('wav'), custom_fn: openPopup },
          //    ];
 
+
          //    function openPopup(item) {
          //       NOVA.openPopup({ 'url': item.url, width: 420, height: 80 });
          //    }
@@ -446,68 +483,68 @@ window.nova_plugins.push({
           * @param  {void}
           * @return {@object array} {codec, quality, url}
          */
-         TubeNightly() {
-            const genLink = format => `https://tube-nightly.kuylar.dev/proxy/media/${APIs.videoId}/${format}`;
+         // TubeNightly() {
+         //    const genLink = format => `https://tube-nightly.kuylar.dev/proxy/media/${APIs.videoId}/${format}`;
 
-            const qualityAvailableList = this.getQualityAvailableList()?.filter(i => i <= 1080);
-            let vidlist = [];
+         //    const qualityAvailableList = this.getQualityAvailableList()?.filter(i => i <= 1080);
+         //    let vidlist = [];
 
-            // Available Format with IDs are: 18, 137, 248, 136, 247, 135, 244, 134, 243, 133, 242, 160, 278, 139, 140
-            const availableFormatsList = {
-               h264: {
-                  '1080': 137,
-                  '720': 136,
-                  '480': 135,
-                  '360': 134,
-                  // '360':18,
-                  '240': 133,
-                  '144': 160,
-               },
-               vp9: {
-                  '1080': 248,
-                  '720': 247,
-                  '480': 244,
-                  '360': 243,
-                  '240': 242,
-                  '144': 278,
-               },
-            };
+         //    // Available Format with IDs are: 18, 137, 248, 136, 247, 135, 244, 134, 243, 133, 242, 160, 278, 139, 140
+         //    const availableFormatsList = {
+         //       h264: {
+         //          '1080': 137,
+         //          '720': 136,
+         //          '480': 135,
+         //          '360': 134,
+         //          // '360':18,
+         //          '240': 133,
+         //          '144': 160,
+         //       },
+         //       vp9: {
+         //          '1080': 248,
+         //          '720': 247,
+         //          '480': 244,
+         //          '360': 243,
+         //          '240': 242,
+         //          '144': 278,
+         //       },
+         //    };
 
-            ['h264', /*'av1',*/ 'vp9']
-               .forEach(codec => {
-                  qualityAvailableList.forEach(quality => {
-                     if (!availableFormatsList[codec]?.[quality]) return;
-                     vidlist.push({
-                        'codec': codec,
-                        'quality': quality,
-                        'link': genLink(availableFormatsList[codec][quality]),
-                     });
-                  });
-               });
+         //    ['h264', /*'av1',*/ 'vp9']
+         //       .forEach(codec => {
+         //          qualityAvailableList.forEach(quality => {
+         //             if (!availableFormatsList[codec]?.[quality]) return;
+         //             vidlist.push({
+         //                'codec': codec,
+         //                'quality': quality,
+         //                'link': genLink(availableFormatsList[codec][quality]),
+         //             });
+         //          });
+         //       });
 
-            return [
-               // video
-               ...vidlist,
-               // mp4
-               // { codec: 'h264', quality: '1080', link: genlink(137) },
-               // { codec: 'h264', quality: '720', link: genlink(136) },
-               // { codec: 'h264', quality: '480', link: genlink(135) },
-               // // { codec: 'h264', quality: '360', link: genlink(134) }, // duplicate with worse quality
-               // { codec: 'h264', quality: '360', link: genlink(18) },
-               // { codec: 'h264', quality: '240', link: genlink(133) },
-               // { codec: 'h264', quality: '144', link: genLink(160) },
-               // vp9
-               // { codec: 'vp9', quality: '1080', link: genLink(248) },
-               // { codec: 'vp9', quality: '720', link: genLink(247) },
-               // { codec: 'vp9', quality: '480', link: genLink(244) },
-               // { codec: 'vp9', quality: '360', link: genLink(243) },
-               // { codec: 'vp9', quality: '240', link: genLink(242) },
-               // { codec: 'vp9', quality: '144', link: genLink(278) },
-               //  Audio
-               { codec: 'aac', quality: '127 kbps', link: genLink(140) },
-               { codec: 'aac', quality: '48 kbps', link: genLink(139) },
-            ];
-         },
+         //    return [
+         //       // video
+         //       ...vidlist,
+         //       // mp4
+         //       // { codec: 'h264', quality: '1080', link: genlink(137) },
+         //       // { codec: 'h264', quality: '720', link: genlink(136) },
+         //       // { codec: 'h264', quality: '480', link: genlink(135) },
+         //       // // { codec: 'h264', quality: '360', link: genlink(134) }, // duplicate with worse quality
+         //       // { codec: 'h264', quality: '360', link: genlink(18) },
+         //       // { codec: 'h264', quality: '240', link: genlink(133) },
+         //       // { codec: 'h264', quality: '144', link: genLink(160) },
+         //       // vp9
+         //       // { codec: 'vp9', quality: '1080', link: genLink(248) },
+         //       // { codec: 'vp9', quality: '720', link: genLink(247) },
+         //       // { codec: 'vp9', quality: '480', link: genLink(244) },
+         //       // { codec: 'vp9', quality: '360', link: genLink(243) },
+         //       // { codec: 'vp9', quality: '240', link: genLink(242) },
+         //       // { codec: 'vp9', quality: '144', link: genLink(278) },
+         //       //  Audio
+         //       { codec: 'aac', quality: '127 kbps', link: genLink(140) },
+         //       { codec: 'aac', quality: '48 kbps', link: genLink(139) },
+         //    ];
+         // },
 
          // alt - https://github.com/ashley0143/poke
          /**
@@ -515,7 +552,10 @@ window.nova_plugins.push({
           * @return {@object array} {codec, quality, url, custom_fn}
          */
          // Poketube() {
-         //    const genLink = format => `https://poketube.fun/api/video/download?v=${APIs.videoId}${format}`;
+         //    // const genLink = format => `https://poketube.fun/api/video/download?v=${APIs.videoId}${format}`;
+         //    const genLink = format => NOVA.queryURL.set({
+         //       v: APIs.videoId + format,
+         //    }, 'https://poketube.fun/api/video/download');
 
          //    const qualityAvailableList = this.getQualityAvailableList()?.filter(i => i > 240 && i <= 720);
          //    let vidlist = [];
@@ -567,70 +607,93 @@ window.nova_plugins.push({
 
          third_party() {
             return [
-               // alt1 - https://greasyfork.org/en/scripts/459232-y2mate-tools
-               // alt2 - https://greasyfork.org/en/scripts/22108-bajar-mp3-youtube
-               // alt3 - https://greasyfork.org/en/scripts/483485-youtube-css-downloader-reload-page
+               // alt - https://greasyfork.org/en/scripts/387200
                {
-                  quality: 'mp3,mp4',
-                  codec: 'Y2Mate', // https://Y2Mate.tools
-                  link_new_tab: 'https://www.y2mate.com/youtube/' + APIs.videoId,
-                  // link_new_tab: 'https://www.y2mate.com/youtube-mp3/' + APIs.videoId,
-                  // https://www.youtubepp.com/watch?v=
+                  quality: 'mp3,mp4,m4a,aac,3gp,avi,mov,mkv',
+                  codec: 'clipconverter.cc',
+                  link_new_tab: 'https://www.clipconverter.cc/3/?url=https://www.youtube.com/watch?v=' + APIs.videoId,
                },
                {
-                  quality: 'mp3,mp4',
+                  quality: 'mp3,mp4,m4a,webp,acc,flac,opus,ogg,wav',
+                  codec: 'loader.to',
+                  // link_new_tab: 'https://loader.to/api/card/?url=https://www.youtube.com/watch?v=' + APIs.videoId,
+                  custom_fn: () =>
+                     NOVA.openPopup({
+                        // url: 'https://loader.to/api/card/?url=https://www.youtube.com/watch?v=' + APIs.videoId,
+                        url: 'https://loader.to/api/card2/?url=https://www.youtube.com/watch?v=' + APIs.videoId,
+                        width: 960, height: 350,
+                     }),
+               },
+               {
+                  quality: 'mp3,mp4,3gp,M4A',
                   codec: 'tomp3.cc',
                   link_new_tab: 'https://tomp3.cc/youtube-downloader/' + APIs.videoId,
                   // 'https://tomp3.cc/youtube-to-mp3/' + APIs.videoId
                   // 'https://tomp3.cc/youtube-converter/' + APIs.videoId
                   // 'https://tomp3.cc/youtube-downloader/' + APIs.videoId
                },
+               // alt - // https://greasyfork.org/en/scripts/475514-youtube-multi-downloader-sfrom-net-shift-d
+               {
+                  quality: 'mp4,m4a,webm,opus',
+                  codec: 'savefrom.net',
+                  link_new_tab: 'https://savefrom.net/https://www.youtube.com/watch?v=' + APIs.videoId,
+                  // link_new_tab: 'https://sfrom.net/https://www.youtube.com/watch?v=' + APIs.videoId,
+                  // link_new_tab: 'https://ssyoutube.com/watch?v=' + APIs.videoId,
+               },
+               // alt1 - https://greasyfork.org/en/scripts/459232-y2mate-tools
+               // alt2 - https://greasyfork.org/en/scripts/22108-bajar-mp3-youtube
+               // alt3 - https://greasyfork.org/en/scripts/483485-youtube-css-downloader-reload-page
+               {
+                  quality: 'mp3,mp4,3gp',
+                  codec: 'Y2Mate', // https://Y2Mate.tools
+                  link_new_tab: 'https://www.y2mate.com/youtube/' + APIs.videoId,
+                  // link_new_tab: 'https://www.y2mate.com/youtube-mp3/' + APIs.videoId,
+                  // https://www.youtubepp.com/watch?v=
+               },
                // alt1 - https://greasyfork.org/en/scripts/486702
                // alt2 - https://greasyfork.org/en/scripts/483950
                // alt3 - https://greasyfork.org/en/scripts/473086-youtube-downloader
                {
-                  quality: 'mp3,mp4',
+                  quality: 'mp3,mp4,3gp',
                   codec: 'yt1s.ltd',
                   // codec: 'yt1s.com',
                   link_new_tab: 'https://www.yt1s.com/en?q=https://www.youtube.com/watch?v=' + APIs.videoId,
                },
                // alt - https://greasyfork.org/en/scripts/483289-youtube-video-downloader
                {
-                  quality: 'mp3,mp4,ogg',
+                  quality: 'mp3,mp4,ogg,3gp',
                   codec: 'yt5s', // youtube5s (yt5s.win, yt5s.io, yt5s.biz)
                   link_new_tab: 'https://yt5s.com/watch?v=' + APIs.videoId,
                },
-               // alt - // https://greasyfork.org/en/scripts/475514-youtube-multi-downloader-sfrom-net-shift-d
-               {
-                  quality: 'mp3,mp4,ogg',
-                  codec: 'savefrom.net',
-                  link_new_tab: 'https://savefrom.net/https://www.youtube.com/watch?v=' + APIs.videoId,
-                  // link_new_tab: 'https://sfrom.net/https://www.youtube.com/watch?v=' + APIs.videoId,
-               },
                // alt - https://greasyfork.org/en/scripts/469769-youtube-downloader
                {
-                  quality: 'mp3,mp4,ogg',
+                  quality: 'mp3,mp4,ogg,3gp',
                   codec: 'snapsave.io',
                   link_new_tab: 'https://snapsave.io/?q=' + APIs.videoId,
                },
                {
-                  quality: 'mp3,mp4',
+                  quality: 'mp3,mp4,ogg,3gp',
                   codec: 'x2download.app',
                   link_new_tab: 'https://x2download.app/?q=' + APIs.videoId,
                   // link_new_tab: 'https://x2download.app/watch?v=' + APIs.videoId,
                },
+               // alt - https://greasyfork.org/en/scripts/8426-download-youtube-videos-and-subtitles
                {
-                  quality: 'mp3,mp4,ogg',
-                  codec: 'yt2conv.org',
-                  link_new_tab: 'https://yt2conv.org/download?https://www.youtube.com/watch?v=' + APIs.videoId,
+                  quality: 'mp3,mp4,webp',
+                  codec: 'addyoutube.com',
+                  link_new_tab: 'https://addyoutube.com/watch?v=' + APIs.videoId,
                },
-               // alt - https://greasyfork.org/en/scripts/387200
+               // alt - https://greasyfork.org/en/scripts/475299-youtube-multi-downloader-10downloader-com-mp3-fhd-mp4-hd-sd-3gp-no-ads
                {
-                  // quality: 'mp3,mp4,m4a,mp4,3gp,avi,mov,mkv',
-                  quality: 'mp3,mp4,m4a,mp4,mkv',
-                  codec: 'clipconverter.cc',
-                  link_new_tab: 'https://www.clipconverter.cc/3/?url=https://www.youtube.com/watch?v=' + APIs.videoId,
+                  quality: 'mp4,webp',
+                  codec: '10downloader.com',
+                  link_new_tab: 'https://10downloader.com/download?v=https://www.youtube.com/watch?v=' + APIs.videoId,
                },
+               // {
+               //    quality: 'mp3,mp4,ogg',
+               //    codec: 'yt2conv.org',
+               //    link_new_tab: 'https://yt2conv.org?https://www.youtube.com/watch?v=' + APIs.videoId,
+               // },
                // alt - https://greasyfork.org/en/scripts/481649-download-video-audio-from-youtube-quickly-via-userscript-menu
                {
                   quality: 'mp3,mp4',
@@ -646,7 +709,7 @@ window.nova_plugins.push({
                // alt1 - https://greasyfork.org/en/scripts/455314-youtube-to-mp3-converter-video-downloader-tubemp3-to
                // alt2 - https://greasyfork.org/en/scripts/34613
                {
-                  quality: 'mp3,mp4 (360p)',
+                  quality: 'mp3,mp4(360p)',
                   codec: 'TubeMP3.to',
                   link_new_tab: 'https://tubemp3.to/' + APIs.videoId,
                },
@@ -662,6 +725,11 @@ window.nova_plugins.push({
                   codec: 'onlymp3.app',
                   link_new_tab: 'https://onlymp3.app/convert/' + APIs.videoId,
                },
+               // {
+               //    quality: 'mp3',
+               //    codec: 'freemp3.tube',
+               //    link_new_tab: 'https://freemp3.tube?' + APIs.videoId,
+               // },
             ];
          },
 
@@ -748,8 +816,7 @@ window.nova_plugins.push({
          //          // });
          //       })
          //       .catch(error => {
-         //          console.error('Error get vids:', error); // warn
-         //          throw error;
+         //          throw new Error(`Error get vids: ${error}`);
          //       });
 
          //    // NOVA.cookie.parseQueryToObj
@@ -890,8 +957,8 @@ window.nova_plugins.push({
       download_video_mode: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',
@@ -936,21 +1003,21 @@ window.nova_plugins.push({
             //    // 'label:pl': '',
             //    // 'label:ua': '',
             // },
-            {
-               label: 'tubenightly', value: 'tubenightly',
-               // 'label:zh': '',
-               // 'label:ja': '',
-               // 'label:ko': '',
-               // 'label:id': '',
-               // 'label:es': '',
-               // 'label:pt': '',
-               // 'label:fr': '',
-               // 'label:it': '',
-               // 'label:tr': '',
-               // 'label:de': '',
-               // 'label:pl': '',
-               // 'label:ua': '',
-            },
+            // {
+            //    label: 'tubenightly', value: 'tubenightly',
+            //    // 'label:zh': '',
+            //    // 'label:ja': '',
+            //    // 'label:ko': '',
+            //    // 'label:id': '',
+            //    // 'label:es': '',
+            //    // 'label:pt': '',
+            //    // 'label:fr': '',
+            //    // 'label:it': '',
+            //    // 'label:tr': '',
+            //    // 'label:de': '',
+            //    // 'label:pl': '',
+            //    // 'label:ua': '',
+            // },
             // {
             //    label: 'poketube', value: 'poketube',
             //    // 'label:zh': '',

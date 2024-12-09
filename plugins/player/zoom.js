@@ -4,7 +4,8 @@
 // https://www.youtube.com/watch?v=KOCZaxzZE34 - (91:90)
 // https://www.youtube.com/watch?v=z-2w7eAL-98 - (121:120)
 // https://www.youtube.com/watch?v=TaQwW5eQZeY - (121:120)
-// https://www.youtube.com/watch?v=U9mUwZ47z3E - (ultra-wide) - now broken
+// https://www.youtube.com/watch?v=U9mUwZ47z3E - (mega-wide) - now broken
+// https://www.youtube.com/watch?v=I-ekcFSdke8 - (21:9)
 // https://www.youtube.com/watch?v=mco3UX9SqDA - (16:9) horizontal black bars
 // https://www.youtube.com/watch?v=EqYYmQVs36I - (16:9) horizontal black bars
 // https://www.youtube.com/watch?v=EIVgSuuUTwQ - (4:3) horizontal black bars
@@ -12,8 +13,8 @@
 window.nova_plugins.push({
    id: 'video-zoom',
    title: 'Zoom video',
-   'title:zh': '缩放视频',
-   'title:ja': 'ズームビデオ',
+   // 'title:zh': '缩放视频',
+   // 'title:ja': 'ズームビデオ',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -73,7 +74,7 @@ window.nova_plugins.push({
                   if (delta) {
                      evt.preventDefault();
                      evt.stopPropagation();
-                     evt.stopImmediatePropagation();
+                     // evt.stopImmediatePropagation();
 
                      if (step = +user_settings.zoom_step * Math.sign(delta)) {
                         setScale(zoomPercent + step);
@@ -90,11 +91,10 @@ window.nova_plugins.push({
                   // evt.stopImmediatePropagation();
 
                   if (evt[user_settings.zoom_hotkey]
-                     || (user_settings.zoom_hotkey == 'none' && !evt.ctrlKey && !evt.altKey && !evt.shiftKey && !evt.metaKey)
+                     || (user_settings.zoom_hotkey == 'wheel' && !evt.ctrlKey && !evt.altKey && !evt.shiftKey && !evt.metaKey)
                   ) {
-                     if (step = +user_settings.zoom_step * Math.sign(evt.wheelDelta)) {
-                        setScale(zoomPercent + step);
-                     }
+                     const step = +user_settings.zoom_step * Math.sign(evt.wheelDelta);
+                     if (step) setScale(zoomPercent + step);
                   }
                }, { capture: true });
             }
@@ -104,9 +104,8 @@ window.nova_plugins.push({
                document.addEventListener('keyup', evt => {
                   if (!filteredEvent(evt)) return;
 
-                  if ((hotkey.length === 1 ? evt.key : evt.code) === hotkey
-                     && (zoomMax = geVideoMaxWidthPercent())
-                  ) {
+                  if ((hotkey.length === 1 ? evt.key : evt.code) === hotkey) {
+                     const zoomMax = +user_settings.zoom_auto_max_width || geVideoMaxWidthPercent();
                      setScale(zoomPercent === zoomMax ? 100 : zoomMax);
                   }
                }, { capture: true });
@@ -123,56 +122,6 @@ window.nova_plugins.push({
                   }
                });
             }
-
-            // init max width
-            if (user_settings.zoom_auto_max_width && !customZoom) {
-               NOVA.waitSelector('video')
-                  .then(video => {
-                     video.addEventListener('loadeddata', () => {
-                        const squareAspectRatio = () => {
-                           const aspectRatio = NOVA.aspectRatio.getAspectRatio({
-                              // 'width': movie_player.clientWidth,
-                              // 'height': movie_player.clientHeight,
-                              // 'width': NOVA.videoElement?.videoWidth,
-                              // 'height': NOVA.videoElement?.videoHeight,
-                              'width': video.videoWidth,
-                              'height': video.videoHeight,
-                           });
-                           return ('4:3' == aspectRatio || '1:1' == aspectRatio);
-                        };
-
-                        if (!squareAspectRatio()
-                           && (zoomMax = geVideoMaxWidthPercent())
-                           && (Math.trunc(zoomMax) !== 100) // was changed earlier
-                           && (Math.trunc(zoomMax) < 175) // ignore ultra-wide (179.63446475195823)
-                        ) {
-                           setScale(zoomMax);
-                        }
-                     });
-                  });
-            }
-
-            // zoom small video to fill height
-            // NOVA.waitSelector('video')
-            //    .then(video => {
-            //       video.addEventListener('loadeddata', () => {
-            //          if (this.videoHeight < window.innerWidth && this.videoHeight < window.innerHeight) {
-            //             setScale(geVideoMaxHeightPercent());
-            //          }
-
-            //          function geVideoMaxHeightPercent() {
-            //             return movie_player.clientHeight / NOVA.videoElement.videoHeight * 100;
-            //          }
-
-            //          // if (!squareAspectRatio()
-            //          //    && (zoomMax = geVideoMaxWidthPercent())
-            //          //    && (Math.trunc(zoomMax) !== 100) // was changed earlier
-            //          //    && (Math.trunc(zoomMax) < 175) // skip ultra-wide (179.63446475195823)
-            //          // ) {
-
-            //          // }
-            //       });
-            //    });
 
             function setScale(zoom_pt = 100) {
                // console.debug('setScale', ...arguments);
@@ -192,12 +141,10 @@ window.nova_plugins.push({
 
                // show UI notification
                NOVA.showOSD({
-                  'message': `Zoom: ${zoom_pt}%`,
+                  'message': `Zoom:`,
                   'ui_value': zoom_pt,
                   'ui_max': ZOOM_MAX,
                   'source': 'zoom',
-                  // 'timeout_ms': null,
-                  // 'clear_previous_text': true,
                });
 
                // For optimization, don`t update again
@@ -212,6 +159,11 @@ window.nova_plugins.push({
 
                container.style.setProperty('transform', `scale(${zoom_pt / 100})`);
                // container.style.setProperty('transform', `scale(${zoom_h}, ${zoom_v})`);
+
+               // clear state for next video
+               document.addEventListener('yt-navigate-start', () => {
+                  container?.style.removeProperty('transform');
+               }, { capture: true, once: true });
             }
 
             function geVideoMaxWidthPercent() {
@@ -226,8 +178,7 @@ window.nova_plugins.push({
 
             function filteredEvent(evt = required()) {
                if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
-
-               if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
+               if (NOVA.editableFocused(evt.target)) return;
                if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
 
                return true;
@@ -250,8 +201,8 @@ window.nova_plugins.push({
       zoom_hotkey: {
          _tagName: 'select',
          label: 'Hotkey',
-         'label:zh': '热键',
-         'label:ja': 'ホットキー',
+         // 'label:zh': '热键',
+         // 'label:ja': 'ホットキー',
          // 'label:ko': '단축키',
          // 'label:vi': '',
          // 'label:id': 'Tombol pintas',
@@ -265,7 +216,7 @@ window.nova_plugins.push({
          // 'label:ua': 'Гаряча клавіша',
          options: [
             { label: 'none', /* value: false */ }, // fill value if no "selected" mark another option
-            { label: 'wheel', value: 'none' },
+            { label: 'wheel', value: 'wheel' },
             { label: 'shift+wheel', value: 'shiftKey' },
             { label: 'ctrl+wheel', value: 'ctrlKey' },
             { label: 'alt+wheel', value: 'altKey' },
@@ -397,8 +348,8 @@ window.nova_plugins.push({
       zoom_step: {
          _tagName: 'input',
          label: 'Hotkey step',
-         'label:zh': '步',
-         'label:ja': 'ステップ',
+         // 'label:zh': '步',
+         // 'label:ja': 'ステップ',
          // 'label:ko': '단계',
          // 'label:vi': '',
          // 'label:id': 'Melangkah',
@@ -430,25 +381,6 @@ window.nova_plugins.push({
          min: 5,
          max: 50,
          value: 10,
-      },
-      zoom_auto_max_width: {
-         _tagName: 'input',
-         label: 'Auto fit to width',
-         // 'label:zh': '',
-         // 'label:ja': '',
-         // 'label:ko': '',
-         // 'label:vi': '',
-         // 'label:id': '',
-         // 'label:es': '',
-         // 'label:pt': '',
-         // 'label:fr': '',
-         // 'label:it': '',
-         // 'label:tr': '',
-         // 'label:de': '',
-         // 'label:pl': '',
-         // 'label:ua': '',
-         type: 'checkbox',
-         // title: '',
       },
       zoom_auto_max_width_hotkey_toggle: {
          _tagName: 'select',
@@ -524,6 +456,45 @@ window.nova_plugins.push({
             ']', '[', '+', '-', ',', '.', '/', '<', ';', '\\',
          ],
          // 'data-dependent': { 'player_buttons_custom_items': ['toggle-'] },
+      },
+      zoom_auto_max_width: {
+         _tagName: 'input',
+         label: 'Hotkey max width',
+         // 'label:zh': '',
+         // 'label:ja': '',
+         // 'label:ko': '',
+         // 'label:vi': '',
+         // 'label:id': '',
+         // 'label:es': '',
+         // 'label:pt': '',
+         // 'label:fr': '',
+         // 'label:it': '',
+         // 'label:tr': '',
+         // 'label:de': '',
+         // 'label:pl': '',
+         // 'label:ua': '',
+         type: 'number',
+         title: 'in %',
+         // 'title:zh': '',
+         // 'title:ja': '',
+         // 'title:ko': '',
+         // 'title:vi': '',
+         // 'title:id': '',
+         // 'title:es': '',
+         // 'title:pt': '',
+         // 'title:fr': '',
+         // 'title:it': '',
+         // 'title:tr': '',
+         // 'title:de': '',
+         // 'title:pl': '',
+         // 'title:ua': '',
+         placeholder: '%',
+         step: 1,
+         min: 0,
+         max: 200,
+         value: 130,
+         // title: '',
+         'data-dependent': { 'zoom_auto_max_width_hotkey_toggle': '!false' },
       },
    }
 });

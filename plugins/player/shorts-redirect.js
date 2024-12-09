@@ -5,8 +5,8 @@ window.nova_plugins.push({
    id: 'shorts-redirect',
    // title: 'Redirect Shorts to regular (watch) URLs',
    title: 'UnShort video',
-   'title:zh': '将 Shorts 重定向到常规（watch）URL',
-   'title:ja': 'ショートパンツを通常の（watch）URLにリダイレクトする',
+   // 'title:zh': '将 Shorts 重定向到常规（watch）URL',
+   // 'title:ja': 'ショートパンツを通常の（watch）URLにリダイレクトする',
    // 'title:ko': 'Shorts를 일반(watch) URL로 리디렉션',
    // 'title:vi': '',
    // 'title:id': 'Redirect Shorts ke URL reguler (watch)',
@@ -20,7 +20,7 @@ window.nova_plugins.push({
    // 'title:ua': 'Перенаправляйте прев`ю на звичайні URL-адреси (для перегляду)',
    // run_on_pages: 'results, feed, channel, shorts',
    run_on_pages: 'shorts',
-   restart_on_location_change: true, // replace "redirectPageToNormal"
+   restart_on_location_change: true,
    // section: 'other',
    section: 'player',
    desc: 'Redirect Shorts video to normal player',
@@ -39,86 +39,35 @@ window.nova_plugins.push({
    // 'desc:ua': 'Перенаправляйте прев`ю відео у звичайний відтворювач',
    _runtime: user_settings => {
 
+      // Solution 1
       location.href = location.href.replace('shorts/', 'watch?v=');
 
-      // NOVA.runOnPageLoad(redirectPageToNormal);
-
-      // function redirectPageToNormal() {
-      //    if ('shorts' == NOVA.currentPage) {
-      //       // alt1 - https://github.com/YukisCoffee/yt-anti-shorts/blob/main/anti-shorts.user.js
-      //       // alt2 - https://openuserjs.org/scripts/Kraust/Youtube_Shorts_Redirect
-      //       // alt3 - https://greasyfork.org/en/scripts/458220-better-short-player - replace to embed
-      //       // alt4 - https://greasyfork.org/en/scripts/444710-byts-better-youtube-shorts-greasyfork-edition
-      //       // alt5 - https://greasyfork.org/en/scripts/474490-unshort-youtube
-
-      //       return location.href = location.href.replace('shorts/', 'watch?v=');
-      //       // location.replace(location.href.replace('/shorts/', '/watch?v='));
-      //    }
-      // }
-
-      // if (user_settings['thumbs_hide_shorts']) return; // conflict with plugin [thumbs-hide] option (thumbs_hide_shorts). Attention! After shorts redirect
-
-      // Solution 1
-
-      // document.addEventListener('yt-action', evt => {
-      //    // console.debug(evt.detail?.actionName);
-      //    switch (evt.detail?.actionName) {
-      //       case 'yt-append-continuation-items-action': // home, results, feed, channel, watch
-      //       case 'ytd-update-grid-state-action': // feed, channel
-      //       case 'yt-rich-grid-layout-refreshed': // feed
-      //       // case 'ytd-rich-item-index-update-action': // home, channel
-      //       case 'yt-store-grafted-ve-action': // results, watch
-      //          // case 'ytd-update-elements-per-row-action': // feed
-
-      //          // universal
-      //          // case 'ytd-update-active-endpoint-action':
-      //          // case 'yt-window-scrolled':
-      //          // case 'yt-service-request': // results, watch
-
-      //          // console.debug(evt.detail?.actionName); // flltered
-
-      //          if (NOVA.currentPage == 'channel' && !['shorts'].includes(NOVA.channelTab)) return;
-
-      //          patchThumbShort();
-      //          break;
-      //    }
-      // });
-
-      // const
-      //    // ATTR_MARK = 'nova-thumb-shorts-pathed',
-      //    linkQueryPatch = '&list=RDSH';
-
-      // function patchThumbShort() {
-      //    document.body.querySelectorAll(`a[href*="/shorts/"]:not([href$="${linkQueryPatch}"])`)
-      //       .forEach(link => {
-      //          link.href += linkQueryPatch; // fix href redirect to watch
-      //          // link.href = link.href.replace('shorts/', 'watch?v=');
-      //       });
-      // }
-
       // Solution 2
+      // document.addEventListener('click', evt => patchLink(evt), { capture: true });
+      // // mouse middle click
+      // document.addEventListener('auxclick', evt => evt.button === 1 && patchLink(evt), { capture: true });
 
-      // clear before restart_on_location_change
-      // document.addEventListener('yt-navigate-start', () =>
-      //    NOVA.clear_watchElements(ATTR_MARK), { capture: true, once: true });
+      // function patchLink(evt) {
+      //    switch (NOVA.currentPage) {
+      //       case 'results':
+      //       case 'feed':
+      //       case 'channel':
+      //       case 'shorts':
+      //          if (evt.isTrusted
+      //             // && (link = evt.target.closest('a[href*="/shorts/"]'))
+      //             && (link = evt.target.closest('a'))
+      //             && link.href.matches('/shorts/')
+      //          ) {
+      //             // evt.preventDefault();
+      //             // // evt.stopPropagation();
+      //             // evt.stopImmediatePropagation();
 
-      // fix clear thumb on page update (change sort etc.)
-      // document.addEventListener('yt-page-data-updated', () =>
-      // document.addEventListener('yt-navigate-finish', () =>
-      // document.body.querySelectorAll(`[${ATTR_MARK}]`).forEach(e => e.removeAttribute(ATTR_MARK))
-      // , { capture: true, once: true });
-
-      // NOVA.watchElements({
-      //    selectors: ['a[href*="shorts/"]'],
-      //    attr_mark: ATTR_MARK,
-      //    callback: link => {
-      //       link.href += '&list=RDSH'; // fix href redirect to watch
-      //       // link.href = link.href.replace('shorts/', 'watch?v=');
-
-      //       // console.debug('has #shorts:', link);
-      //       // link.style.border = '2px solid green'; // mark for test
-      //    },
-      // });
+      //             link.href += linkQueryPatch; // fix href redirect to watch
+      //             // link.href = link.href.replace('shorts/', 'watch?v=');
+      //             break;
+      //          }
+      //    }
+      // }
 
    },
 });

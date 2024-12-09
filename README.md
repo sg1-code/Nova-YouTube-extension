@@ -61,7 +61,7 @@ Please read [plugin document](https://github.com/raingart/Nova-YouTube-extension
 * [/js/plugins.js](https://github.com/raingart/Nova-YouTube-extension/blob/master/js/plugins.js) - a list of all plugins and their module to run them.
 * [/js/optionsBilder.js](https://github.com/raingart/Nova-YouTube-extension/blob/master/js/optionsBilder.js) - generator of plugins configuration file.
 * [/js/libs/](https://github.com/raingart/Nova-YouTube-extension/blob/master/js/libs) - directory of internal components of the extension. Not used by plugins, only by the extension itself.
-* [/plugins/common.js](https://github.com/raingart/Nova-YouTube-extension/blob/master/plugins/common.js) - common library for all plugins.
+* [/plugins/NOVA.js](https://github.com/raingart/Nova-YouTube-extension/blob/master/plugins/NOVA.js) - common/utils library for all plugins.
 * [/plugins/](https://github.com/raingart/Nova-YouTube-extension/tree/master/plugins) - directory of all plugins and files available for connection to the YouTube page.
   * [plugin example](https://github.com/raingart/Nova-YouTube-extension/blob/master/plugins/plugin_example.js) - file use to understand basic functions
 

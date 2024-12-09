@@ -74,9 +74,7 @@ window.nova_plugins.push({
                if (!video.paused || !saveCurrentTime) return;
 
                if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
-
-               // movie_player.contains(document.activeElement) // don't use! stay overline
-               if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
+               if (NOVA.editableFocused(evt.target)) return;
                // if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
 
                if (evt.code == 'ArrowLeft' || evt.code == 'ArrowRight') reSaveTime();
@@ -309,7 +307,11 @@ window.nova_plugins.push({
                stopPreload = !stopPreload;
 
                btn.style.opacity = stopPreload ? .5 : 1;
-               NOVA.showOSD('Preload is ' + Boolean(stopPreload));
+
+               NOVA.showOSD({
+                  message: `Preload is ${Boolean(stopPreload)}`,
+                  source: 'auto-buffer',
+               });
 
                if (stopPreload) {
                   NOVA.videoElement.currentTime = saveCurrentTime;
@@ -322,11 +324,6 @@ window.nova_plugins.push({
                   NOVA.videoElement.pause();
                }
             }
-
-            // NOVA.runOnPageLoad(async () => {
-            //    if (NOVA.currentPage != 'watch') return;
-            // });
-
          });
 
    },
@@ -348,6 +345,8 @@ window.nova_plugins.push({
          // 'label:pl': '',
          // 'label:ua': '',
          type: 'number',
+         // type: 'time',
+         // step: 1, // sec
          title: 'buffer time',
          // 'title:zh': '',
          // 'title:ja': '',
@@ -371,8 +370,8 @@ window.nova_plugins.push({
       auto_buffer_default: {
          _tagName: 'select',
          label: 'Default state',
-         'label:zh': '默认状态',
-         'label:ja': 'デフォルト状態',
+         // 'label:zh': '默认状态',
+         // 'label:ja': 'デフォルト状態',
          // 'label:ko': '기본 상태',
          // 'label:vi': '',
          // 'label:id': 'Status default',
@@ -424,8 +423,8 @@ window.nova_plugins.push({
          type: 'color',
          value: '#ffa000',
          label: 'Color',
-         'label:zh': '颜色',
-         'label:ja': '色',
+         // 'label:zh': '颜色',
+         // 'label:ja': '色',
          // 'label:ko': '색깔',
          // 'label:vi': '',
          // 'label:id': 'Warna',

@@ -11,7 +11,7 @@
    grid-template-areas:
       "header header header other"
       "player player playlist other"
-      "control-panel control-panel playlist other"
+      "player-control player-control playlist other"
       "details details-buttons sidebar other"
       "comments comments sidebar thumbs"
       "comments comments empty thumbs"
@@ -20,7 +20,7 @@
 .appearance>* {
    /* border: 1px solid #ddd;
    background-color: white;     */
-   outline: 1px solid var(--hr);
+   outline: 1px solid var(--separator);
    min-height: 30px;
    cursor: pointer;
    user-select: none;
@@ -59,8 +59,8 @@
    font-size: 1.1em;
 }
 
-.appearance>.control-panel {
-   grid-area: control-panel;
+.appearance>.player-control {
+   grid-area: player-control;
    height: 40px;
    color: #efefef;
    /* background: url(/images/appearance_player.png) no-repeat center bottom; */

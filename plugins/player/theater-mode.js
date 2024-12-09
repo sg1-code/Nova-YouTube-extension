@@ -44,20 +44,21 @@ window.nova_plugins.push({
 
             function isTheaterMode() {
                return (
-                  el.hasAttribute('theater')
+                  (NOVA.getPlayerState.visibility() == 'THEATER')
+                  || el.hasAttribute('theater')
                   || (typeof el.isTheater_ === 'function' && el.isTheater_())
-                  || approximatelyEqual(movie_player.clientWidth, window.innerWidth, .05)
+                  // || approximatelyEqual(movie_player.clientWidth, window.innerWidth, .05)
                   // || (NOVA.cookies.get('wide') === '1') // unreliable inert method
                );
 
-               function approximatelyEqual(num1 = required(), num2 = required(), tolerance_pt = .05) {
-                  // Calculate the absolute difference between the numbers
-                  const absDiff = Math.abs(num1 - num2);
-                  // Get the larger number's absolute value
-                  const largerAbs = Math.max(Math.abs(num1), Math.abs(num2));
-                  // Check if the absolute difference is less than the tolerance (5%) times the larger number
-                  return absDiff < (tolerance_pt * largerAbs);
-               }
+               // function approximatelyEqual(num1 = required(), num2 = required(), tolerance_pt = .05) {
+               //    // Calculate the absolute difference between the numbers
+               //    const absDiff = Math.abs(num1 - num2);
+               //    // Get the larger number's absolute value
+               //    const largerAbs = Math.max(Math.abs(num1), Math.abs(num2));
+               //    // Check if the absolute difference is less than the tolerance (5%) times the larger number
+               //    return absDiff < (tolerance_pt * largerAbs);
+               // }
             }
 
             function toggleTheater() {
@@ -89,7 +90,7 @@ window.nova_plugins.push({
                      );
                }
                // Solution 4 (Cookie) (Doesn't work without refreshing the page)
-               // document.cookie = 'wide=1;domain=.youtube.com';
+               // if (navigator.cookieEnabled)  document.cookie = 'wide=1;domain=.youtube.com';
                // NOVA.cookie.set('wide', 1, 99);
             }
 
@@ -147,7 +148,7 @@ window.nova_plugins.push({
                PLAYER_SELECTOR = `${PLAYER_CONTAINER_SELECTOR} ${_PLAYER_SELECTOR}`, // fix for [player-pin-scroll] plugin
                zIndex = Math.max(getComputedStyle(movie_player)['z-index'], 2020); // remember update pkugin [player-control-below]
 
-            addScrollDownBehavior();
+            addScrollDownBehavior(movie_player);
 
             switch (user_settings.player_full_viewport_mode) {
                case 'offset':
@@ -217,9 +218,7 @@ window.nova_plugins.push({
                   // alt1 - https://greasyfork.org/en/scripts/419359-youtube-simple-cinema-mode
                   // alt2 - https://chromewebstore.google.com/detail/bfbmjmiodbnnpllbbbfblcplfjjepjdn
                   NOVA.css.push(
-                     PLAYER_SELECTOR + ` {
-                        z-index: ${zIndex};
-                     }
+                     `${PLAYER_SELECTOR} { z-index: ${zIndex}; }
 
                      ${PLAYER_SELECTOR}:before {
                         content: '';
@@ -235,9 +234,7 @@ window.nova_plugins.push({
                      }
 
                      /*#movie_player.paused-mode:before,*/
-                     ${PLAYER_SELECTOR}.playing-mode:before {
-                        opacity: 1;
-                     }
+                     ${PLAYER_SELECTOR}.playing-mode:before { opacity: 1; }
 
                      /* fix */
                      .ytp-ad-player-overlay,
@@ -250,9 +247,7 @@ window.nova_plugins.push({
                      [role="dialog"] {
                         z-index: ${zIndex + 1};
                      }
-                     #playlist:hover {
-                        position: relative;
-                     }`);
+                     #playlist:hover { position: relative; }`);
 
                   addHideScrollbarCSS();
                   break;
@@ -296,18 +291,17 @@ window.nova_plugins.push({
                //    video.addEventListener('pause', () => movie_player.classList.remove(CLASS_NAME));
                // }
 
-               // for fix
-               // alt1 - https://greasyfork.org/en/scripts/436168-youtube-exit-fullscreen-on-video-end
-               // alt2 - https://greasyfork.org/en/scripts/469750-youtube-exit-fullscreen-on-video-end-modified
                fixOnPause();
             }
 
+            // alt1 - https://greasyfork.org/en/scripts/436168-youtube-exit-fullscreen-on-video-end
+            // alt2 - https://greasyfork.org/en/scripts/469750-youtube-exit-fullscreen-on-video-end-modified
             function fixOnPause() {
                if (!user_settings.player_full_viewport_mode_exit) return
 
                NOVA.waitSelector('video')
                   .then(video => {
-                     // let timeout;
+                     // let timeoutId;
                      // fix restore video size
                      video.addEventListener('pause', () => {
                         // fix overlapped ".paused-mode" after you seeking the time in the player with the mouse
@@ -315,8 +309,8 @@ window.nova_plugins.push({
                            window.dispatchEvent(new Event('resize'));
                         }
                         // movie_player.classList.add(fixOnSeeking);
-                        // // if (typeof timeout === 'number') clearTimeout(timeout); // reset fade
-                        // timeout = setTimeout(() => movie_player.classList.remove(fixOnSeeking), 1000);
+                        // // if (typeof timeoutId === 'number') clearTimeout(timeoutId); // reset fade
+                        // timeoutId = setTimeout(() => movie_player.classList.remove(fixOnSeeking), 1000);
                      });
                      // fix overwrite video height after pause
                      video.addEventListener('play', () => window.dispatchEvent(new Event('resize')));
@@ -338,27 +332,30 @@ window.nova_plugins.push({
             }
 
             // add scroll-down behavior on player control panel
-            function addScrollDownBehavior() {
-               if (activateScrollElement = document.body.querySelector('.ytp-chrome-controls')) {
-                  // const player = document.body.querySelector(PLAYER_SELECTOR);
-                  activateScrollElement.addEventListener('wheel', evt => {
+            function addScrollDownBehavior(movie_player = required()) {
+               // exept .ytp-volume-area
+               document.body.querySelector('.ytp-chrome-controls')
+                  ?.addEventListener('wheel', evt => {
                      switch (Math.sign(evt.wheelDelta)) {
-                        // case 1: // up
-                        //    movie_player.classList.remove(PLAYER_SCROLL_LOCK_CLASS_NAME);
-                        //    break;
+                        case 1: // Up
+                           if (window.scrollY === 0 && movie_player.classList.contains(PLAYER_SCROLL_LOCK_CLASS_NAME)) {
+                              movie_player.classList.remove(PLAYER_SCROLL_LOCK_CLASS_NAME);
+                              triggerPlayerLayoutUpdate();
+                           }
+                           break;
 
-                        case -1: // down
-                           movie_player.classList.add(PLAYER_SCROLL_LOCK_CLASS_NAME);
-                           // player.classList.add(PLAYER_SCROLL_LOCK_CLASS_NAME);
+                        case -1: // Down
+                           if (!movie_player.classList.contains(PLAYER_SCROLL_LOCK_CLASS_NAME)) {
+                              movie_player.classList.add(PLAYER_SCROLL_LOCK_CLASS_NAME);
+                              triggerPlayerLayoutUpdate();
+                           }
                            break;
                      }
                   });
-                  // up (on top page)
-                  document.addEventListener('scroll', evt => {
-                     if (window.scrollY === 0 && movie_player.classList.contains(PLAYER_SCROLL_LOCK_CLASS_NAME)) {
-                        movie_player.classList.remove(PLAYER_SCROLL_LOCK_CLASS_NAME);
-                     }
-                  });
+
+               async function triggerPlayerLayoutUpdate() {
+                  await NOVA.delay(200);
+                  window.dispatchEvent(new Event('resize'));
                }
             }
 
@@ -374,8 +371,8 @@ window.nova_plugins.push({
       player_full_viewport_mode: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',
@@ -492,8 +489,8 @@ window.nova_plugins.push({
          // label: 'Full-viewport exit if video ends/pause',
          // label: 'Exit Fullscreen on video end/pause',
          label: 'Switch on end/pause',
-         'label:zh': '视频结束/暂停时退出',
-         'label:ja': 'ビデオが終了/一時停止したら終了します',
+         // 'label:zh': '视频结束/暂停时退出',
+         // 'label:ja': 'ビデオが終了/一時停止したら終了します',
          // 'label:ko': '동영상이 종료/일시 중지되면 종료',
          // 'label:vi': '',
          // 'label:id': 'Keluar dari viewport penuh jika video berakhir/jeda',
@@ -512,8 +509,8 @@ window.nova_plugins.push({
       player_full_viewport_mode_exclude_shorts: {
          _tagName: 'input',
          label: 'Full-viewport exclude shorts',
-         'label:zh': '全视口不包括短裤',
-         'label:ja': 'フルビューポートはショートパンツを除外します',
+         // 'label:zh': '全视口不包括短裤',
+         // 'label:ja': 'フルビューポートはショートパンツを除外します',
          // 'label:ko': '전체 뷰포트 제외 반바지',
          // 'label:vi': '',
          // 'label:id': 'Area pandang penuh tidak termasuk celana pendek',
@@ -532,8 +529,8 @@ window.nova_plugins.push({
       cinema_mode_opacity: {
          _tagName: 'input',
          label: 'Opacity',
-         'label:zh': '不透明度',
-         'label:ja': '不透明度',
+         // 'label:zh': '不透明度',
+         // 'label:ja': '不透明度',
          // 'label:ko': '불투명',
          // 'label:vi': '',
          // 'label:id': 'Kegelapan',
@@ -557,8 +554,8 @@ window.nova_plugins.push({
       theater_mode_ignore_playlist: {
          _tagName: 'input',
          label: 'Ignore in playlist',
-         'label:zh': '忽略播放列表',
-         'label:ja': 'プレイリストを無視する',
+         // 'label:zh': '忽略播放列表',
+         // 'label:ja': 'プレイリストを無視する',
          // 'label:ko': '재생목록 무시',
          // 'label:vi': '',
          // 'label:id': 'Abaikan daftar putar',

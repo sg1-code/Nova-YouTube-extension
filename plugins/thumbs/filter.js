@@ -5,8 +5,8 @@
 window.nova_plugins.push({
    id: 'thumbs-hide',
    title: 'Thumbnails filter',
-   'title:zh': '缩略图过滤',
-   'title:ja': 'サムネイルのフィルタリング',
+   // 'title:zh': '缩略图过滤',
+   // 'title:ja': 'サムネイルのフィルタリング',
    // 'title:ko': '썸네일 필터링',
    // 'title:vi': '',
    // 'title:id': 'Pemfilteran gambar mini',
@@ -27,7 +27,7 @@ window.nova_plugins.push({
       // alt3 - https://greasyfork.org/en/scripts/488224-control-panel-for-youtube
 
       const
-         SELECTOR_THUMBS_HIDE_CLASS_NAME = 'nova-thumbs-hide',
+         SELECTOR_THUMBS_HIDE_CLASS_NAME = 'nova-thumbs-hide', // add to [thumbs-title-filter], [search-filter] plugins
          thumbsSelectors = [
             'ytd-rich-item-renderer', // home, channel, feed
             'ytd-video-renderer', // results, feed (list)
@@ -36,27 +36,32 @@ window.nova_plugins.push({
             'ytd-compact-video-renderer', // sidepanel in watch
             'yt-append-continuation-items-action', // adding a sidebar in watch
             'ytm-compact-video-renderer', // mobile /results page (ytm-rich-item-renderer)
-            'ytm-item-section-renderer' // mobile /subscriptions page
+            'ytm-item-section-renderer', // mobile /subscriptions page
+            'ytd-rich-section-renderer' // shorts block
          ]
             .map(i => `${i}:not(.${SELECTOR_THUMBS_HIDE_CLASS_NAME})`)
             .join(',');
 
       // Solution 1 (HTML5). page update event
-      document.addEventListener('scrollend', function self() {
-         if (typeof self.timeout === 'number') clearTimeout(self.timeout);
-         self.timeout = setTimeout(hideThumb, 50); // 50ms
+      document.addEventListener('scroll', () => {
+         requestAnimationFrame(hideThumb);
       });
+
+      document.addEventListener('visibilitychange', () => !document.hidden && hideThumb());
 
       // Solution 2 (API). page update event
       document.addEventListener('yt-action', evt => {
-         // console.debug(evt.detail?.actionName);
+         console.debug(evt.detail?.actionName);
          switch (evt.detail?.actionName) {
             case 'yt-append-continuation-items-action': // home, results, feed, channel, watch
             case 'ytd-update-grid-state-action': // feed, channel
-            case 'yt-rich-grid-layout-refreshed': // feed
+            // case 'yt-rich-grid-layout-refreshed': // feed. Warning! loads too early. Warning! loads too early
             // case 'ytd-rich-item-index-update-action': // home, channel
             case 'yt-store-grafted-ve-action': // results, watch
                // case 'ytd-update-elements-per-row-action': // feed
+
+               // case 'yt-rich-grid-layout-refreshed ': // feed
+               // case 'ytd-rich-item-index-update-action ': // feed
 
                // universal
                // case 'ytd-update-active-endpoint-action':
@@ -116,65 +121,15 @@ window.nova_plugins.push({
          }
       }
 
+      // if (//!user_settings['thumbs-hide'] // self
+      //    && !user_settings['search-filter']
+      //    && !user_settings['thumbs-title-filter']
+      // ) { // avoiding re-append (highest priority)
       // switch grid/list mode
-      document.addEventListener('yt-navigate-finish', () => NOVA.queryURL.has('flow') && insertButton());
+      document.addEventListener('yt-navigate-finish', () => NOVA.queryURL.has('flow') && NOVA.insertFIlterButton());
 
-      insertButton();
-      // alt - https://greasyfork.org/en/scripts/446507-youtube-sub-feed-filter-2
-      // NOVA.waitSelector('#voice-search-button', { destroy_after_page_leaving: true })
-      function insertButton() {
-         NOVA.waitSelector('#filter-button, ytd-shelf-renderer #title-container a[href="/feed/channels"]', { destroy_after_page_leaving: true })
-            .then(container => {
-               const filterBtn = document.createElement('button');
-               filterBtn.classList.add('style-scope', 'yt-formatted-string', 'bold', 'yt-spec-button-shape-next--tonal', 'yt-spec-button-shape-next--mono', 'yt-spec-button-shape-next--size-m', 'yt-spec-button-shape-next--text');
-               // // filterBtn.textContent = 'Filter Switch';
-               // filterBtn.innerHTML = NOVA.createSafeHTML(
-               //    `<span class="yt-spec-button-shape-next__icon" style="height:100%">
-               //    <svg viewBox="-50 -50 400 400" height="100%" width="100%">
-               //       <g fill="currentColor">
-               //          <path d="M128.25,175.6c1.7,1.8,2.7,4.1,2.7,6.6v139.7l60-51.3v-88.4c0-2.5,1-4.8,2.7-6.6L295.15,65H26.75L128.25,175.6z" />
-               //       </g>
-               //    </svg>
-               // </span>`);
-               // fix - This document requires 'TrustedHTML' assignment.
-               filterBtn.append((function createFilterIcon() {
-                  const span = document.createElement('span');
-                  span.className = 'yt-spec-button-shape-next__icon';
-                  span.style.height = '100%';
-
-                  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                  svg.setAttribute('viewBox', '-50 -50 400 400');
-                  svg.setAttribute('height', '100%');
-                  svg.setAttribute('width', '100%');
-
-                  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                  g.setAttribute('fill', 'currentColor');
-
-                  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                  path.setAttribute('d', 'M128.25,175.6c1.7,1.8,2.7,4.1,2.7,6.6v139.7l60-51.3v-88.4c0-2.5,1-4.8,2.7-6.6L295.15,65H26.75L128.25,175.6z');
-
-                  g.append(path);
-                  svg.append(g);
-                  span.append(svg);
-
-                  return span;
-               })());
-
-               filterBtn.title = 'Toggle NOVA plugin [thumbs-hide]';
-               // filterBtn.style.cssText = '';
-               Object.assign(filterBtn.style, {
-                  border: 0,
-                  cursor: 'pointer',
-                  scale: .7,
-               });
-               filterBtn.addEventListener('click', () => {
-                  document.body.classList.toggle('nova-thumbs-unhide');
-                  // filterBtn opacity
-                  filterBtn.style.opacity = document.body.classList.contains('nova-thumbs-unhide') ? .3 : 1;
-               });
-               container.after(filterBtn);
-            });
-      }
+      NOVA.insertFIlterButton();
+      // }
 
       // button css-switch
       NOVA.css.push(
@@ -182,20 +137,21 @@ window.nova_plugins.push({
             border: 2px dashed orange;
          }
          body:not(.nova-thumbs-unhide) .${SELECTOR_THUMBS_HIDE_CLASS_NAME} {
-            display: none
+            display: none;
          }`);
 
       if (user_settings.thumbs_hide_shorts) {
          const stylesList = [
-            // https://www.reddit.com/r/uBlockOrigin/wiki/solutions/youtube/#wiki_shorts
-            // '#content > ytd-rich-shelf-renderer', // results old
-            'ytd-reel-shelf-renderer',
-            'ytd-rich-grid-row + ytd-rich-section-renderer', // feed
-            '[is-shorts]',
+            // // https://www.reddit.com/r/uBlockOrigin/wiki/solutions/youtube/#wiki_shorts
+            // // '#content > ytd-rich-shelf-renderer', // results old
+            // 'ytd-reel-shelf-renderer',
+            // 'ytd-rich-grid-row + ytd-rich-section-renderer', // feed
+            // '[is-shorts]',
          ];
          // guide menu
          if (CSS.supports('selector(:has(*))')) {
-            stylesList.push('ytd-guide-entry-renderer:has(path[d^="M10 14.65v-5.3L15"])');
+            stylesList.push('ytd-guide-entry-renderer:has(path[d^="m7.61 15.719.392-.22v"])');
+            stylesList.push('ytd-mini-guide-entry-renderer:has(path[d^="m7.61 15.719.392-.22v"])');
          }
 
          NOVA.css.push(stylesList.join(',\n') + `{ display: none !important; }`);
@@ -211,7 +167,7 @@ window.nova_plugins.push({
             // exclude "short" tab in channel
             if (NOVA.currentPage == 'channel' && NOVA.channelTab == 'shorts') return;
 
-            document.body.querySelectorAll('a#thumbnail[href*="shorts/"]')
+            document.body.querySelectorAll('[is-shorts], a[href^="/shorts/"]')
                // .forEach(el => el.closest(thumbsSelectors)?.remove());
                .forEach(el => {
                   if (thumb = el.closest(thumbsSelectors)) {
@@ -220,7 +176,7 @@ window.nova_plugins.push({
                      // thumb.style.display = 'none';
 
                      // console.debug('#short:', thumb);
-                     // thumb.style.border = '2px solid orange'; // mark for test
+                     thumb.style.border = '2px solid orange'; // mark for test
                   }
                });
          },
@@ -228,7 +184,7 @@ window.nova_plugins.push({
          durationLimits() {
             // alt - https://greasyfork.org/en/scripts/466576-hide-longs-on-youtube
             if (!+user_settings.thumbs_hide_min_duration) return;
-            // if (!NOVA.formatTimeOut.hmsToSec(user_settings.thumbs_hide_min_duration)) return; // for input[type=text] (digit time)
+            // if (!NOVA.formatTime.hmsToSec(user_settings.thumbs_hide_min_duration)) return; // for input[type=text] (digit time)
 
             // exclude "" tab in channel
             // if (NOVA.currentPage == 'channel' && NOVA.channelTab != 'video') return;
@@ -238,13 +194,13 @@ window.nova_plugins.push({
             // document.body.querySelectorAll(thumbsSelectors)
             //    .forEach(thumb => {
             //       if ((to = thumb.data?.thumbnailOverlays)?.length) {
-            //          if (NOVA.formatTimeOut.hmsToSec(to[0].thumbnailOverlayTimeStatusRenderer.text.simpleText) < (+user_settings.thumbs_hide_min_duration || 60)
+            //          if (NOVA.formatTime.hmsToSec(to[0].thumbnailOverlayTimeStatusRenderer.text.simpleText) < (+user_settings.thumbs_hide_min_duration || 60)
             //          ) {
             //             // thumb.remove();
             //             // // for test
             //             // // thumb.style.display = 'none';
             //             // console.debug('has watched:', thumb);
-            //             thumb.style.border = '2px solid orange'; // mark for test
+            //            thumb.style.border = '2px solid aqua'; // mark for test
             //          }
             //       }
             //    });
@@ -257,9 +213,9 @@ window.nova_plugins.push({
                .then(() => {
                   document.body.querySelectorAll(OVERLAYS_TIME_SELECTOR)
                      .forEach(el => {
-                        // console.debug('>', NOVA.formatTimeOut.hmsToSec(el.textContent.trim()));
+                        // console.debug('>', NOVA.formatTime.hmsToSec(el.textContent.trim()));
                         if ((thumb = el.closest(thumbsSelectors))
-                           && (timeSec = NOVA.formatTimeOut.hmsToSec(el.textContent.trim()))
+                           && (timeSec = NOVA.formatTime.hmsToSec(el.textContent.trim()))
                            && (timeSec * (user_settings.rate_default || 1)) < (+user_settings.thumbs_hide_min_duration || 60)
                         ) {
                            thumb.classList.add(SELECTOR_THUMBS_HIDE_CLASS_NAME);
@@ -267,7 +223,7 @@ window.nova_plugins.push({
                            // thumb.style.display = 'none';
 
                            // console.debug('short time:', timeSec, el.textContent);
-                           // thumb.style.border = '2px solid blue'; // mark for test
+                           thumb.style.border = '2px solid aqua'; // mark for test
                         }
                      });
                });
@@ -283,13 +239,14 @@ window.nova_plugins.push({
             )
                // .forEach(el => el.closest(thumbsSelectors)?.remove());
                .forEach(el => {
+                  console.debug('el', el);
                   if (thumb = el.closest(thumbsSelectors)) {
                      thumb.classList.add(SELECTOR_THUMBS_HIDE_CLASS_NAME);
                      // thumb.remove();
                      // thumb.style.display = 'none';
 
                      // console.debug('Premieres:', thumb);
-                     // thumb.style.border = '2px solid red'; // mark for test
+                     thumb.style.border = '2px dashed limegreen'; // mark for test
                   }
                });
          },
@@ -303,14 +260,13 @@ window.nova_plugins.push({
             const BLOCK_KEYWORDS = NOVA.strToArray(user_settings.thumbs_hide_live_channels_exception?.toLowerCase());
 
             // streaming
-            // #thumbnail #overlays > :not(ytd-thumbnail-overlay-time-status-renderer)
-            // #thumbnail #overlays > :not(#text)
-            // #video-badges > .badge-style-type-live-now-alternate // old
             // .badge-style-type-live-now-alternate .ytd-badge-supported-renderer svg
-            // document.body.querySelectorAll('#video-badges > [class*="live-now"]') // old
-            // document.body.querySelectorAll('[class*="badge"] [class*="live-now"]')
-            // #thumbnail #overlays [overlay-style="LIVE"],
-            document.body.querySelectorAll('#thumbnail img[src*="_live.jpg"]')
+            // #thumbnail ~ * [class*="live-now"],
+            document.body.querySelectorAll(
+               `#thumbnail img[src*="_live.jpg"],
+               #thumbnail [is-live-video],
+               #thumbnail ~ * [aria-label="LIVE"],
+               [class*="badge"] [class*="live-now"]`)
                // .forEach(el => el.closest(thumbsSelectors)?.remove());
                // for test
                .forEach(el => {
@@ -321,7 +277,7 @@ window.nova_plugins.push({
                         if (user_settings['search-filter']) {
                            thumb.style.display = 'block'; // unhide after [search-filter] plugin
                         }
-                        // thumb.style.border = '2px solid dodgerblue'; // mark for test
+                        thumb.style.border = '2px solid darkred'; // mark for test
                         return;
                      }
 
@@ -330,7 +286,7 @@ window.nova_plugins.push({
                      // thumb.style.display = 'none';
 
                      // console.debug('live now:', thumb);
-                     // thumb.style.border = '2px solid orange'; // mark for test
+                     thumb.style.border = '2px dashed red'; // mark for test
                   }
                });
          },
@@ -359,7 +315,7 @@ window.nova_plugins.push({
                         if (user_settings['search-filter']) {
                            thumb.style.display = 'block'; // unhide after [search-filter] plugin
                         }
-                        // thumb.style.border = '2px solid dodgerblue'; // mark for test
+                        thumb.style.border = '2px solid mediumvioletred'; // mark for test
                         return;
                      }
 
@@ -368,7 +324,7 @@ window.nova_plugins.push({
                      // thumb.style.display = 'none';
 
                      // console.debug('streamed:', thumb);
-                     // thumb.style.border = '2px solid green'; // mark for test
+                     thumb.style.border = '2px dashed palevioletred'; // mark for test
                   }
                });
          },
@@ -407,7 +363,7 @@ window.nova_plugins.push({
                      // thumb.style.display = 'none';
 
                      // console.debug('has Mix:', thumb);
-                     // thumb.style.border = '2px solid violet'; // mark for test
+                     thumb.style.border = '2px dashed pink'; // mark for test
                   }
                });
          },
@@ -430,7 +386,7 @@ window.nova_plugins.push({
             //             // // for test
             //             // // thumb.style.display = 'none';
             //             // console.debug('has watched:', thumb);
-            //             // thumb.style.border = '2px solid orange'; // mark for test
+            //             // thumb.style.border = '2px solid violet'; // mark for test
             //          }
             //       }
             //    });
@@ -448,7 +404,7 @@ window.nova_plugins.push({
                      // thumb.style.display = 'none';
 
                      // console.debug('watched', thumb);
-                     // thumb.style.border = '2px solid orange'; // mark for test
+                     thumb.style.border = '2px dashed violet'; // mark for test
                   }
                });
          },
@@ -466,8 +422,8 @@ window.nova_plugins.push({
       thumbs_hide_shorts: {
          _tagName: 'input',
          label: 'Hide Shorts',
-         'label:zh': '隐藏短裤',
-         'label:ja': 'ショーツを隠す',
+         // 'label:zh': '隐藏短裤',
+         // 'label:ja': 'ショーツを隠す',
          // 'label:ko': '반바지 숨기기',
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan Celana Pendek',
@@ -486,8 +442,8 @@ window.nova_plugins.push({
       thumbs_hide_min_duration: {
          _tagName: 'input',
          label: 'Min duration in sec (for regular video)',
-         'label:zh': '最短持续时间（以秒为单位）',
-         'label:ja': '秒単位の最小期間',
+         // 'label:zh': '最短持续时间（以秒为单位）',
+         // 'label:ja': '秒単位の最小期間',
          // 'label:ko': '최소 지속 시간(초)',
          // 'label:vi': '',
          // 'label:id': 'Durasi lebih sedikit dalam detik',
@@ -500,6 +456,8 @@ window.nova_plugins.push({
          'label:pl': 'Poniżej czasu trwania w sekundach',
          // 'label:ua': 'Мінімальна триваліcть в cекундах',
          type: 'number',
+         // type: 'time',
+         // step: 1, // sec
          // title: '60 - default',
          // title: 'Minimum duration in seconds',
          title: 'in sec / 0 - disable',
@@ -534,8 +492,8 @@ window.nova_plugins.push({
       thumbs_hide_premieres: {
          _tagName: 'input',
          label: 'Hide Premieres/Upcoming',
-         'label:zh': '隐藏首映/即将上映',
-         'label:ja': 'プレミア公開/近日公開を非表示',
+         // 'label:zh': '隐藏首映/即将上映',
+         // 'label:ja': 'プレミア公開/近日公開を非表示',
          // 'label:ko': 'Premieres/예정 숨기기',
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan Tayang Perdana/Mendatang',
@@ -566,8 +524,8 @@ window.nova_plugins.push({
       thumbs_hide_live: {
          _tagName: 'input',
          label: 'Hide Live now streams',
-         'label:zh': '隐藏直播',
-         'label:ja': 'ライブ ストリームを非表示にする',
+         // 'label:zh': '隐藏直播',
+         // 'label:ja': 'ライブ ストリームを非表示にする',
          // 'label:ko': '라이브 스트림 숨기기',
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan streaming langsung',
@@ -581,8 +539,8 @@ window.nova_plugins.push({
          // 'label:ua': 'Приховати живі транcляції',
          type: 'checkbox',
          title: 'Now airing',
-         'title:zh': '正在播出',
-         'title:ja': '放映中',
+         // 'title:zh': '正在播出',
+         // 'title:ja': '放映中',
          // 'title:ko': '지금 방영중',
          // 'title:vi': '',
          // 'title:id': 'Sekarang ditayangkan',
@@ -598,8 +556,8 @@ window.nova_plugins.push({
       thumbs_hide_live_channels_exception: {
          _tagName: 'textarea',
          label: 'Live channels exception',
-         'label:zh': '异常通道列表',
-         'label:ja': '例外チャネルのリスト',
+         // 'label:zh': '异常通道列表',
+         // 'label:ja': '例外チャネルのリスト',
          // 'label:ko': '채널 목록',
          // 'label:vi': '',
          // 'label:id': 'Daftar',
@@ -612,8 +570,8 @@ window.nova_plugins.push({
          // 'label:pl': 'Lista',
          // 'label:ua': 'Список',
          title: 'separator: "," or ";" or "new line"',
-         'title:zh': '分隔器： "," 或 ";" 或 "新队"',
-         'title:ja': 'セパレータ： "," または ";" または "改行"',
+         // 'title:zh': '分隔器： "," 或 ";" 或 "新队"',
+         // 'title:ja': 'セパレータ： "," または ";" または "改行"',
          // 'title:ko': '구분 기호: "," 또는 ";" 또는 "새 줄"',
          // 'title:vi': '',
          // 'title:id': 'pemisah: "," atau ";" atau "baris baru"',
@@ -631,8 +589,8 @@ window.nova_plugins.push({
       thumbs_hide_streamed: {
          _tagName: 'input',
          label: 'Hide finished streams',
-         'label:zh': '隐藏完成的流',
-         'label:ja': '終了したストリームを非表示にする',
+         // 'label:zh': '隐藏完成的流',
+         // 'label:ja': '終了したストリームを非表示にする',
          // 'label:ko': '완료된 스트림 숨기기',
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan aliran yang sudah selesai',
@@ -651,8 +609,8 @@ window.nova_plugins.push({
       thumbs_hide_mix: {
          _tagName: 'input',
          label: "Hide 'Mix' thumbnails",
-         'label:zh': '隐藏[混合]缩略图',
-         'label:ja': '「Mix」サムネイルを非表示',
+         // 'label:zh': '隐藏[混合]缩略图',
+         // 'label:ja': '「Mix」サムネイルを非表示',
          // 'label:ko': '"믹스" 썸네일 숨기기',
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan gambar mini "Mix"',
@@ -666,8 +624,8 @@ window.nova_plugins.push({
          // 'label:ua': 'Приховати мікc мініатюр',
          type: 'checkbox',
          title: '[Mix] offers to rewatch what has already saw',
-         'title:zh': '[混合]提供重新观看已经看过的内容',
-         'title:ja': '「Mix」は、すでに見たものを再視聴することを提案します',
+         // 'title:zh': '[混合]提供重新观看已经看过的内容',
+         // 'title:ja': '「Mix」は、すでに見たものを再視聴することを提案します',
          // 'title:ko': '[Mix]는 이미 본 것을 다시 볼 것을 제안합니다',
          // 'title:vi': '',
          // 'title:id': '[Mix] menawarkan untuk menonton ulang apa yang telah dilihat',
@@ -682,8 +640,8 @@ window.nova_plugins.push({
       thumbs_hide_watched: {
          _tagName: 'input',
          label: 'Hide watched',
-         'label:zh': '隐藏观看',
-         'label:ja': '監視対象を非表示',
+         // 'label:zh': '隐藏观看',
+         // 'label:ja': '監視対象を非表示',
          // 'label:ko': '시청 숨기기',
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan ditonton',

@@ -4,8 +4,8 @@
 window.nova_plugins.push({
    id: 'embed-show-control-force',
    title: 'Force enable control panel (for embed)',
-   'title:zh': '埋め込みでコントロール パネルを強制的に有効にする',
-   'title:ja': '强制启用嵌入的控制面板',
+   // 'title:zh': '埋め込みでコントロール パネルを強制的に有効にする',
+   // 'title:ja': '强制启用嵌入的控制面板',
    // 'title:ko': '임베디드에서 강제 활성화 제어판',
    // 'title:vi': '',
    // 'title:id': 'Paksa aktifkan panel kontrol di sematan',
@@ -18,7 +18,7 @@ window.nova_plugins.push({
    'title:pl': 'Wymuś włączenie panelu sterowania w osadzeniu',
    // 'title:ua': 'Примусово показувати панель керування у вбудованому відео',
    run_on_pages: 'embed',
-   section: 'control-panel',
+   section: 'player-control',
    _runtime: user_settings => {
 
       // prepare corrections

@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'description-expand',
    title: 'Expand description',
-   'title:zh': '展开说明',
-   'title:ja': '説明を展開',
+   // 'title:zh': '展开说明',
+   // 'title:ja': '説明を展開',
    // 'title:ko': '설명 펼치기',
    // 'title:vi': '',
    // 'title:id': 'Perluas deskripsi',
@@ -78,8 +78,8 @@ window.nova_plugins.push({
       description_expand_mode: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',
@@ -95,8 +95,8 @@ window.nova_plugins.push({
          options: [
             {
                label: 'always', value: 'always', selected: true,
-               'label:zh': '每次',
-               'label:ja': 'いつも',
+               // 'label:zh': '每次',
+               // 'label:ja': 'いつも',
                // 'label:ko': '언제나',
                // 'label:vi': '',
                // 'label:id': 'selalu',
@@ -111,8 +111,8 @@ window.nova_plugins.push({
             },
             {
                label: 'on hover', value: 'onhover',
-               'label:zh': '悬停时',
-               'label:ja': 'ホバー時に',
+               // 'label:zh': '悬停时',
+               // 'label:ja': 'ホバー時に',
                // 'label:ko': '호버에',
                // 'label:vi': '',
                // 'label:id': 'saat melayang',

@@ -56,8 +56,8 @@ window.nova_plugins.push({
                if (document.documentElement.hasAttribute(HIDE_SCROLL_ATTR)) {
                   document.documentElement.removeAttribute(HIDE_SCROLL_ATTR); // remove
                }
-               if (typeof blink.fade === 'number') clearTimeout(blink.fade); // reset timeout
-               blink.fade = setTimeout(() => {
+               if (typeof blink.fadeTimeout === 'number') clearTimeout(blink.fadeTimeout); // reset timeout
+               blink.fadeTimeout = setTimeout(() => {
                   document.documentElement.setAttribute(HIDE_SCROLL_ATTR, true); // add
                }, 700); // 700ms
             }

@@ -80,7 +80,7 @@ window.nova_plugins.push({
          },
       });
 
-      // A complete list of available functions can be found in the file "/plugins/common.js"
+      // A complete list of available functions can be found in the file "/plugins/NOVA.js"
       // And examples of their use in other plugins.
       // I'm too lazy to describe them. Perhaps no one will even read what is written here.
 
@@ -99,7 +99,7 @@ window.nova_plugins.push({
 
       // movie_player != document.body.querySelector('ytd-player')?.player_
 
-      // d(ocument.body.querySelector('ytd-player')?.player_
+      // document.body.querySelector('ytd-player')?.player_
       //    .isFullscreen()
       //     ...
       // movie_player

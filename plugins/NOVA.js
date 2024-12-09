@@ -18,7 +18,7 @@
    // - cookies.parseQueryToObj
    // - cookies.updateParam
    - isInViewport
-   // - checkVisibility
+   // - isVisible
    - collapseElement
    - aspectRatio.sizeToFit
    - aspectRatio.getAspectRatio
@@ -30,18 +30,20 @@
    - getChapterList
    - strToArray
    - searchFilterHTML
+   - Draggable: [class]
    - isMusic
-   - formatTimeOut.hmsToSec
-   - formatTimeOut.HMS.digit
-   - formatTimeOut.HMS.abbr
-   //- formatTimeOut.HMS.abbrFull
-   - formatTimeOut.ago
+   - formatTime.hmsToSec
+   - formatTime.HMS.digit
+   - formatTime.HMS.abbr
+   //- formatTime.HMS.abbrFull
+   - formatTime.ago
    - dateFormat
    - numberFormat.abbr
    - numberFormat.friendly
    - extractAsNum.float
    - extractAsNum.int
    //- extractAsNum.firstInt
+   - editableFocused
    - updateUrl
    - queryURL.has
    - queryURL.get
@@ -49,7 +51,9 @@
    - queryURL.remove
    - queryURL.getFromHash
    - request.API (async)
-   - getPlayerState
+   - fetch (async)
+   - getPlayerState.playback
+   - getPlayerState.visibility
    //- videoId
    - getChannelId (async)
    - storage_obj_manager.getParam
@@ -68,8 +72,14 @@ const NOVA = {
    // DEBUG: true,
 
    // fix - This document requires 'TrustedHTML' assignment.
+   // if (window.hasOwnProperty('trustedTypes')) {
+   //    window.trustedTypes.createPolicy('default', { createHTML: string => string });
+   // }
    createSafeHTML(html = required()) {
-      if (typeof html !== 'string') return console.error('not string "html":', typeof html);
+      if (typeof html !== 'string') {
+         console.error('html is not a string:', typeof html, html);
+         return;
+      }
       if (typeof this.policy === 'undefined') {
          this.policy = (typeof trustedTypes !== 'undefined')
             // Sanitize or validate the HTML here before returning it
@@ -80,354 +90,235 @@ const NOVA = {
    },
 
    /**
-   * @typedef {{
-   *   name?: string
-   *   stopIf?: () => boolean
-   *   timeout?: number
-   *   context?: Document | HTMLElement
-   * }} GetElementOptions
-   *
-   * @param {string} selector
-   * @param {GetElementOptions} options
-   * @returns {Promise<HTMLElement | null>}
-   */
-   // getElement(selector, {
-   //    name = null,
-   //    stopIf = null,
-   //    timeout = Infinity,
-   //    context = document,
-   // } = {}) {
-   //    return new Promise((resolve) => {
-   //       let startTime = Date.now();
-   //       let recordId;
-   //       let timeoutId;
-
-   //       function stop($element, reason) {
-   //          if ($element == null) {
-   //             warn(`stopped waiting for ${name || selector} after ${reason}`);
-   //          }
-   //          else if (Date.now() > startTime) {
-   //             log(`${name || selector} appeared after`, Date.now() - startTime, 'ms');
-   //          }
-   //          if (recordId) {
-   //             cancelAnimationFrame(recordId);
-   //          }
-   //          if (timeoutId) {
-   //             clearTimeout(timeoutId);
-   //          }
-   //          resolve($element);
-   //       }
-
-   //       if (timeout !== Infinity) {
-   //          timeoutId = setTimeout(stop, timeout, null, `${timeout}ms timeout`);
-   //       }
-
-   //       function queryElement() {
-   //          let $element = context.querySelector(selector);
-   //          if ($element) {
-   //             stop($element);
-   //          }
-   //          else if (stopIf?.() === true) {
-   //             stop(null, 'stopIf condition met');
-   //          }
-   //          else {
-   //             recordId = requestAnimationFrame(queryElement);
-   //          }
-   //       }
-
-   //       queryElement();
-   //    });
-   // },
-
-   // waitSelector(selector, intervalMs = 500, maxTries = 6) {
-   //    return new Promise((resolve, reject) => {
-   //       let tried = 1
-   //       const id = setInterval(() => {
-   //          if (tried > maxTries) {
-   //             clearInterval(id);
-   //             reject(new Error(`The maximum amount of tries (${maxTries}) was exceeded.`));
-   //             return;
-   //          }
-   //          const elements = document.body.querySelectorAll(selector);
-   //          if (elements.length > 0) {
-   //             clearInterval(id);
-   //             resolve(elements);
-   //             return;
-   //          }
-   //          tried++
-   //       }, +intervalMs || 500); // default 500ms
-   //    })
-   // }
-
-   // waitSelector(selector = required(), container) {
-   //    if (typeof selector !== 'string') return console.error('wait > selector:', typeof selector);
-   //    if (!(container instanceof HTMLElement)) return console.error('wait > container not HTMLElement:', container);
-   //    // console.debug('waitSelector:', selector);
-
-   //    return Promise.resolve((container || document.body).querySelector(selector));
-   // },
-
-   /**
-     * @param {String} selector The CSS selector used to select the element
-     * @returns {Promise<Element>} The selected element
-   */
-   // waitForElement(selector) {
-   //    return new Promise((resolve) => {
-   //       if (document.querySelector(selector)) return resolve(document.querySelector(selector));
-
-   //       const observer = new MutationObserver(() => {
-   //          if (document.querySelector(selector)) {
-   //             observer.disconnect();
-   //             resolve(document.querySelector(selector));
-   //          }
-   //       });
-
-   //       observer.observe(document.body, { childList: true, subtree: true });
-   //    });
-   // },
-
-   /**
-    * @param  {string} selector
-    * @param  {Node*} container
-    * @param {destroy_timeout} sec How long to wait before throwing an error (seconds)
-    * @return {Promise<Element>}
-    *
-   */
-   // // Function to be called when the target element exists
-   // // untilDOM
-   // // waitSelector(selector = required(), { container, destroy_after_page_leaving, destroy_timeout }) {
-   // waitSelector(selector = required(), limit_data) {
-   //    return new Promise((resolve, reject) => {
-   //       // reject
-   //       if (typeof selector !== 'string') {
-   //          console.error('wait > selector:', ...arguments);
-   //          return reject('wait > selector:', typeof selector);
-   //       }
-   //       // if (selector.includes(':has(')) selector = `@supports selector(:has(*)) {${selector}}`
-   //       if (selector.includes(':has(') && !CSS.supports('selector(:has(*))')) {
-   //       // fix - Error: Failed to execute 'querySelector' on 'Element': 'ytd-comment-thread-renderer:has(#linked-comment-badge) #replies' is not a valid selector.
-   //       // https://jsfiddle.net/f6o2amjk/4/ https://www.bram.us/2023/01/04/css-has-feature-detection-with-supportsselector-you-want-has-not-has/
-   //          // throw new Error('CSS ":has()" unsupported');
-   //          console.warn('CSS ":has()" unsupported');
-   //          return reject('CSS ":has()" unsupported');
-   //       }
-
-   //       if (limit_data && (/*!Object.keys(limit_data).label ||*/ !limit_data.hasOwnProperty('destroy_after_page_leaving') && !limit_data.hasOwnProperty('container'))) {
-   //          console.error('waitSelector > check format "limit_data":', ...arguments);
-   //          return reject('waitSelector > check format "limit_data"');
-   //       }
-   //       if (limit_data?.container && !(container instanceof HTMLElement)) {
-   //          console.error('waitSelector > container not HTMLElement:', ...arguments);
-   //          return reject('waitSelector > container not HTMLElement');
-   //       }
-   //       // console.debug('waitSelector:', selector);
-
-   //       // https://stackoverflow.com/a/68262400
-   //       // best https://codepad.co/snippet/wait-for-an-element-to-exist-via-mutation-observer
-   //       // alt:
-   //       // https://git.io/waitForKeyElements.js
-   //       // https://github.com/fuzetsu/userscripts/tree/master/wait-for-elements
-   //       // https://github.com/CoeJoder/waitForKeyElements.js
-   //       // https://gist.githubusercontent.com/sidneys/ee7a6b80315148ad1fb6847e72a22313/raw/
-   //       // https://greasyfork.org/scripts/21927-arrive-js/code/arrivejs.js  (ex: https://greasyfork.org/en/scripts/429783-confirm-and-upload-imgur)
-   //       // https://greasyfork.org/scripts/464780-global-module/code/global_module.js
-   //       // https://github.com/CoeJoder/waitForKeyElements.js
-   //       // https://update.greasyfork.org/scripts/419640/887637/onElementReady.js
-
-   //       // There is a more correct method - transitionend.
-   //       // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/transitionend_event
-   //       // But this requires a change in the logic of the current implementation. It will also complicate the restoration of the expansion if in the future, if YouTube replaces logic.
-
-   //       // resolve
-   //       if (element = (limit_data?.container || document.body || document).querySelector(selector)) {
-   //          // console.debug('[1]', selector);
-   //          return resolve(element);
-   //       }
-
-   //       const startTime = Date.now();
-   //       let waiting = false;
-
-   //       const observerFactory = new MutationObserver((mutationRecordsArray, observer) => {
-   //          // for (const record of mutationRecordsArray) {
-   //          //    for (const node of record.addedNodes) {
-   //          //       if (![1, 3, 8].includes(node.nodeType) || !(node instanceof HTMLElement)) continue; // speedup hack
-
-   //          //       if (node.matches && node.matches(selector)) { // this node
-   //          //          console.debug('[2]', Date.now() - startTime, 'ms', record.type, node.nodeType, selector);
-   //          //          observer.disconnect();
-   //          //          return resolve(node);
-   //          //       }
-   //          //       // closet ?
-   //          //       else if ( // inside node
-   //          //          (parentEl = node.parentElement || node)
-   //          //          && (!(parentEl instanceof HTMLElement))
-   //          //          && (element = parentEl.querySelector(selector))
-   //          //       ) {
-   //          //          console.debug('[3]', Date.now() - startTime, 'ms', record.type, node.nodeType, selector);
-   //          //          observer.disconnect();
-   //          //          return resolve(element);
-   //          //       }
-   //          //    }
-   //          // }
-
-   //          // after for-loop. In global
-   //          // if (document?.readyState != 'loading' // fix slowdown page
-   //          //    && (element = (limit_data?.container || document?.body || document).querySelector(selector))
-   //          // ) {
-   //          //    // console.debug('[4]', selector);
-   //          //    observer.disconnect();
-   //          //    return resolve(element);
-   //          // }
-
-   //          if (!waiting
-   //             && document?.readyState != 'loading' // fix slowdown page
-   //             // && document.visibilityState == 'visible'
-   //          ) {
-   //             waiting = true;
-   //             setTimeout(() => {
-   //                if (element = (limit_data?.container || document?.body || document).querySelector(selector)) {
-   //                   // console.debug('[4]', selector);
-   //                   observer.disconnect();
-   //                   return resolve(element);
-   //                }
-   //                waiting = false;
-   //             }, 100); // Adjust throttle time as needed
-   //          }
-   //       });
-
-   //       observerFactory
-   //          .observe(limit_data?.container || document.body || document.documentElement || document, {
-   //             childList: true, // observe direct children
-   //             subtree: true, // and lower descendants too
-   //             attributes: true, // need to - "NOVA.waitSelector('#movie_player.ytp-autohide video')" in embed page
-   //             //  characterData: true,
-   //             //  attributeOldValue: true,
-   //             //  characterDataOldValue: true
-   //          });
-
-   //       // destructure self
-   //       if (sec = +limit_data?.destroy_timeout) {
-   //          setTimeout(() => {
-   //             observerFactory.disconnect();
-   //             return reject(`"${selector}" timed out after ${sec} seconds`);
-   //          }, sec * 1000);
-   //       }
-
-   //       // destructure self
-   //       // if (limit_data?.destroy_on_page_navigate) {
-   //       if (limit_data?.destroy_after_page_leaving) {
-   //          // url save init
-   //          isURLChange();
-   //          // on page update
-   //          window.addEventListener('transitionend', ({ target }) => isURLChange() && observerFactory.disconnect(), { capture: true, once: true });
-
-   //          function isURLChange() {
-   //             return (this.prevURL === document.URL) ? false : this.prevURL = document.URL;
-   //          }
-   //       }
-   //    });
-   // },
-
-   /**
-    * Finds an element on the webpage, with timeout and page change handling.
-    *
     * @param {string} selector - CSS selector for the target element
     * @param {object} options - Configuration options
-    * @param {HTMLElement} options.container - The element to search within (defaults to document)
-    * @param {number} options.destroy_timeout - Timeout in seconds before rejecting (optional)
-    * @param {boolean} options.destroy_after_page_leaving - Disconnect observer on page change (optional)
+    * @param {HTMLElement} [options.container] - The element to search within (defaults to document)
+    * @param {boolean} [options.destroy_after_page_leaving] - Disconnect observer on page change (optional)
+    * @param {number} [options.destroy_timeout] - Timeout in seconds before rejecting (optional)
     *
     * @returns {Promise<HTMLElement>} - Resolves with the found element, rejects on timeout or error
    */
-   waitSelector(selector = required(), options = {}) {
-      const { container = document, destroy_timeout, destroy_after_page_leaving } = options;
+   // untilDOM
+   waitSelector(selector = required(), limit_options = {}) {
+      const {
+         container = document.body || document,
+         destroy_after_page_leaving,
+         destroy_timeout = 0,
+      } = limit_options;
+
+      if (typeof selector !== 'string') {
+         console.error('selector is not a string:', selector);
+         return;
+      }
+      else if (!CSS.supports('selector(:has(*))')) {
+         console.warn('CSS ":has()" unsupported');
+         return;
+      }
+
+      if (container !== document && !(container instanceof HTMLElement)) {
+         console.error('container is not a HTMLElement:', limit_options);
+         return;
+      }
+
+      // if (typeof destroy_timeout !== 'number'/* && destroy_timeout <= 0*/) {FF
+      if (destroy_timeout && !Number.isFinite(destroy_timeout)) {
+         console.error('timeout must be a positive number:', destroy_timeout);
+         return;
+      }
 
       return new Promise((resolve, reject) => {
-         // reject
-         if (typeof selector !== 'string') {
-            console.error('wait > selector:', ...arguments);
-            return reject('wait > selector:', typeof selector);
-         }
-         // if (selector.includes(':has(')) selector = `@supports selector(:has(*)) {${selector}}`
-         else if (selector.includes(':has(') && !CSS.supports('selector(:has(*))')) {
-            // fix - Error: Failed to execute 'querySelector' on 'Element': 'ytd-comment-thread-renderer:has(#linked-comment-badge) #replies' is not a valid selector.
-            // https://jsfiddle.net/f6o2amjk/4/ https://www.bram.us/2023/01/04/css-has-feature-detection-with-supportsselector-you-want-has-not-has/
-            // throw new Error('CSS ":has()" unsupported');
-            console.error('CSS ":has()" unsupported');
-            return reject('CSS ":has()" unsupported');
-         }
+         // https://stackoverflow.com/a/68262400
+         // best https://codepad.co/snippet/wait-for-an-element-to-exist-via-mutation-observer
+         // alt:
+         // https://git.io/waitForKeyElements.js
+         // https://github.com/fuzetsu/userscripts/tree/master/wait-for-elements
+         // https://github.com/CoeJoder/waitForKeyElements.js
+         // https://gist.githubusercontent.com/sidneys/ee7a6b80315148ad1fb6847e72a22313/raw/
+         // https://greasyfork.org/scripts/21927-arrive-js/code/arrivejs.js  (ex: https://greasyfork.org/en/scripts/429783-confirm-and-upload-imgur)
+         // https://greasyfork.org/scripts/464780-global-module/code/global_module.js
+         // https://github.com/CoeJoder/waitForKeyElements.js
+         // https://update.greasyfork.org/scripts/419640/887637/onElementReady.js
 
-         if (options?.container && (!(options.container instanceof HTMLElement))) {
-            console.error('waitSelector > container not HTMLElement:', ...arguments);
-            return reject('waitSelector > container not HTMLElement');
-         }
-
-         const prevURL = document.URL; // For page change detection
-         let recordId;
-
-         function queryElement() {
-            if (el = container.querySelector(selector)) stop(el);
-            else {
-               recordId = requestAnimationFrame(queryElement);
-            }
-
-            function stop(el) {
-               if (recordId) {
-                  cancelAnimationFrame(recordId);
-               }
-               resolve(el);
-            }
+         // resolve
+         if (el = container.querySelector(selector)) {
+            // console.debug('[1]', selector);
+            return resolve(el);
          }
 
-         queryElement();
+         // const startTime = Date.now();
+         let waiting = document.hidden || !container.contains(document.activeElement);
+         let destroyTimeout;
 
-         // Handle timeout (if provided)
-         if (destroy_timeout) {
-            setTimeout(() => {
-               cancelAnimationFrame(recordId);
-               reject(`${name || 'Element'} timed out after ${destroy_timeout} seconds`);
+         const observerFactory = new MutationObserver(queryElement);
+         // const observerFactory = new MutationObserver((mutationRecordsArray, observer) => {
+         //    // for (const record of mutationRecordsArray) {
+         //    //    for (const node of record.addedNodes) {
+         //    //       if (![1, 3, 8].includes(node.nodeType) || !(node instanceof HTMLElement)) continue; // speedup hack
+
+         //    //       if (node.matches && node.matches(selector)) { // this node
+         //    //          console.debug('[2]', Date.now() - startTime, 'ms', record.type, node.nodeType, selector);
+         //    //          observer.disconnect();
+         //    //          return resolve(node);
+         //    //       }
+         //    //       // closet ?
+         //    //       else if ( // inside node
+         //    //          (parentEl = node.parentElement || node)
+         //    //          && (!(parentEl instanceof HTMLElement))
+         //    //          && (element = parentEl.querySelector(selector))
+         //    //       ) {
+         //    //          console.debug('[3]', Date.now() - startTime, 'ms', record.type, node.nodeType, selector);
+         //    //          observer.disconnect();
+         //    //          return resolve(element);
+         //    //       }
+         //    //    }
+         //    // }
+
+         //    // after for-loop. In global
+         //    // if (document?.readyState != 'loading' // fix slowdown page
+         //    //    && (element = container.querySelector(selector))
+         //    // ) {
+         //    //    // console.debug('[4]', selector);
+         //    //    observer.disconnect();
+         //    //    return resolve(element);
+         //    // }
+         //    }
+
+         observerFactory
+            .observe(container, {
+               childList: true, // observe direct children
+               subtree: true, // and lower descendants too
+               // attributes: true, // need to - "NOVA.waitSelector('#movie_player.ytp-autohide video')" in embed page
+               //  characterData: true,
+               //  attributeOldValue: true,
+               //  characterDataOldValue: true
+            });
+
+         // destructure self
+         if (destroy_timeout > 0) {
+            destroyTimeout = setTimeout(() => {
+               stopJob();
+               return reject(`Element not found within ${destroy_timeout} seconds`);
             }, destroy_timeout * 1000);
          }
 
-         // Handle page change (if enabled)
+         // destructure self
          if (destroy_after_page_leaving) {
-            window.addEventListener('transitionend', ({ target }) => {
-               if (prevURL != document.URL) {
-                  cancelAnimationFrame(recordId);
-                  reject(`${name || 'Element'} not found before page change`);
+            const prevURL = document.URL;
+            window.addEventListener('transitionend', () => {
+               if (prevURL !== document.URL) {
+                  stopJob();
+                  return reject('Page changed before element was found');
                }
             }, { capture: true, once: true });
          }
+
+         document.addEventListener('visibilitychange', handleVisibilityChange);
+
+         function handleVisibilityChange() {
+            waiting = document.hidden; // If the page becomes inactive, pause the search
+            queryElement();
+         }
+
+         function queryElement() {
+            if (!waiting && document.readyState === 'complete') {
+               waiting = true;
+               setTimeout(() => {
+                  const element = container.querySelector(selector);
+                  if (element) {
+                     stopJob()
+                     return resolve(element);
+                  }
+                  else {
+                     waiting = false;
+                  }
+               }, 100); // Adjust throttle time as needed
+            }
+         }
+
+         function stopJob() {
+            observerFactory.disconnect();
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            if (typeof destroyTimeout === 'number') clearTimeout(destroyTimeout);
+         }
+
       });
    },
 
    /**
-    * @param  {function} condition
-    * @param  {int*} timeout
+    * @param  {function} condition_fn
+    * @param  {int*} check_period
+    * @param  {int*} destroy_after - destructure self after in sec
     * @return {Promise<fn>}
    */
-   /** wait for every DOM change until a condition becomes true */
-   // await NOVA.waitUntil(fn_condition, 500) // 500ms
-   waitUntil(condition = required(), timeout = required()) {
-      if (typeof condition !== 'function') return console.error('waitUntil > condition is not fn:', typeof condition);
+   // await NOVA.waitUntil(condition_fn, 500) // 500ms
+   waitUntil(condition_fn = required(), check_period = 500, destroy_after = (60 * 1000)) {
+      if (typeof condition_fn !== 'function') {
+         console.error('condition is not a function:', typeof condition_fn, condition_fn);
+         return Promise.reject(new Error('Condition function is required'));
+      }
 
-      return new Promise((resolve) => {
-         if (result = condition()) {
-            // console.debug('waitUntil[1]', result, condition, timeout);
-            resolve(result);
-         }
-         else {
-            const waitCondition = setInterval(() => {
-               if (result = condition()) {
-                  // console.debug('waitUntil[2]', result, condition, timeout);
-                  clearInterval(waitCondition);
-                  resolve(result);
+      if (!Number.isFinite(check_period)) {
+         console.error('check_period must be a positive number:', check_period);
+         return Promise.reject(new Error('Check period must be a finite number'));
+      }
+
+      if (!Number.isFinite(destroy_after)) {
+         console.error('timeout must be a positive number:', destroy_after);
+         return Promise.reject(new Error('Destroy timeout must be a finite number'));
+      }
+
+      return new Promise((resolve, reject) => {
+         const startTime = Date.now();
+         const checkCondition = () => {
+            try {
+               const result = condition_fn();
+               if (result !== undefined) { // Ensure the function returns a value
+                  resolve(result); // Resolve with the actual output of condition_fn
                }
-               // console.debug('waitUntil[3]', result, condition, timeout);
-            }, +timeout || 500); // default 500ms
-         }
+               else if ((Date.now() - startTime) > destroy_after * 1000) {
+                  reject(new Error('Timeout reached'));
+               }
+               else {
+                  setTimeout(checkCondition, check_period);
+               }
+            } catch (err) {
+               reject(err);
+            }
+         };
+
+         checkCondition();
       });
    },
+
+   // waitUntil(condition_fn = () => { }, check_period = 500, destroy_timeout = check_period * 10) {
+   //    return new Promise((resolve, reject) => {
+   //       let destroyTimeout;
+
+   //       const checkCondition = () => {
+   //          try {
+   //             const result = condition_fn();
+   //             if (result !== undefined) {
+   //                resolve(result);
+   //             } else {
+   //                setTimeout(checkCondition, check_period);
+   //             }
+   //          } catch (err) {
+   //             reject(err);
+   //          }
+   //       };
+   //       const destructureTimeout = new Promise((_, reject) => {
+   //          destroyTimeout = setTimeout(() => {
+   //             reject(new Error('Timeout reached'));
+   //          }, destroy_timeout * 1000);
+   //       });
+
+   //       Promise.race([checkCondition()])
+   //          .finally(() => {
+   //             console.debug('', 2222);
+   //             if (typeof destroyTimeout === 'number') clearTimeout(destroyTimeout);
+   //          });
+   //    });
+   // },
 
    // await NOVA.delay(500);
    delay(ms = 100) {
@@ -451,80 +342,101 @@ const NOVA = {
     * @return {void}
    */
    watchElements({ selectors = required(), attr_mark, callback = required(), destroy_after_page_leaving = false }) {
-      // alt - https://github.com/uzairfarooq/arrive (https://greasyfork.org/scripts/21927-arrive-js/code/arrivejs.js)
+      if (!Array.isArray(selectors) && typeof selectors !== 'string') {
+         console.error('selectors is not array/string:', typeof selectors, selectors);
+         return;
+      }
+      if (typeof callback !== 'function') {
+         console.error('callback is not a function:', typeof callback, callback);
+         return;
+      }
 
-      // console.debug('watch', selector);
-      if (!Array.isArray(selectors) && typeof selectors !== 'string') return console.error('watch > selector:', typeof selectors);
-      if (typeof callback !== 'function') return console.error('watch > callback:', typeof callback);
+      // Convert selectors to an array if a single selector is provided
+      if (typeof selectors === 'string') selectors = [selectors];
 
-      let waiting = false;
-      // let mutations = [];
-
-      // selectors str to array
-      !Array.isArray(selectors) && (selectors = selectors.split(',').map(s => s.trim()));
-
-      const observerFactory = new MutationObserver(records => {
-         // mutations.push(...records);
-         if (!waiting && document.visibilityState == 'visible') {
-            waiting = true;
-            setTimeout(() => {
-               // callback(mutations);
-               process();
-               waiting = false;
-               // mutations = [];
-            }, 100); // Adjust throttle time as needed
+      // Check for CSS ":has()" support
+      selectors = selectors.filter(selector => {
+         if (!CSS.supports(`selector(:has(*))`)) {
+            console.error('CSS ":has()" unsupported', selector);
+            return false;
          }
+         return true;
       });
+
+      if (!selectors.length) return;
+
+      const container = document.body || document;
+
+      // const startTime = Date.now();
+      let waiting = document.hidden || !container.contains(document.activeElement);
+      let destroyTimeout;
+
+      const observerFactory = new MutationObserver(queryElement);
+
       observerFactory
-         .observe(document.body || document.documentElement || document, {
+         .observe(container, {
             childList: true, // observe direct children
             subtree: true, // and lower descendants too
-            attributes: true, // need to - "NOVA.waitSelector('#movie_player.ytp-autohide video')" in embed page
+            attributes: true,
             //  characterData: true,
             //  attributeOldValue: true,
             //  characterDataOldValue: true
          });
 
       // destructure self
-      // if (limit_data?.destroy_on_page_navigate) {
-      if (destroy_after_page_leaving) {
-         // url save init
-         isURLChange();
-         // on page update
-         window.addEventListener('transitionend', ({ target }) => isURLChange() && observerFactory.disconnect());
+      // if (destroy_timeout > 0) {
+      //    destroyTimeout = setTimeout(() => {
+      //       stopJob();
+      //       return reject(`Element not found within ${destroy_timeout} seconds`);
+      //    }, destroy_timeout * 1000);
+      // }
 
-         function isURLChange() {
-            return (this.prevURL === document.URL) ? false : this.prevURL = document.URL;
+      // destructure self
+      if (destroy_after_page_leaving) {
+         const prevURL = document.URL;
+         window.addEventListener('transitionend', () => {
+            if (prevURL !== document.URL) {
+               stopJob();
+               return reject('Page changed before element was found');
+            }
+         }, { capture: true, once: true });
+      }
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      function handleVisibilityChange() {
+         waiting = document.hidden; // If the page becomes inactive, pause the search
+         queryElement();
+      }
+
+      function queryElement() {
+         if (!waiting && document.readyState === 'complete') {
+            waiting = true;
+            setTimeout(() => {
+               selectors.forEach(selector => {
+                  // Add attribute mark to selector if provided
+                  const selectorWithAttrMark = attr_mark ? `${selector}:not([${attr_mark}])` : selector;
+
+                  // Find elements matching the selector
+                  document.querySelectorAll(selectorWithAttrMark).forEach(el => {
+                     if (attr_mark) {
+                        el.setAttribute(attr_mark, true);
+                     }
+                     // Call the callback function for each element
+                     callback(el);
+                  });
+               });
+
+               waiting = false;
+            }, 100); // Adjust throttle time as needed
          }
       }
 
-      function process() {
-         // console.debug('watch.process', { selector, callback });
-         selectors
-            .forEach(selector => {
-               // https://jsfiddle.net/f6o2amjk/4/ https://www.bram.us/2023/01/04/css-has-feature-detection-with-supportsselector-you-want-has-not-has/
-               // if (selector.includes(':has(')) selector = `@supports selector(:has(*)) {${selector}}`
-               if (selector.includes(':has(') && !CSS.supports('selector(:has(*))')) {
-                  return console.warn('CSS ":has()" unsupported');
-               }
-
-               if (attr_mark) selector += `:not([${attr_mark}])`;
-               // if ((slEnd = ':not([hidden])') && !selector.endsWith(slEnd)) {
-               //    selector += slEnd;
-               // }
-               // console.debug('selector', selector);
-
-               document.body.querySelectorAll(selector)
-                  .forEach(el => {
-                     // if (el.offsetWidth > 0 || el.offsetHeight > 0) { // el.is(":visible")
-                     // console.debug('watch.process.viewed', selector);
-                     if (attr_mark) el.setAttribute(attr_mark, true);
-                     callback(el);
-                     // }
-                  });
-            });
+      function stopJob() {
+         observerFactory.disconnect();
+         document.removeEventListener('visibilitychange', handleVisibilityChange);
+         if (typeof destroyTimeout === 'number') clearTimeout(destroyTimeout);
       }
-
    },
 
    /**
@@ -532,94 +444,106 @@ const NOVA = {
     * @return {void}
    */
    // Check if URL has changed
-   runOnPageLoad(callback) {
-      if (!callback || typeof callback !== 'function') {
-         return console.error('runOnPageLoad > callback not function:', ...arguments);
+   runOnPageLoad(callback = required()) {
+      if (typeof callback !== 'function') {
+         console.error('callback is not a function:', typeof callback, callback);
+         return;
       }
       let prevURL = document.URL;
-      const isURLChange = () => (prevURL === document.URL) ? false : prevURL = document.URL;
-      // init
-      isURLChange() || callback();
+
+      // Initial call to callback if URL hasn't changed
+      if (!isURLChange()) callback();
       // update
       // window.addEventListener('transitionend', () => isURLChange() && callback());
       document.addEventListener('yt-navigate-finish', () => isURLChange() && callback());
+
+      function isURLChange() {
+         return (prevURL === document.URL) ? false : prevURL = document.URL;
+      }
    },
 
    /**
     * @param  {obj/string} css
     * @param  {string*} selector
-    * @param  {boolean*} set_important
+    * @param  {boolean*} is_important
     * @return {void}
    */
    css: {
-      push(css = required(), selector, set_important) {
+      push(css = required(), selector, is_important) {
          // console.debug('css\n', ...arguments);
          if (typeof css === 'object') {
-            if (!selector) return console.error('injectStyle > empty json-selector:', ...arguments);
-
-            // To above v105 https://developer.mozilla.org/en-US/docs/Web/CSS/:has
-            if (selector.includes(':has(') && !CSS.supports('selector(:has(*))')) {
-               // throw new Error('CSS ":has()" unsupported');
-               return console.error('CSS ":has()" unsupported', ...arguments);
+            if (!selector) {
+               console.error('css is not a object:', typeof selector, selector);
+               return;
             }
-
-            // if (set_important) {
-            injectCss(selector + json2css(css));
-            // } else {
-            //    Object.assign(document.body.querySelector(selector).style, css);
+            // prevent a complex css because of one ":has()" selector is stupid
+            // if (!CSS.supports('selector(:has(*))')) {
+            //    console.error('CSS ":has()" unsupported:', selector);
+            //    return;
             // }
 
-            function json2css(obj) {
-               let css = '';
-               Object.entries(obj)
-                  .forEach(([key, value]) => {
-                     css += key + ':' + value + (set_important ? ' !important' : '') + ';';
-                  });
-               return `{ ${css} }`;
-            }
+            const cssString = json2css(css);
+            injectCss(`${selector} { ${cssString} }`);
          }
-         else if (css && typeof css === 'string') {
-            if (document.head) {
-               injectCss(css);
-            }
-            else {
-               window.addEventListener('load', () => injectCss(css), { capture: true, once: true });
-            }
+         else if (typeof css === 'string') {
+            injectCss(css);
          }
          else {
-            console.error('addStyle > css:', typeof css);
+            console.error('CSS is not object/string:', typeof css, css);
+            return;
+         }
+
+         function json2css(obj = required()) {
+            if (typeof obj !== 'object') {
+               console.error('json2css argument is not a object:', typeof obj, obj);
+               return;
+            }
+            let css = '';
+            Object.entries(obj).forEach(([key, value]) => {
+               css += `${key}:${value}${is_important ? ' !important' : ''};`;
+            });
+            return css;
          }
 
          function injectCss(source = required()) {
-            let sheet;
-
-            if (source.endsWith('.css')) {
-               sheet = document.createElement('link');
-               sheet.rel = 'sheet';
-               sheet.href = source;
+            if (typeof source !== 'string') {
+               console.error('source is not a string:', source);
+               return;
             }
-            else {
+
+            // Try using document.adoptedStyleSheets
+            if (window.CSSStyleSheet && window.CSSStyleSheet.prototype.replaceSync) {
+               const sheet = new CSSStyleSheet();
+               sheet.replaceSync(source);
+               document.adoptedStyleSheets = [sheet, ...document.adoptedStyleSheets];
+            }
+            // Fallback to sheet.textContent
+            else if (document.head) {
                const sheetId = 'NOVA-style';
-               sheet = document.getElementById(sheetId) || (function () {
+               const sheet = document.getElementById(sheetId) || createStyleSheet(sheetId);
+               // sheet.textContent += `/**/\n${source.replace(/\n+\s{2,}/g, ' ')}\n`;
+               // sheet.innerText += '/**/\n' + source
+               sheet.textContent += '/**/\n' + source
+                  .replace(/\n+\s{2,}/g, ' ') // singleline format
+                  // multiline format
+                  // .replace(/\n+\s{2,}/g, '\n\t')
+                  // .replace(/\t\}/mg, '}')
+                  + '\n';
+
+               function createStyleSheet(id) {
                   const style = document.createElement('style');
                   style.type = 'text/css';
-                  style.id = sheetId;
-                  return (document.head || document.documentElement).appendChild(style);
-               })();
+                  style.id = id;
+                  document.head.append(style);
+                  return style;
+               }
             }
-
-            // sheet.innerText += '/**/\n' + source
-            sheet.textContent += '/**/\n' + source
-               .replace(/\n+\s{2,}/g, ' ') // singleline format
-               // multiline format
-               // .replace(/\n+\s{2,}/g, '\n\t')
-               // .replace(/\t\}/mg, '}')
-               + '\n';
-            // sheet.insertRule(css, sheet.cssRules.length);
-            // (document.head || document.documentElement).append(sheet);
-            // document.adoptedStyleSheets.push(newSheet); // v99+
-
-            // sheet.onload = () => NOVA.log('style loaded:', sheet.src || sheet || sheet.textContent.substr(0, 100));
+            // Fallback to sheet.insertRule()
+            else {
+               const sheet = document.styleSheets[0] || document.createElement('style');
+               sheet.insertRule(source, sheet.cssRules.length);
+               document.head.append(sheet);
+            }
          }
       },
 
@@ -633,8 +557,8 @@ const NOVA = {
       // HTMLElement.prototype.getIntValue = () {}
       // const { position, right, bottom, zIndex, boxShadow } = window.getComputedStyle(container); // multiple
       get(selector = required(), prop_name = required()) {
-         return (el = (selector instanceof HTMLElement) ? selector : document.body?.querySelector(selector))
-            ? getComputedStyle(el).getPropertyValue(prop_name) : null; // for some callback functions (Match.max) return "undefined" is not valid
+         const el = (selector instanceof HTMLElement) ? selector : document.body?.querySelector(selector);
+         return el ? getComputedStyle(el).getPropertyValue(prop_name) : null;
       },
       // getCssBatch(selector, propNames) {
       //    const styles = getComputedStyle(document.body.querySelector(selector));
@@ -649,6 +573,7 @@ const NOVA = {
    cookies: {
       // 97.1 % slower
       // get(name = required()) {
+      //    if (!navigator.cookieEnabled) return;
       //    return Object.fromEntries(
       //       document.cookie
       //          .split(/; */)
@@ -658,15 +583,17 @@ const NOVA = {
       //          })
       //    )[name];
       // },
+      // get(name = required()) {
+      //    return (matches = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'))
+      //       && decodeURIComponent(matches[1]));
+      // },
       get(name = required()) {
-         return (matches = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + '=([^;]*)'))
-            && decodeURIComponent(matches[1]));
-      },
-      get(name = required()) {
+         if (!navigator.cookieEnabled) return;
          return (match = document.cookie.match(new RegExp(`(^| )${name}=([^;]+)`))) && decodeURIComponent(match[2]);
       },
       // 70.38 % slower
       // set(name = required(), value = '', days = 90) { // 90 days
+      //    if (!navigator.cookieEnabled) return;
       //    let date = new Date();
       //    date.setTime(date.getTime() + 24 * 60 * 60 * 1000 * days);
 
@@ -682,6 +609,7 @@ const NOVA = {
       //    // console.assert(this.get(name) == value, 'cookie set err:', ...arguments, document.cookie);
       // },
       // set(name = required(), value = '', options) {
+      //    if (!navigator.cookieEnabled) return;
       //    options = options || {};
 
       //    let expires = options.expires;
@@ -712,6 +640,7 @@ const NOVA = {
       //    document.cookie = updatedCookie;
       // },
       set(name = required(), value = '', days = 90) { // 90 days
+         if (!navigator.cookieEnabled) return;
          let expires = '';
          if (+days) {
             let date = new Date();
@@ -722,9 +651,11 @@ const NOVA = {
          // console.assert(this.get(name) == value, 'cookie set err:', ...arguments, document.cookie);
       },
       delete(name) {
+         if (!navigator.cookieEnabled) return;
          this.set(name, '', -1);
       },
       clear() {
+         if (!navigator.cookieEnabled) return;
          for (const key in this.get()) {
             this.delete(key);
          }
@@ -732,6 +663,8 @@ const NOVA = {
          this.clearAllCookies(domain);
       },
       clearAllCookies(domain) {
+         if (!navigator.cookieEnabled) return;
+
          let cookies = document.cookie.split('; ');
          for (let i = 0; i < cookies.length; i++) {
             const cookie = cookies[i];
@@ -774,32 +707,71 @@ const NOVA = {
     * @return  {boolean}
    */
    isInViewport(el = required()) {
-      if (!(el instanceof HTMLElement)) return console.error('el is not HTMLElement type:', el);
-
-      if (distance = el.getBoundingClientRect()) {
-         return (
-            distance.top >= 0 &&
-            distance.left >= 0 &&
-            distance.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-            distance.right <= (window.innerWidth || document.documentElement.clientWidth)
-         );
+      if (!(el instanceof HTMLElement)) {
+         console.error('el is not a HTMLElement:', typeof el, el);
+         return;
       }
+
+      const rect = el.getBoundingClientRect();
+      if (!rect) return;
+
+      const { top, left, bottom, right } = rect;
+      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+      const windowWidth = window.innerWidth || document.documentElement.clientWidth;
+
+      return (
+         top >= 0
+         && left >= 0
+         && bottom <= windowHeight
+         && right <= windowWidth
+      );
    },
 
    /**
     * @param  {Node} el
     * @return  {boolean}
    */
-   // checkVisibility(el = required()) {
-   //    if (!el.offsetHeight && !el.offsetWidth) return false;
+   isVisible(el = required(), deeper = false) {
+      if (!(el instanceof HTMLElement)) {
+         console.error('el is not a HTMLElement:', typeof el, el);
+         return;
+      }
+      // Check visibility of main element
+      if (isHidden(el)) {
+         return false;
+      }
 
-   //    if (styles = getComputedStyle(el)) {
-   //       return (
-   //          styles.visibility != 'hidden' &&
-   //          styles.display != 'none'
-   //       );
-   //    }
-   // }
+      // check parents
+      let parent = el.offsetParent;
+      while (parent && parent !== document.body) {
+         if (isHidden(parent)) {
+            return false;
+         }
+         if (!deeper) break;
+         parent = parent.offsetParent;
+      }
+
+      return true;
+
+      function isHidden(element = required()) {
+         const { offsetHeight, offsetWidth } = element;
+         if (offsetHeight === 0 || offsetWidth === 0) {
+            return true;
+         }
+         const rect = element.getBoundingClientRect();
+         if (rect.width === 0 || rect.height === 0) {
+            return true;
+         }
+
+         const { display, visibility, opacity } = window.getComputedStyle(element);
+         if (display === 'none'
+            || visibility !== 'visible'
+            || parseFloat(opacity) === 0
+         ) {
+            return true;
+         }
+      }
+   },
 
    /* NOVA.collapseElement({
          selector: '#secondary #related',
@@ -815,15 +787,24 @@ const NOVA = {
    */
    collapseElement({ selector = required(), label = required(), remove }) {
       // console.debug('collapseElement', ...arguments);
+      // Validate arguments
+      if (typeof selector !== 'string') {
+         console.error('selector is not a string:', selector);
+         return;
+      }
+
       const selector_id = `${label.match(/[a-z]+/gi).join('')}-prevent-load-btn`;
 
       this.waitSelector(selector.toString())
          .then(el => {
             if (remove) el.remove();
             else {
-               if (document.getElementById(selector_id)) return;
+               if (document.getElementById(selector_id)) {
+                  return;
+               }
+               // Hide the element
                el.style.display = 'none';
-               // create button
+               // Create the "Load" button
                const btn = document.createElement('a');
                btn.textContent = `Load ${label}`;
                btn.id = selector_id;
@@ -871,15 +852,38 @@ const NOVA = {
       */
       // extractRatio({ width = required(), height = required() }) {
       getAspectRatio({ width = required(), height = required() }) {
+         // for test https://www.youtube.com/watch?v=738UOATPjwc
+
+         // 'width': NOVA.videoElement.clientWidth, // 677
+         // 'height': NOVA.videoElement.clientHeight, // 508
+
+         // 'width': movie_player.clientWidth, // 1825
+         // 'height': movie_player.clientHeight, // 508
+
+         // 'width': NOVA.videoElement?.videoWidth, // 1440
+         // 'height': NOVA.videoElement?.videoHeight, // 1080
+
+         // Scale video dimensions to fit the client area while maintaining aspect ratio.
+         if (width == NOVA.videoElement?.videoWidth && height == NOVA.videoElement?.videoHeight) {
+            width = Math.min(width, NOVA.videoElement?.clientWidtho);
+            height = Math.min(height, NOVA.videoElement?.clientHeight);
+         }
+
+         // Check if the aspect ratio is too close to a perfect square.
+         const ASPECT_RATIO_TOLERANCE = 0.05; // 5% tolerance from a perfect square (1:1)
+         // const maxDiff = Math.abs((width / height) - 1);
+         const maxDiff = Math.abs(width - height) / Math.max(width, height);
+         const isTooCloseToSquare = maxDiff <= ASPECT_RATIO_TOLERANCE;
+
+         if (isTooCloseToSquare) return '1:1';
+
          const
             gcd = (a, b) => b ? gcd(b, a % b) : a,
             divisor = gcd(width, height),
             w = width / divisor,
             h = height / divisor;
 
-         return (w > 10 && h > 10 && Math.abs(w - h) <= 2) // fix ration "91:90", "121:120" etc.
-            ? '1:1'
-            : w + ':' + h;
+         return w + ':' + h;
 
          // switch (w + ':' + h) {
          //    case '64:27':
@@ -900,7 +904,7 @@ const NOVA = {
          //    case '4:3':
          //       return '4:3';
          //    default:
-         //       return width + 'x' + height;
+         //       return w + ':' + h;
          // }
       },
 
@@ -914,7 +918,7 @@ const NOVA = {
          // return (Math.abs(ratio - 4 / 3) < Math.abs(ratio - 16 / 9)) ? '4:3' : '16:9';
 
          const acceptedRatioList = {
-            'landscape': {
+            landscape: {
                '1:1': 1,
                '3:2': 1.5,
                '4:3': 1.33333333333,
@@ -926,7 +930,7 @@ const NOVA = {
                '21:9': 2.33333333333,
                '24:10': 2.4,
             },
-            'portrait': {
+            portrait: {
                '1:1': 1,
                '2:3': .66666666667,
                '3:4': .75,
@@ -938,7 +942,7 @@ const NOVA = {
                '10:16': .625,
             },
          };
-         return choiceRatioFromList(this.getAspectRatio(...arguments)) || acceptedRatioList['landscape']['16:9'];
+         return choiceRatioFromList(this.getAspectRatio({ width, height })) || acceptedRatioList.landscape['16:9'];
 
          function choiceRatioFromList(ratio = required()) {
             const layout_ = layout || ((ratio < 1) ? 'portrait' : 'landscape');
@@ -967,26 +971,68 @@ const NOVA = {
     * @param  {object} 2 str, 2 int
     * @return {void}
    */
-   openPopup({ url = required(), title = document.title, width = window.innerWidth, height = window.innerHeight, closed_callback }) {
-      // console.debug('openPopup', ...arguments);
-      // center screen
-      const left = (window.screen.width / 2) - (width / 2);
-      const top = (window.screen.height / 2) - (height / 2);
-      // const left = (screen.width / 2) - (width / 2);
-      // const top = (screen.height / 2) - (height / 2);
-      // bottom right corner
-      // left = window.innerWidth;
-      // top = window.innerHeight;
-      const win = window.open(url, '_blank', `popup=1,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,resizable=yes,copyhistory=no,width=${width},height=${height},top=${top},left=${left}`);
-      // win.document.title = title; // Uncaught TypeError: Cannot read properties of null (reading 'document')
+   openPopup({
+      url = required(),
+      title = document.title,
+      width = window.innerWidth,
+      height = window.innerHeight,
+      on_closed_callback,
+   }) {
+      let top = left = 0;
+      try {
+         // Сenter of the parent window
+         const
+            parentWindow = window.opener || window.parent,
+            zoom = getPageZoomLevel(),
+            // Uncaught SecurityError: Failed to read a named property 'screenX' from 'Window': Blocked a frame with origin
+            parentLeft = parentWindow.screenX || parentWindow.screenLeft || 0,
+            parentTop = parentWindow.screenY || parentWindow.screenTop || 0,
+            parentWidth = parentWindow.innerWidth || parentWindow.document.documentElement.clientWidth,
+            parentHeight = parentWindow.innerHeight || parentWindow.document.documentElement.clientHeight;
 
-      if (closed_callback && typeof closed_callback === 'function') {
+         // Calculate the position of the popup window
+         left = parentLeft + (parentWidth * zoom - width) / 2;
+         top = parentTop + (parentHeight * zoom - height) / 2;
+      } catch (err) {
+         // Сenter screen
+         left = (window.screen.width / 2) - (width / 2);
+         top = (window.screen.height / 2) - (height / 2);
+      }
+
+      const win = window.open(url, '_blank', `popup=1,toolbar=no,location=no,directories=no,status=no,menubar=no,scrollbars=no,resizable=yes,copyhistory=no,width=${width},height=${height},top=${top},left=${left}`);
+
+      // Set the title of the popup window
+      if (win.document) { // Uncaught TypeError: Cannot read properties of null (reading 'document')
+         win.document.title = title;
+      }
+
+      if (on_closed_callback && typeof on_closed_callback === 'function') {
          const timer = setInterval(() => {
             if (win.closed) {
                clearInterval(timer);
-               closed_callback();
+               on_closed_callback();
             }
-         }, 500);
+         }, 500); // timeout 500ms
+      }
+
+      function getPageZoomLevel() {
+         try {
+            // Uncaught SecurityError: Failed to read a named property 'outerWidth' from 'Window': Blocked a frame with origin "https://www.youtube.com" from accessing a cross-origin frame.
+            return (parentWindow.outerWidth / parentWindow.innerWidth).toFixed(2);
+         } catch (err) {
+            const screenWidth = window.screen.width;
+            const screenHeight = window.screen.height;
+
+            const clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+            const clientHeight = document.documentElement.clientHeight || document.body.clientHeight;
+
+            // Calculate the zoom level based on the width and height
+            const zoomLevelWidth = (screenWidth / clientWidth).toFixed(2);
+            const zoomLevelHeight = (screenHeight / clientHeight).toFixed(2);
+
+            return Math.min(zoomLevelWidth, zoomLevelHeight); // Return the minimum zoom level between width and height
+         }
+
       }
    },
 
@@ -995,14 +1041,23 @@ const NOVA = {
     * @return {void}
    */
    // simulateClick(el = required()) {
-   //    if (!(el instanceof HTMLElement)) return console.error('el is not HTMLElement type:', el);
+   //    if (!(el instanceof HTMLElement)) {
+   //       console.error('el is not a HTMLElement:', el);
+   //       return;
+   //    }
+
+   //    // Check if MouseEvent is supported
+   //    if (!window.MouseEvent) {
+   //       throw new Error('MouseEvent is not supported in this browser');
+   //    }
+
    //    ['mouseover', 'mousedown', 'mouseup', 'click']
    //       .forEach(evt => {
    //          el.dispatchEvent(new MouseEvent(evt, {
    //             bubbles: true,
    //             cancelable: true,
-   //             // view: window
-   //             // target: document.body,
+   //             view: window,
+   //             target: el,
    //          }));
    //       });
    // },
@@ -1016,90 +1071,92 @@ const NOVA = {
       ui_value,
       ui_max,
       source,
-      // 'timeout_ms': null,
-      // 'clear_previous_text': true,
+      fade_ms,
    }) {
-      console.debug('showOSD', ...arguments);
-      // notification [player-indicator] plugin
+      // for [player-indicator] plugin
       document.dispatchEvent(
          new CustomEvent(
             'nova-osd',
             {
                bubbles: true,
                detail: {
-                  'message': message,
-                  'ui_value': ui_value,
-                  'ui_max': ui_max,
-                  'source': source,
-                  // 'timeout_ms': null,
-                  // 'clear_previous_text': true,
+                  message,
+                  ui_value,
+                  ui_max,
+                  source,
+                  fade_ms,
                }
             })
       );
+
+      triggerBezel.apply(this, [message]);
+
+      function triggerBezel(text) {
+         // console.debug('showOSD', ...arguments);
+         if (!text || !['watch', 'embed'].includes(this.currentPage)) return;
+         if (typeof this.fadeBezel === 'number') clearTimeout(this.fadeBezel); // reset fade
+
+         const bezelEl = document.body.querySelector('.ytp-bezel-text');
+         if (!bezelEl) return console.error(`showOSD ${text}=>${bezelEl}`);
+
+         const
+            bezelContainer = bezelEl.parentElement.parentElement,
+            CLASS_VALUE = 'ytp-text-root',
+            SELECTOR = '.' + CLASS_VALUE; // for css
+
+         if (!this.bezel_css_inited) {
+            this.bezel_css_inited = true;
+            this.css.push(
+               `${SELECTOR} { display: block !important; }
+               ${SELECTOR} .ytp-bezel-text-wrapper {
+                  pointer-events: none;
+                  z-index: 40 !important;
+               }
+               ${SELECTOR} .ytp-bezel-text { display: inline-block !important; }
+               ${SELECTOR} .ytp-bezel { display: none !important; }`);
+         }
+
+         bezelEl.textContent = text;
+         bezelContainer.classList.add(CLASS_VALUE);
+
+         let ms = 1200;
+         if ((text = String(text)) && (text.endsWith('%') || text.endsWith('x') || text.startsWith('+'))) {
+            ms = 600
+         }
+
+         this.fadeBezel = setTimeout(() => {
+            bezelContainer.classList.remove(CLASS_VALUE);
+            bezelEl.textContent = ''; // fix not showing bug when frequent calls
+         }, ms);
+      }
    },
-   // showOSD(text) {
-   //    // console.debug('showOSD', ...arguments);
-   //    if (!text || !['watch', 'embed'].includes(this.currentPage)) return;
-   //    if (typeof this.fadeBezel === 'number') clearTimeout(this.fadeBezel); // reset fade
-
-   //    const bezelEl = document.body.querySelector('.ytp-bezel-text');
-   //    if (!bezelEl) return console.error(`showOSD ${text}=>${bezelEl}`);
-
-   //    const
-   //       bezelContainer = bezelEl.parentElement.parentElement,
-   //       CLASS_VALUE = 'ytp-text-root',
-   //       SELECTOR = '.' + CLASS_VALUE; // for css
-
-   //    if (!this.bezel_css_inited) {
-   //       this.bezel_css_inited = true;
-   //       this.css.push(
-   //          `${SELECTOR} { display: block !important; }
-   //          ${SELECTOR} .ytp-bezel-text-wrapper {
-   //             pointer-events: none;
-   //             z-index: 40 !important;
-   //          }
-   //          ${SELECTOR} .ytp-bezel-text { display: inline-block !important; }
-   //          ${SELECTOR} .ytp-bezel { display: none !important; }`);
-   //    }
-
-   //    bezelEl.textContent = text;
-   //    bezelContainer.classList.add(CLASS_VALUE);
-
-   //    let ms = 1200;
-   //    if ((text = String(text)) && (text.endsWith('%') || text.endsWith('x') || text.startsWith('+'))) {
-   //       ms = 600
-   //    }
-
-   //    this.fadeBezel = setTimeout(() => {
-   //       bezelContainer.classList.remove(CLASS_VALUE);
-   //       bezelEl.textContent = ''; // fix not showing bug when frequent calls
-   //    }, ms);
-   // },
 
    /**
     * @param  {int} video_duration
     * @return {array}
    */
    getChapterList(video_duration = required()) {
-      if (!['watch', 'embed'].includes(this.currentPage)) return;
+      if (typeof video_duration !== 'number') {
+         console.warn('video_duration is not a number:', video_duration);
+         return;
+      }
 
       switch (NOVA.currentPage) {
          case 'embed':
-            chapsCollect = getFromAPI();
-            // console.debug('chapsCollect (embed)', chapsCollect);
-            return chapsCollect;
+            const chapsCollectEmbed = getFromAPI();
+            // console.debug('chapsCollect (embed)', chapsCollectEmbed);
+            return chapsCollectEmbed;
             break;
 
          // Solution 2
          case 'watch':
+            const chapsCollectWatch = getFromDescriptionText();
             // if ((chapsCollect = getFromDescriptionText() || getFromDescriptionChaptersBlock())
-            if ((chapsCollect = getFromDescriptionText())
-               && chapsCollect.length
-            ) {
-               // console.debug('chapsCollect (watch)', chapsCollect);
-               return chapsCollect;
-            }
+            return chapsCollectWatch;
             break;
+
+         default:
+            console.warn('Unsupported page:', NOVA.currentPage);
       }
 
       function descriptionExpand() {
@@ -1109,6 +1166,7 @@ const NOVA = {
       function getFromDescriptionText() {
          descriptionExpand();
 
+         video_duration = Math.trunc(video_duration);
          const selectorTimestampLink = 'a[href*="&t="]';
          let
             timestampsCollect = [],
@@ -1117,8 +1175,9 @@ const NOVA = {
          [
             // description text
             // https://www.youtube.com/watch?v=4_m3HsaNwOE - bold chapater "Screenshot moment" show markdown "*Screenshot moment*"(
-            (document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.videoDetails?.shortDescription
-               || document.body.querySelector('ytd-watch-metadata #description.ytd-watch-metadata')?.textContent
+            (
+               movie_player.getPlayerResponse()?.videoDetails?.shortDescription
+               || document.body.querySelector('ytd-watch-metadata #description.ytd-watch-metadata')?.innerText
             )
                ?.split('\n') || [],
 
@@ -1131,7 +1190,7 @@ const NOVA = {
                   .map(a => ({
                      'source': 'comment',
                      // for test https://www.youtube.com/watch?v=4SDlcydjk9A&lc=UgxJk_OAS9GHKhL2zT14AaABAg
-                     'text': `${a.textContent} ${(a.nextSibling || a.previousSibling)?.textContent}`, // a.nextElementSibling || a.previousElementSibling
+                     'text': `${a.innerText} ${(a.nextSibling || a.previousSibling)?.innerText}`, // a.nextElementSibling || a.previousElementSibling
                   }))
                )
                ?.sort((a, b) => b.length - a.length) // sort by length
@@ -1153,20 +1212,20 @@ const NOVA = {
                      // needed for check, applying sorting by timestamps
                      unreliableSorting = Boolean(line?.source);
                      line = (line?.text || line).toString().trim(); // clear spaces
-                     if (line.length > 5
+                     if (line.length > 5 // min line length
                         && (timestamp = /((\d?\d:){1,2}\d{2})/g.exec(line))
-                        && (line.length - timestamp.length) < 200 // 200 max line length (https://www.youtube.com/watch?v=kSfPHLVFBQk&t=763s)
+                        && (line.length - timestamp.length) < 200 // max line length
                      ) {
                         // console.debug('line', line);
                         timestamp = timestamp[0]; // ex:"0:00"
                         const
-                           sec = NOVA.formatTimeOut.hmsToSec(timestamp),
+                           sec = NOVA.formatTime.hmsToSec(timestamp),
                            timestampPos = line.indexOf(timestamp);
 
                         if (
                            // fix invalid sort timestamp
-                           // ex: https://www.youtube.com/watch?v=S66Q7T7qqxU https://www.youtube.com/watch?v=nkyXwDU97ms
-                           (unreliableSorting ? true : (sec > prevSec && sec < +video_duration))
+                           // ex: https://www.youtube.com/watch?v=S66Q7T7qqxU
+                           (unreliableSorting ? true : (sec > prevSec && sec < (+video_duration - 5)))
                            // not in the middle of the line ("2" - is a possible error. For example, at the end of the line there is a comma and the time is in brackets)
                            // ex: https://www.youtube.com/watch?v=5Do_0aWpYeo
                            && (timestampPos < 5 || (timestampPos + timestamp.length) > (line.length - 2))
@@ -1176,7 +1235,7 @@ const NOVA = {
                            timestampsCollect.push({
                               'sec': sec,
                               'time': timestamp.startsWith('0')
-                                 ? NOVA.formatTimeOut.HMS.digit(sec) // clear zeros prefix (like "00:05:11" -> "5:11")
+                                 ? NOVA.formatTime.HMS.digit(sec) // clear zeros prefix (like "00:05:11" -> "5:11")
                                  : timestamp,
                               'title': line
                                  // .replace(timestamp, '')
@@ -1216,44 +1275,45 @@ const NOVA = {
          }
       }
 
-      function getFromDescriptionChaptersBlock() {
-         descriptionExpand();
+      // function getFromDescriptionChaptersBlock() {
+      //    descriptionExpand();
 
-         const selectorTimestampLink = 'a[href*="&t="]';
-         let timestampsCollect = [];
-         let prevSec = -1;
-         document.body.querySelectorAll(`#structured-description ${selectorTimestampLink}`)
-            // document.body.querySelectorAll(`#description.ytd-watch-metadata ${selectorTimestampLink}`)
-            .forEach(chapterLink => {
-               // console.debug('chapterLink:', chapterLink);
-               // filter duplicate
-               const sec = parseInt(NOVA.queryURL.get('t', chapterLink.href));
-               if (sec > prevSec) {
-                  prevSec = sec;
-                  timestampsCollect.push({
-                     'time': NOVA.formatTimeOut.HMS.digit(sec),
-                     'sec': sec,
-                     'title': chapterLink.textContent.trim().split('\n')[0].trim(),
-                     // in #structured-description
-                     // 'time': chapterLink.querySelector('#time')?.textContent,
-                     // 'title': chapterLink.querySelector('h4')?.textContent,
-                  });
-               }
-            });
-         // if 1 mark < 25% video_duration. Ex skip intro info in comment
-         if (timestampsCollect.length == 1 && (timestampsCollect[0].sec < (video_duration / 4))) {
-            return timestampsCollect;
-         }
-         else if (timestampsCollect.length > 1) {
-            // console.debug('timestamepsCollect', timestampsCollect);
-            return timestampsCollect;
-         }
-      }
+      //    const selectorTimestampLink = 'a[href*="&t="]';
+      //    let timestampsCollect = [];
+      //    let prevSec = -1;
+      //    document.body.querySelectorAll(`#structured-description ${selectorTimestampLink}`)
+      //       // document.body.querySelectorAll(`#description.ytd-watch-metadata ${selectorTimestampLink}`)
+      //       .forEach(chapterLink => {
+      //          // console.debug('chapterLink:', chapterLink);
+      //          // filter duplicate
+      //          const sec = parseInt(NOVA.queryURL.get('t', chapterLink.href));
+      //          if (sec > prevSec) {
+      //             prevSec = sec;
+      //             timestampsCollect.push({
+      //                'time': NOVA.formatTime.HMS.digit(sec),
+      //                'sec': sec,
+      //                'title': chapterLink.textContent.trim().split('\n')[0].trim(),
+      //                // in #structured-description
+      //                // 'time': chapterLink.querySelector('#time')?.textContent,
+      //                // 'title': chapterLink.querySelector('h4')?.textContent,
+      //             });
+      //          }
+      //       });
+      //    // if 1 mark < 25% video_duration. Ex skip intro info in comment
+      //    if (timestampsCollect.length == 1 && (timestampsCollect[0].sec < (video_duration / 4))) {
+      //       return timestampsCollect;
+      //    }
+      //    else if (timestampsCollect.length > 1) {
+      //       // console.debug('timestamepsCollect', timestampsCollect);
+      //       return timestampsCollect;
+      //    }
+      // }
 
       function getFromAPI() {
          // console.debug('getFromAPI');
          if (!window.ytPubsubPubsubInstance) {
-            return console.warn('ytPubsubPubsubInstance is empty:', ytPubsubPubsubInstance);
+            console.warn('ytPubsubPubsubInstance is empty:', ytPubsubPubsubInstance);
+            return;
          }
 
          if ((ytPubsubPubsubInstance = ytPubsubPubsubInstance.i // embed
@@ -1274,7 +1334,7 @@ const NOVA = {
                      const sec = Math.trunc(c.chapterRenderer.timeRangeStartMillis) / 1000;
                      return {
                         'sec': sec,
-                        'time': NOVA.formatTimeOut.HMS.digit(sec),
+                        'time': NOVA.formatTime.HMS.digit(sec),
                         'title':
                            c.chapterRenderer.title.simpleText // watch
                            || c.chapterRenderer.title.runs[0].text, // embed
@@ -1335,58 +1395,254 @@ const NOVA = {
 
    /**
     * @param  {string} keyword
-    * @param  {string} filter_selectors
-    * @param  {boolean*} highlight_selector
+    * @param  {string} search_selectors
+    * @param  {boolean*} filter_selector
     * @return {void}
    */
    searchFilterHTML({
       keyword = required(),
-      filter_selectors = required(),
-      highlight_selector,
+      search_selectors = required(),
+      filter_selector,
       highlight_class,
    }) {
       // console.debug('searchFilterHTML:', ...arguments);
       keyword = keyword.toString().toLowerCase();
 
-      document.body.querySelectorAll(filter_selectors)
+      document.body.querySelectorAll(search_selectors)
          .forEach(item => {
-            const
-               // text = item.textContent,
-               text = item.innerText,
-               // text = item.querySelector(highlight_selector).getAttribute('title'),
-               hasText = text?.toLowerCase().includes(keyword),
-               highlight = el => {
-                  if (el.innerHTML.includes('<mark ')) {
-                     el.innerHTML = this.createSafeHTML(el.innerHTML
-                        .replace(/<\/?mark[^>]*>/g, '')
-                     ); // clear highlight tags
-                  }
-                  item.style.display = hasText ? '' : 'none'; // hide el out of search
-                  if (hasText && keyword) {
-                     highlightTerm({
-                        'target': el,
-                        'keyword': keyword,
-                        'highlightClass': highlight_class,
-                     });
-                  }
-               };
+            const text = item.innerText;
+            const isfound = text.toLowerCase().includes(keyword);
 
-            (highlight_selector ? item.querySelectorAll(highlight_selector) : [item])
-               .forEach(highlight);
+            if (filter_selector) {
+               item.querySelectorAll(filter_selector).forEach(highlight);
+            }
+            else {
+               highlight(item);
+            }
+
+            function highlight(el) {
+               // clear highlight tags
+               if (el.innerHTML.includes('<mark ')) {
+                  el.innerHTML = NOVA.createSafeHTML(el.innerHTML.replace(/<\/?mark[^>]*>/g, ''));
+               }
+               // hide el out of search
+               item.style.display = isfound ? '' : 'none';
+
+               if (isfound && keyword) {
+                  highlightTerm({
+                     target: el,
+                     keyword,
+                     highlight_class,
+                  });
+               }
+            }
          });
 
-      function highlightTerm({ target = required(), keyword = required(), highlightClass }) {
+      function highlightTerm({ target = required(), keyword = required(), highlight_class }) {
          // console.debug('highlightTerm:', ...arguments);
          const
             // content = target.innerHTML,
             // content = target.textContent,
             content = target.innerText,
-            pattern = new RegExp('(>[^<.]*)?(' + keyword + ')([^<.]*)?', 'gi'),
-            highlightStyle = highlightClass ? `class="${highlightClass}"` : 'style="background-color:#afafaf"',
+            pattern = new RegExp('(>[^<.]*)?(' + escapeRegExp(keyword) + ')([^<.]*)?', 'gi'),
+            highlightStyle = highlight_class ? `class="${highlight_class}"` : 'style="background-color:#afafaf"',
             replaceWith = `$1<mark ${highlightStyle}>$2</mark>$3`,
             marked = content.replaceAll(pattern, replaceWith);
 
          return (target.innerHTML = NOVA.createSafeHTML(marked)) !== content;
+
+         // function escapeRegExp(string) {
+         //    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+         // }
+         function escapeRegExp(str) { // Escape RegExp special characters
+            return str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&'); // skip '.', '+', '?', и '*'
+         }
+      }
+   },
+
+   /**
+    * Makes an elemenet draggable around the screen.
+    * @param {string} el Select an element from the DOM to become draggable
+   */
+   Draggable: class {
+      constructor(drag_container = document.body) {
+         if (!(drag_container instanceof HTMLElement)) {
+            console.error('drag_container not HTMLElement:', drag_container);
+            return;
+         }
+         // this.DEBUG = true;
+
+         this.dragging = {
+            target: null,
+            moving: false,
+            offset: { x: 0, y: 0 },
+            initial: { x: 0, y: 0 },
+            current: { x: 0, y: 0 },
+            final: { x: 0, y: 0 },
+            dragContainer: drag_container,
+            attrOnMoving: 'nova-el-moving',
+         };
+
+         // Bind methods to current instance
+         this.reset = this.reset.bind(this);
+         this.disable = this.disable.bind(this);
+         this.dragStart = this.dragStart.bind(this);
+         this.dragEnd = this.dragEnd.bind(this);
+         this.draging = this.draging.bind(this);
+         this.moveByCoordinates = this.moveByCoordinates.bind(this);
+      }
+
+      init(target_el = required()) {
+         if (!(target_el instanceof HTMLElement)) {
+            console.error('target_el not HTMLElement:', target_el);
+            return;
+         }
+         this.log('drag init', ...arguments);
+
+         this.dragging.target = target_el;
+
+         // touchs
+         document.addEventListener('touchstart', this.dragStart);
+         document.addEventListener('touchend', this.dragEnd);
+         document.addEventListener('touchmove', this.draging);
+         // // document.addEventListener('focusin', this..bind(this));
+         // // document.addEventListener('focusout', this..bind(this));
+         // mouse
+         document.addEventListener('mousedown', this.dragStart);
+         document.addEventListener('mouseup', this.dragEnd);
+         document.addEventListener('mousemove', this.draging);
+
+         // css on moving
+         // NOVA.css.push(
+         //    `[${this.dragging.attrOnMoving}]:active {
+         //       pointer-events: none;
+         //       cursor: grab; /* <-- Doesn't work */
+         //       outline: 2px dashed #3ea6ff !important;
+         //    }`);
+      }
+
+      reset(clear_final) {
+         // switchElement.style.transform = ''; // clear drag state
+         this.dragging.target?.style.removeProperty('transform');// clear drag state
+         this.dragging.final = clear_final
+            ? this.dragging.offset.x = this.dragging.offset.y = 0
+            : { x: this.dragging.offset.x, y: this.dragging.offset.y }; // save pos
+      }
+
+      disable() {
+         this.log('dragDisable', this.dragging);
+         this.dragging.target = null;
+
+         // touchs
+         document.removeEventListener('touchstart', this.dragStart);
+         document.removeEventListener('touchend', this.dragEnd);
+         document.removeEventListener('touchmove', this.draging);
+         // document.removeEventListener('focusin', this..bind(this));
+         // document.removeEventListener('focusout', this..bind(this));
+         // mouse
+         document.removeEventListener('mousedown', this.dragStart);
+         document.removeEventListener('mouseup', this.dragEnd);
+         document.removeEventListener('mousemove', this.draging);
+      }
+
+      dragStart(evt) {
+         if (!this.dragging.target.contains(evt.target)) return;
+         // if (!evt.target.querySelector(PINNED_SELECTOR)) return; // Doesn't work
+         this.log('dragStart', this.dragging);
+
+         const { targetX, targetY } = this.getTargetCoordinates(evt);
+         this.dragging.initial.x = targetX - (this.dragging.offset.x || 0);
+         this.dragging.initial.y = targetY - (this.dragging.offset.y || 0);
+
+         this.dragging.moving = true;
+      }
+
+      dragEnd(evt) {
+         if (!this.dragging.moving) return;
+         this.log('dragEnd', this.dragging);
+
+         this.dragging.initial.x = this.dragging.current.x;
+         this.dragging.initial.y = this.dragging.current.y;
+
+         this.dragging.moving = false;
+         this.dragging.target.style.pointerEvents = null;
+         this.dragging.target.removeAttribute(this.dragging.attrOnMoving); // unmark after moved
+         document.body.style.cursor = '';
+      }
+
+      draging(evt) {
+         if (!this.dragging.moving) return;
+         this.log('draging', this.dragging);
+
+         this.dragging.target.style.pointerEvents = 'none';
+         // document.body.style.cursor = 'grab';
+         document.body.style.cursor = 'move';
+
+         if (!this.dragging.target.hasAttribute(this.dragging.attrOnMoving)) {
+            this.dragging.target.setAttribute(this.dragging.attrOnMoving, true); // mark on moving
+         }
+
+         const { targetX, targetY } = this.getTargetCoordinates(evt);
+         // Calculate the delta from the initial position
+         const dx = targetX - this.dragging.initial.x;
+         const dy = targetY - this.dragging.initial.y;
+
+         // Limit viewport
+         if (this.dragging.dragContainer) {
+            const dragContainerHeight = this.dragging.dragContainer.clientHeight || window.innerHeight;
+            const dragContainerWidth = this.dragging.dragContainer.clientWidth || window.innerWidth;
+
+            this.dragging.current.x = Math.min(
+               Math.max(dx, 0 - this.dragging.target.offsetLeft), // max left
+               dragContainerWidth - this.dragging.target.offsetWidth - this.dragging.target.offsetLeft // max right
+            );;
+
+            this.dragging.current.y = Math.min(
+               Math.max(dy, 0 - this.dragging.target.offsetTop), // max top
+               dragContainerHeight - this.dragging.target.offsetHeight - this.dragging.target.offsetTop // max buttom
+            );;
+         }
+         // No limit viewport
+         else {
+            this.dragging.current.x = dx;
+            this.dragging.current.y = dy;
+         }
+
+         this.dragging.offset.x = this.dragging.current.x;
+         this.dragging.offset.y = this.dragging.current.y;
+
+         this.moveByCoordinates(this.dragging.current);
+         // this.moveByCoordinates({ x: this.dragging.current.x, y: this.dragging.current.y });
+      }
+
+      moveByCoordinates({ x = required(), y = required() }) {
+         this.log('moveByCoordinates', this.dragging);
+         this.dragging.target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+      }
+
+      getTargetCoordinates(evt = required()) {
+         let targetX, targetY;
+         switch (evt.type) {
+            case 'touchstart':
+            case 'touchmove':
+               targetX = evt.touches[0].clientX;
+               targetY = evt.touches[0].clientY;
+               break;
+            case 'mousedown':
+            case 'mousemove':
+               targetX = evt.clientX;
+               targetY = evt.clientY;
+               break;
+         }
+         return { targetX, targetY };
+      }
+
+      log() {
+         if (this.DEBUG && arguments.length) {
+            console.groupCollapsed(...arguments);
+            console.trace();
+            console.groupEnd();
+         }
       }
    },
 
@@ -1394,7 +1650,7 @@ const NOVA = {
     * @return {boolean}
    */
    // isMusicChannel() {
-   isMusic() {
+   isMusic(is_expand) {
       if (!['watch', 'embed'].includes(this.currentPage)) return;
 
       return checkMusicType();
@@ -1402,8 +1658,8 @@ const NOVA = {
       //    CACHE_PREFIX = 'nova-music-type',
       //    cacheName = CACHE_PREFIX + ':' + (this.queryURL.get('v') || movie_player.getVideoData().video_id);
 
-      // // fix (Disable cache) - Failed to read the 'sessionStorage' property from 'Window': Access is denied for this document.
-      // if (!navigator.cookieEnabled && this.currentPage == 'embed') return checkMusicType();
+      // // fix - Failed to read the 'sessionStorage' property from 'Window': Access is denied for this document.
+      // if (!window?.sessionStorage && this.currentPage == 'embed') return checkMusicType();
 
       // if (storage = sessionStorage.getItem(cacheName)) {
       //    // console.debug(CACHE_PREFIX, 'cache:', storage);
@@ -1424,23 +1680,14 @@ const NOVA = {
       function checkMusicType() {
          // await NOVA.waitUntil(() => typeof movie_player === 'object');
          const
+            playerData = movie_player.getPlayerResponse(),
+            videoData = movie_player.getVideoData(),
             // channelName = document.body.querySelector('#upload-info #channel-name a:not(:empty)')?.textContent,
-            // channelName = document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.videoDetails?.author,
-            // channelName = document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.microformat?.playerMicroformatRenderer.ownerChannelName,
-            channelName = movie_player.getVideoData().author, // document.body.querySelector('.ytp-title-channel a:not(:empty)').textContent
-            titleStr = movie_player.getVideoData().title.toUpperCase(), // #movie_player .ytp-title a:not(:empty)
-            titleWordsList = titleStr?.toUpperCase().match(/\w+/g), // UpperCase
-            playerData = document.body.querySelector('.ytd-page-manager[video-id]')?.playerData;
-
-         // if (user_settings.rate_apply_music == 'expanded') {
-         //    // 【MAD】,『MAD』,「MAD」
-         //    // warn false finding ex: "AUDIO visualizer" 'underCOVER','VOCALoid','write THEME','UI THEME','photo ALBUM', 'lolyPOP', 'ascENDING', speeED, 'LapOP' 'Ambient AMBILIGHT lighting', 'CD Projekt RED', 'Remix OS, TEASER
-         //    if (titleStr.split(' - ').length === 2  // search for a hyphen. Ex.:"Artist - Song", "Sound Test" (https://www.youtube.com/watch?v=gLSTUhRY2-s)
-         //       || ['【', '『', '「', 'SOUND', 'REMIX', 'CD', 'PV', 'AUDIO', 'EXTENDED', 'FULL', 'TOP', 'TRACK', 'TRAP', 'THEME', 'PIANO', 'POP', '8-BIT', 'HITS', 'CLASSIC'].some(i => titleWordsList?.map(w => w.toUpperCase()).includes(i))
-         //    ) {
-         //       return true;
-         //    }
-         // }
+            // channelName = playerData?.videoDetails?.author,
+            // channelName = playerData?.microformat?.playerMicroformatRenderer.ownerChannelName,
+            channelName = videoData.author, // document.body.querySelector('.ytp-title-channel a:not(:empty)').textContent
+            titleStr = videoData.title.toUpperCase(), // #movie_player .ytp-title a:not(:empty)
+            titleWordsList = titleStr?.toUpperCase().match(/\w+/g);
 
          return [
             titleStr, // ex. - https://www.youtube.com/watch?v=mjLSQMPr6ak
@@ -1450,13 +1697,14 @@ const NOVA = {
             // video genre
             playerData?.microformat?.playerMicroformatRenderer.category, // exclude embed page
             // playlistTitle
-            playerData?.videoDetails?.title, // ex. - https://www.youtube.com/watch?v=cEdVLDfV1e0&list=PLVrIzE02N3EE9mplAPO8BGleeenadCSNv&index=2
+            (
+               document.body.querySelector('.ytd-page-manager[video-id]')?.__data.playlistData
+               || document.body.querySelector('yt-playlist-manager')?.polymerController?.currentPlaylistData_
+            )?.title // ex. - https://www.youtube.com/watch?v=cEdVLDfV1e0&list=PLVrIzE02N3EE9mplAPO8BGleeenadCSNv&index=2
 
             // ALL BELOW - not updated after page transition!
-            // window.ytplayer?.config?.args.title,
             // document.body.querySelector('meta[itemprop="genre"][content]')?.content,
             // window.ytplayer?.config?.args.raw_player_response.microformat?.playerMicroformatRenderer.category,
-            // document.body.querySelector('ytd-player')?.player_?.getCurrentVideoConfig()?.args.raw_player_response?.microformat.playerMicroformatRenderer.category
          ]
             .some(i => i?.toUpperCase().includes('MUSIC'))
 
@@ -1465,22 +1713,31 @@ const NOVA = {
             // https://yt.lemnoslife.com/channels?part=approval&id=CHANNEL_ID (items[0].approval == 'Official Artist Channel') (https://github.com/Benjamin-Loison/YouTube-operational-API)
 
             // channelNameVEVO
-            || (channelName && /(VEVO|Topic|Records|RECORDS|Recordings|AMV)$/.test(channelName)) // https://www.youtube.com/channel/UCHV1I4axw-6pCeQTUu7YFhA, https://www.youtube.com/@FIRESLARadio, https://www.youtube.com/@VisibleNoiseRecords, https://www.youtube.com/@TerribleRecords, https://www.youtube.com/@blackholerecordings
-
+            || (channelName && /(^(DJ)|(VEVO|Topic|AMV|Official)$)/.test(channelName))
             // specific word in channel
-            || (channelName && /(MUSIC|ROCK|SOUNDS|SONGS)/.test(channelName.toUpperCase())) // https://www.youtube.com/channel/UCj-Wwx1PbCUX3BUwZ2QQ57A https://www.youtube.com/@RelaxingSoundsOfNature
+            || (channelName && /(HITS|BAND|ROCK|SOUNDS|SONG|MUSIK|𝐌𝐔𝐒𝐈𝐂|RECORD(?:S|INGS)?)/i.test(channelName)) // https://www.youtube.com/@VisibleNoiseRecords, https://www.youtube.com/@WarnerRecordsVault, https://www.youtube.com/channel/UCj-Wwx1PbCUX3BUwZ2QQ57A, https://www.youtube.com/@RelaxingSoundsOfNature
 
             // word - https://www.youtube.com/watch?v=N67yRMOVk1s
-            || titleWordsList?.length && ['🎵', '♫', 'SONG', 'SONGS', 'SOUNDTRACK', 'LYRIC', 'LYRICS', 'AMBIENT', 'MIX', 'VEVO', 'CLIP', 'KARAOKE', 'OPENING', 'COVER', 'COVERED', 'VOCAL', 'INSTRUMENTAL', 'ORCHESTRAL', 'SYMPHONY', 'CONCERT', 'DUBSTEP', 'DJ', 'DNB', 'BASS', 'BEAT', 'ALBUM', 'PLAYLIST', 'DUBSTEP', 'CHILL', 'RELAX', 'CINEMATIC', 'KBPS']
+            || titleWordsList?.length && ['🎵', '♫', 'SONG', 'SONGS', 'SOUNDTRACK', 'LYRIC', 'LYRICS', 'AMBIENT', 'MIX', 'VEVO', 'KARAOKE', 'COVER', 'COVERED', 'VOCAL', 'INSTRUMENTAL', 'ORCHESTRAL', 'SYMPHONY', 'CONCERT', 'DUBSTEP', 'DJ', 'DNB', 'BASS', 'BEAT', 'ALBUM', 'PLAYLIST', 'DUBSTEP', 'CHILL', 'RELAX', 'CINEMATIC', 'KBPS', 'SPEEDRUN', 'MELODY']
                .some(i => titleWordsList.includes(i))
 
             // words ("feat." miss - https://www.youtube.com/watch?v=7ubvobYxgBk)
-            || ['OFFICIAL VIDEO', 'OFFICIAL AUDIO', 'FEAT.', 'FT.', 'LIVE RADIO', 'DANCE VER', 'HIP HOP', 'ROCK N ROLL', 'HOUR VER', 'HOURS VER', 'INTRO THEME'] // 'FULL ALBUM'
+            || ['OFFICIAL VIDEO', 'OFFICIAL AUDIO', 'FEAT.', 'FT.', 'LIVE RADIO', 'DANCE VER', 'HIP HOP', 'ROCK N ROLL', 'HOUR VER', 'HOURS VER', 'INTRO THEME', 'FULL ALBUM']
                .some(i => titleStr.includes(i))
 
             // word (case sensitive)
             || titleWordsList?.length && ['OP', 'ED', 'MV', 'OST', 'NCS', 'BGM', 'EDM', 'GMV', 'AMV', 'MMD', 'MAD', 'HQ']
-               .some(i => titleWordsList.includes(i));
+               .some(i => titleWordsList.includes(i))
+
+            || (is_expand && (
+               playerData?.videoDetails.keywords?.some(i => i?.toUpperCase().includes('MUSIC'))
+               || (channelName && /(MIX|ALBUM|METAL|INSTRUMENTAL)/i.test(channelName)) // https://www.youtube.com/channel/UCHV1I4axw-6pCeQTUu7YFhA, https://www.youtube.com/@FIRESLARadio, https://www.youtube.com/channel/UCeWfmeus1O6cUL5o1tKdYAA, https://www.youtube.com/channel/UCvomiBtoN-BPjs4cx4QTMEg, https://www.youtube.com/channel/UCzCWehBejA23yEz3zp7jlcg
+               || titleStr.split(' - ').length === 2  // search for a hyphen. Ex.:"Artist - Song", "Sound Test" (https://www.youtube.com/watch?v=gLSTUhRY2-s)
+               // 【MAD】,『MAD』,「MAD」
+               // warn false finding ex: "AUDIO visualizer" 'underCOVER','VOCALoid','write THEME','UI THEME','photo ALBUM', 'lolyPOP', 'ascENDING', speeED, 'LapOP' 'Ambient AMBILIGHT lighting', 'CD Projekt RED', 'Remix OS'
+               || ['【', '『', '「', 'SOUND', 'REMIX', 'CD', 'PV', 'AUDIO', 'EXTENDED', 'FULL', 'TOP', 'TRACK', 'TRAP', 'THEME', 'PIANO', 'POP', '8-BIT', 'HITS', 'CLASSIC', 'OPENING', 'ENDING', 'CLIP']
+                  .some(i => titleWordsList.includes(i))
+            ));
       }
    },
 
@@ -1498,7 +1755,7 @@ const NOVA = {
    // },
 
    // dateFormatter
-   formatTimeOut: {
+   formatTime: {
       /**
        * 00:00:00形式の時間を秒に変換する
        *
@@ -1514,7 +1771,6 @@ const NOVA = {
       // },
       hmsToSec(str = required()) { // format out "h:mm:ss" > "sec". if str don't have ":" return zero
          // if (!str?.includes(':')) return console.warn('hmsToSec err:', str);
-
          let
             parts = str?.split(':'),
             t = 0;
@@ -1527,8 +1783,8 @@ const NOVA = {
       },
       // HMS mean: Hours, Minutes, Seconds
       HMS: {
-         parseTime(time_sec) {
-            const ts = Math.abs(+time_sec);
+         parseTime(sec) {
+            const ts = Math.abs(+sec);
             return {
                d: Math.trunc(ts / 86400),
                h: Math.trunc((ts % 86400) / 3600),
@@ -1537,6 +1793,17 @@ const NOVA = {
                s: Math.trunc(ts % 60),
             };
          },
+
+         // 98.69 % slower
+         // parseTime(sec) {
+         //    const date = new Date(sec * 1000);
+         //    return {
+         //       d: Math.trunc(sec / 86400),
+         //       h: date.getUTCHours(),
+         //       m: date.getUTCMinutes(),
+         //       s: date.getUTCSeconds(),
+         //    };
+         // },
 
          /**
           * @param  {int} time_sec
@@ -1554,8 +1821,8 @@ const NOVA = {
 
          //    return (days ? `${days}d ` : '') + t;
          // },
-         digit(time_sec = required()) { // format out "h:mm:ss"
-            const { d, h, m, s } = this.parseTime(time_sec);
+         digit(sec = required()) { // format out "h:mm:ss"
+            const { d, h, m, s } = this.parseTime(sec);
 
             return (d ? `${d}d ` : '')
                + (h ? (d ? h.toString().padStart(2, '0') : h) + ':' : '')
@@ -1574,15 +1841,15 @@ const NOVA = {
           * @param  {int} time_sec
           * @return {string}
          */
-         abbr(time_sec = required()) { // format out "999h00m00s"
-            const { d, h, m, s } = this.parseTime(time_sec);
+         abbr(sec = required()) { // format out "999h00m00s"
+            const { d, h, m, s } = this.parseTime(sec);
 
             return (d ? `${d}d ` : '')
                + (h ? (d ? h.toString().padStart(2, '0') : h) + 'h' : '')
                + (m ? (h ? m.toString().padStart(2, '0') : m) + 'm' : '')
                + (s ? (m ? s.toString().padStart(2, '0') : s) + 's' : '');
             // 81.34 % slower
-            // const ts = Math.abs(+time_sec);
+            // const ts = Math.abs(+sec);
             // return [
             //    days = { label: 'd', time: Math.trunc(ts / 86400) },
             //    hours = { label: 'h', time: Math.trunc((ts % 86400) / 3600) },
@@ -1639,7 +1906,10 @@ const NOVA = {
       */
       // timeSince(date = required()) { // format out "1 day"
       ago(date = required()) { // format out "1 day"
-         if (!(date instanceof Date)) return console.error('"date" is not Date type:', date);
+         if (!(date instanceof Date)) {
+            console.error('date is not a Date type:', date);
+            return;
+         }
 
          const samples = [
             { label: 'year', sec: 31536000 },
@@ -1651,9 +1921,9 @@ const NOVA = {
          ];
          const
             now = date.getTime(),
-            seconds = Math.round((Date.now() - Math.abs(now)) / 1000),
+            seconds = Math.floor((Date.now() - Math.abs(now)) / 1000),
             interval = samples.find(i => i.sec < seconds),
-            time = Math.round(seconds / interval.sec);
+            time = Math.floor(seconds / interval.sec);
 
          // return `${time} ${interval.label}${time !== 1 ? 's' : ''} ago`;
          return `${(now < 0 ? '-' : '') + time} ${interval.label}${time !== 1 ? 's' : ''}`;
@@ -1673,9 +1943,11 @@ const NOVA = {
       // https://github.com/mikebaldry/formatDate-js/blob/master/formatDate.js
       // https://github.com/sean1093/timeSolver/blob/master/src/1.2.0/timeSolver.js
 
-      if (!(this instanceof Date)) return console.error('dateFormat - is not Date type:', this);
+      if (!(this instanceof Date)) {
+         console.error('dateFormat is not a Date type:', this);
+         return;
+      }
 
-      // console.debug('format', format);
       const
          twoDigit = n => n.toString().padStart(2, '0'),
          date = this.getDate(),
@@ -1686,6 +1958,25 @@ const NOVA = {
          minutes = this.getMinutes(),
          seconds = this.getSeconds();
 
+      const dateLabels = (() => {
+         const labels = {
+            en: {
+               week: {
+                  short: ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'],
+                  full: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+               },
+               month: {
+                  short: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                  full: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+               },
+            },
+         };
+         const userLocal = navigator.language.split('-')[0]; // document.documentElement.lang
+         const defaultLabel = labels.hasOwnProperty(userLocal) || 'en';
+
+         return labels[defaultLabel];
+      })();
+
       return format
          // .replace(/a|A|Z|S(SS)?|ss?|mm?|HH?|hh?|D{1,4}|M{1,4}|YY(YY)?|'([^']|'')*'/g, partPattern => { // full
          .replace(/A|Z|S(SS)?|ss?|mm?|HH?|hh?|D{1,4}|M{1,4}|YY(YY)?|'([^']|'')*'/gi, pattern => { // remove key "a" for use text "at"
@@ -1695,12 +1986,12 @@ const NOVA = {
                case 'YYYY': out = year; break;
                case 'M': out = monthIdx + 1; break;
                case 'MM': out = twoDigit(monthIdx + 1); break;
-               case 'MMM': out = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][monthIdx]; break;
-               case 'MMMM': out = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][monthIdx]; break;
+               case 'MMM': out = dateLabels.month.short[monthIdx]; break;
+               case 'MMMM': out = dateLabels.month.full[monthIdx]; break;
                case 'D': out = date; break;
                case 'DD': out = twoDigit(date); break;
-               case 'DDD': out = ['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'][weekIdx]; break;
-               case 'DDDD': out = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][weekIdx]; break;
+               case 'DDD': out = dateLabels.week.short[weekIdx]; break;
+               case 'DDDD': out = dateLabels.week.full[weekIdx]; break;
                case 'h': out = (hours % 12) || 12; break;
                case 'H': out = hours; break;
                case 'HH': out = twoDigit(hours); break;
@@ -1765,6 +2056,23 @@ const NOVA = {
       // firstInt: str => str && parseInt(str.replace(/\D/g, '')),
    },
 
+   editableFocused(target = required()) {
+      if (target === document) return;
+
+      if (!(target instanceof HTMLElement)) {
+         console.error('target is not a HTMLElement:', target);
+         return;
+      }
+
+      return (['input', 'textarea', 'select'].includes(target.localName) || target.isContentEditable);
+
+      // return (
+      //    ['TEXTAREA', 'SELECT'].includes(target.tagName)
+      //    || (target.tagName == 'INPUT' && ['email', 'text', 'password', 'search', 'url'].includes(target.getAttribute('type')))
+      //    || target.isContentEditable
+      // );
+   },
+
    /**
     * @param  {string} new_url
     * @return {void}
@@ -1788,7 +2096,10 @@ const NOVA = {
       */
       set(query_obj = {}, url_string) {
          // console.debug('queryURL.set:', ...arguments);
-         if (typeof query_obj != 'object' || !Object.keys(query_obj).length) return console.error('query_obj:', query_obj);
+         if (typeof query_obj != 'object' || !Object.keys(query_obj).length) {
+            console.error('query_obj is not a object:', typeof query_obj, query_obj);
+            return;
+         }
          const url = new URL(url_string || location);
          Object.entries(query_obj).forEach(([key, value]) => url.searchParams.set(key, value));
          return url.toString();
@@ -1800,7 +2111,7 @@ const NOVA = {
          return url.toString();
       },
 
-      getFromHash: (query = required(), url_string) => location.hash && new URLSearchParams(new URL(url_string || location).hash.substring(1)).get(query.toString()),
+      getFromHash: (query = required(), url_string) => location.hash && new URLSearchParams(new URL(url_string || location).hash.slice(1)).get(query.toString()),
    },
 
    request: (() => {
@@ -1809,19 +2120,18 @@ const NOVA = {
       async function getKeys() { // restrict access
          NOVA.log('request.API: fetch to youtube_api_keys.json');
          // see https://gist.github.com/raingart/ff6711fafbc46e5646d4d251a79d1118/
-         return await fetch('https://gist.githubusercontent.com/raingart/ff6711fafbc46e5646d4d251a79d1118/raw/youtube_api_keys.json')
-            .then(res => res.text())
+         return await this.fetch('https://gist.githubusercontent.com/raingart/ff6711fafbc46e5646d4d251a79d1118/raw/youtube_api_keys.json')
             // save
             .then(keys => {
                NOVA.log(`get and save keys in localStorage`, keys);
-               localStorage.setItem(API_STORE_NAME, keys);
-               return JSON.parse(keys);
+               localStorage.setItem(API_STORE_NAME, JSON.stringify(keys));
+               return keys
             })
             // clear
-            .catch(error => {
+            .catch(err => {
                localStorage.removeItem(API_STORE_NAME);
-               throw error;
-               // throw new Error(error);
+               console.error('API Keys: failed fetching:', err);
+               throw new Error(`API Keys: failed fetching: ${err}`);
             })
             .catch(reason => console.error('Error get keys:', reason)); // warn
       }
@@ -1834,11 +2144,15 @@ const NOVA = {
           * @return {object}
          */
          async API({ request = required(), params = required(), api_key }) {
+            // fix - Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+            // if (!api_key && !window?.localStorage) return;
+
             // NOVA.log('request.API:', ...arguments); // err
             // console.debug('API:', ...arguments);
             // get API key
             const YOUTUBE_API_KEYS = localStorage.hasOwnProperty(API_STORE_NAME)
-               ? JSON.parse(localStorage.getItem(API_STORE_NAME)) : await getKeys();
+               ? JSON.parse(localStorage.getItem(API_STORE_NAME))
+               : await getKeys();
 
             if (!api_key && (!Array.isArray(YOUTUBE_API_KEYS) || !YOUTUBE_API_KEYS?.length)) {
                localStorage.hasOwnProperty(API_STORE_NAME) && localStorage.removeItem(API_STORE_NAME);
@@ -1848,8 +2162,8 @@ const NOVA = {
                //    + '\n - Generate a new private key'
                //    + '\n - Deactivate plugins that need it'
                // );
-               // throw new Error('YOUTUBE_API_KEYS is empty:', YOUTUBE_API_KEYS);
-               return console.error('YOUTUBE_API_KEYS empty:', YOUTUBE_API_KEYS);
+               console.error('YOUTUBE_API_KEYS is empty:', YOUTUBE_API_KEYS);
+               throw new Error('YOUTUBE_API_KEYS is empty');
             }
 
             const referRandKey = arr => api_key || 'AIzaSy' + arr[Math.trunc(Math.random() * arr.length)];
@@ -1861,8 +2175,8 @@ const NOVA = {
             const URL = `https://www.googleapis.com/youtube/v3/${request}?${query}&key=` + referRandKey(YOUTUBE_API_KEYS);
             // console.debug('URL', URL);
             // request
-            return await fetch(URL)
-               .then(response => response.json())
+            return await NOVA.fetch(URL)
+               // .then(response => response.json())
                .then(json => {
                   if (!json?.error && Object.keys(json).length) return json;
                   console.warn('used key:', NOVA.queryURL.get('key', URL));
@@ -1892,21 +2206,111 @@ const NOVA = {
    })(),
 
    /**
-    * @param  {string*} state
-    * @return {string}
+    * @param  {string} url
+    * @param  {object*} options
+    * @return {JSON}
    */
-   getPlayerState(state) {
-      // movie_player.getPlayerState() === 2 // 2: PAUSED
-      // NOVA.getPlayerState() == 'PLAYING'
-      // movie_player.addEventListener('onStateChange', state => 'PLAYING' == NOVA.getPlayerState(state));
-      return {
-         '-1': 'UNSTARTED',
-         0: 'ENDED',
-         1: 'PLAYING',
-         2: 'PAUSED',
-         3: 'BUFFERING',
-         5: 'CUED'
-      }[state || movie_player.getPlayerState()];
+   async fetch(url, options = {}) {
+      // NOVA.debug('fetch', ...arguments);
+
+      const defaultOptions = {
+         method: 'GET', // *GET, POST, PUT, DELETE, etc.
+         // mode: 'no-cors', // no-cors, *cors, same-origin
+         headers: {
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+         },
+         responseType: 'json',
+         // binary: false,
+         // timeout: 0 * 1000 // // Default to no timeout, Atention! Convert to milliseconds for GM_xmlhttpRequest
+      };
+
+      const mergedOptions = {
+         ...defaultOptions,
+         ...options
+      };
+
+      let response;
+
+      try {
+         if (typeof GM_info === 'object') {
+            // Assuming GM_fetch is a shim for GM_xmlhttpRequest available in certain environments like Greasemonkey.
+            response = await GM_fetch(url, mergedOptions);
+         } else {
+            response = await fetch(url, mergedOptions);
+            response = await response.json();
+         }
+      } catch (err) {
+         console.error(`NOVA.fetch: Unexpected error: ${err}\n${url}`);
+         throw err; // Ensure error are not silently ignored.
+      }
+
+      return response;
+
+      async function GM_fetch(url, options = {}) {
+         if (options.body) {
+            options.data = options.body;
+            delete options.body;
+         }
+
+         return new Promise((resolve, reject) => {
+            const xhr = GM_xmlhttpRequest({
+               url,
+               ...options,
+               // onload: response => resolve(response.response),
+               onloadend(response) {
+                  if (response.status >= 200 && response.status < 300) {
+                     switch (options.responseType) {
+                        case 'json':
+                           resolve(JSON.parse(response.responseText));
+                           break;
+                        default:
+                           resolve(response.response);
+                           break;
+                     }
+                  }
+                  // else reject(new Error(`HTTP error! status: ${response.status}`));
+               },
+               // onerror: error => reject(error),
+               onerror: error => reject(new Error('Network error')),
+            });
+
+            if (options.timeout > 0) {
+               setTimeout(() => xhr.abort(), options.timeout);
+            }
+         });
+      };
+   },
+
+   getPlayerState: {
+      /**
+       * @param  {string*} state
+       * @return {string}
+      */
+      playback(state) {
+         // movie_player.getPlayerState() === 2 // 2: PAUSED
+         // NOVA.getPlayerState.playback() == 'PLAYING'
+         // movie_player.addEventListener('onStateChange', state => 'PLAYING' == NOVA.getPlayerState.playback(state));
+         return {
+            '-1': 'UNSTARTED',
+            0: 'ENDED',
+            1: 'PLAYING',
+            2: 'PAUSED',
+            3: 'BUFFERING',
+            5: 'CUED'
+         }[state || movie_player.getPlayerState()];
+      },
+
+      visibility() {
+         return {
+            0: 'SHOW',
+            1: 'MINIPLAYER',
+            2: 'FULLSCREEN',
+            3: 'HIDE',
+            10: 'THEATER',
+         }[movie_player.getVisibilityState()];
+      },
    },
 
    // captureActiveVideoElement
@@ -1926,6 +2330,12 @@ const NOVA = {
 
    // videoId(url = document.URL) {
    //    return new URL(url).searchParams.get('v') || movie_player.getVideoData().video_id;
+   // },
+
+   // getPlayerData() {
+   //    movie_player.getPlayerResponse() || document.body.querySelector('.ytd-page-manager[video-id]')?.playerData,
+   //       movie_player.getVideoData(),
+   //       document.body.querySelector('.ytd-page-manager[video-id]')?.data || document.body.querySelector('ytd-app')?.data?.response || document.body.querySelector('ytd-app')?.__data?.data?.response /*not updated after page transition!*/|| window.ytInitialData, // document.body.querySelector('ytd-player')?.player_?.getCurrentVideoConfig()?.args.raw_player_response
    // },
 
    /**
@@ -1951,7 +2361,7 @@ const NOVA = {
          document.body.querySelector('#video-owner a[href]')?.href.split('/')[4],
          document.body.querySelector('a.ytp-ce-channel-title[href]')?.href.split('/')[4],
          // watch page
-         document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.videoDetails?.channelId, // exclude embed page
+         movie_player.getPlayerResponse()?.videoDetails?.channelId, // exclude embed page
          // document.body.querySelector('#owner #channel-name a[href]')?.href.split('/')[4], // outdated
          // ALL BELOW - not updated after page transition!
          // || window.ytplayer?.config?.args.ucid
@@ -1981,7 +2391,7 @@ const NOVA = {
       //          if ((channelName_ = document.body.querySelector('#channel-handle')?.textContent)
       //             && channelName_.startsWith('@')
       //          ) {
-      //             channelName = channelName_.substring(1);
+      //             channelName = channelName_.slice(1);
       //          }
 
       //          break;
@@ -2071,6 +2481,8 @@ const NOVA = {
 
       STORAGE_NAME: 'nova-channels-state',
 
+      STORAGE_NAME_SPEED: 'nova-channels-speed',
+
       // channelId: 'str',
       async initStorage() {
          //   playlist higher priority than the channel
@@ -2133,7 +2545,7 @@ const NOVA = {
       // NOVA.searchInObjectBy.key({
       //    'obj': window.ytplayer,
       //    'key': 'ucid',
-      //    'match_fn': val => {},
+      //    // 'match_fn': val => {},
       // });
       // ex test array: NOVA.searchInObjectBy.key({ obj: { a: [1, {"ucid": 11}] }, key: "ucid" })
       /**
@@ -2141,7 +2553,7 @@ const NOVA = {
        * @param  {string} key
        * @param  {function*} match_fn
        * @param  {boolean*} multiple
-       * @param  {int*} maxDepth
+       * @param  {int*} max_depth
        * @return {object} {path, data, depth}
       */
       key({
@@ -2149,16 +2561,19 @@ const NOVA = {
          key = required(),
          multiple = false,
          // match_fn = data => data.constructor.name !== 'Object', // exclude objects type
-         maxDepth = 10,
+         match_fn, // Optional function for custom matching
+         max_depth = 10,
       }) {
-         // if (typeof obj !== 'object') {
-         //    return console.error('seachInObjectBy > key is not Object:', ...arguments);
-         // }
          let results = [];
 
-         return searchInternal({ 'obj': obj }) || (multiple && results);
+         const found = searchInternal({ obj, path: '', depth: 0 });
+         if (found) {
+            return multiple ? results : found;
+         }
 
          function searchInternal({ obj = required(), path = '', depth = 0 }) {
+            if (depth >= max_depth) return;
+
             const setPath = d => (path ? path + '.' : '') + d;
 
             for (const prop in obj) {
@@ -2174,32 +2589,34 @@ const NOVA = {
                      else return result;
                   }
                   // in deeper (recursive)
-                  else if (depth < maxDepth) {
+                  else if (depth < max_depth) {
                      switch (obj[prop].constructor.name) {
                         case 'Object':
-                           if (result = searchInternal({
+                           const foundInObject = searchInternal({
                               'obj': obj[prop],
                               // 'path': path + '.' + prop,
                               'path': setPath(prop),
                               // 'match_fn': match_fn,
                               'depth': depth + 1,
-                           })) {
-                              if (multiple) results.push(result);
-                              else return result;
+                           });
+                           if (foundInObject) {
+                              if (multiple) results.push(foundInObject);
+                              else return foundInObject;
                            }
                            break;
 
                         case 'Array':
                            for (let i = 0; i < obj[prop].length; i++) {
                               if (typeof obj[prop][i] !== 'undefined') {
-                                 if (result = searchInternal({
+                                 const foundInArray = searchInternal({
                                     'obj': obj[prop][i],
                                     'path': path + `[${i}]`,
                                     // 'match_fn': match_fn,
                                     'depth': depth + 1,
-                                 })) {
-                                    if (multiple) results.push(result);
-                                    else return result;
+                                 });
+                                 if (foundInArray) {
+                                    if (foundInArray) results.push(foundInArray);
+                                    else return foundInArray;
                                  }
                               }
                            }
@@ -2237,6 +2654,62 @@ const NOVA = {
    //       enumerable: true
    //    });
    // },
+
+   // alt - https://greasyfork.org/en/scripts/446507-youtube-sub-feed-filter-2
+   // NOVA.waitSelector('#voice-search-button', { destroy_after_page_leaving: true })
+   insertFIlterButton() {
+      NOVA.waitSelector('#filter-button, ytd-shelf-renderer #title-container a[href="/feed/channels"]', { destroy_after_page_leaving: true })
+         .then(container => {
+            const filterBtn = document.createElement('button');
+            filterBtn.classList.add('style-scope', 'yt-formatted-string', 'bold', 'yt-spec-button-shape-next--tonal', 'yt-spec-button-shape-next--mono', 'yt-spec-button-shape-next--size-m', 'yt-spec-button-shape-next--text');
+            // // filterBtn.textContent = 'Filter Switch';
+            // filterBtn.innerHTML = NOVA.createSafeHTML(
+            //    `<span class="yt-spec-button-shape-next__icon" style="height:100%">
+            //    <svg viewBox="-50 -50 400 400" height="100%" width="100%">
+            //       <g fill="currentColor">
+            //          <path d="M128.25,175.6c1.7,1.8,2.7,4.1,2.7,6.6v139.7l60-51.3v-88.4c0-2.5,1-4.8,2.7-6.6L295.15,65H26.75L128.25,175.6z" />
+            //       </g>
+            //    </svg>
+            // </span>`);
+            // fix - This document requires 'TrustedHTML' assignment.
+            filterBtn.append((function createFilterIcon() {
+               const iconBtn = document.createElement('span');
+               iconBtn.className = 'yt-spec-button-shape-next__icon';
+               iconBtn.style.height = '100%';
+
+               const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+               svg.setAttribute('viewBox', '-50 -50 400 400');
+               svg.setAttribute('height', '100%');
+               svg.setAttribute('width', '100%');
+
+               const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+               g.setAttribute('fill', 'currentColor');
+
+               const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+               path.setAttribute('d', 'M128.25,175.6c1.7,1.8,2.7,4.1,2.7,6.6v139.7l60-51.3v-88.4c0-2.5,1-4.8,2.7-6.6L295.15,65H26.75L128.25,175.6z');
+
+               g.append(path);
+               svg.append(g);
+               iconBtn.append(svg);
+
+               return iconBtn;
+            })());
+
+            filterBtn.title = 'Toggle NOVA plugin [thumbs-hide]';
+            // filterBtn.style.cssText = '';
+            Object.assign(filterBtn.style, {
+               border: 0,
+               cursor: 'pointer',
+               scale: .7,
+            });
+            filterBtn.addEventListener('click', () => {
+               document.body.classList.toggle('nova-thumbs-unhide');
+               // filterBtn opacity
+               filterBtn.style.opacity = document.body.classList.contains('nova-thumbs-unhide') ? .3 : 1;
+            });
+            container.after(filterBtn);
+         });
+   },
 
    log() {
       if (this.DEBUG && arguments.length) {

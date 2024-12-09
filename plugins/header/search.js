@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'search-query',
    title: 'Search filter',
-   'title:zh': '搜索过滤器',
-   'title:ja': '検索フィルター',
+   // 'title:zh': '搜索过滤器',
+   // 'title:ja': '検索フィルター',
    // 'title:ko': '검색 필터',
    // 'title:vi': '',
    // 'title:id': 'Filter pencarian',
@@ -51,8 +51,8 @@ window.nova_plugins.push({
       search_query_sort: {
          _tagName: 'select',
          label: 'Sort by',
-         'label:zh': '排序方式',
-         'label:ja': '並び替え',
+         // 'label:zh': '排序方式',
+         // 'label:ja': '並び替え',
          // 'label:ko': '정렬 기준',
          // 'label:vi': '',
          // 'label:id': 'Sortir dengan',
@@ -135,8 +135,8 @@ window.nova_plugins.push({
       search_query_date: {
          _tagName: 'select',
          label: 'Upload date',
-         'label:zh': '上传日期',
-         'label:ja': 'アップロード日',
+         // 'label:zh': '上传日期',
+         // 'label:ja': 'アップロード日',
          // 'label:ko': '업로드 날짜',
          // 'label:vi': '',
          // 'label:id': 'Tanggal unggah',

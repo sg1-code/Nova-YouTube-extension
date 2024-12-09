@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'subscriptions-home',
    title: 'Redirect from home page to subscriptions page',
-   'title:zh': '从主页重定向到订阅页面',
-   'title:ja': 'ホーム ページからサブスクリプション ページへのリダイレクト',
+   // 'title:zh': '从主页重定向到订阅页面',
+   // 'title:ja': 'ホーム ページからサブスクリプション ページへのリダイレクト',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',

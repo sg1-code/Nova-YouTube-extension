@@ -6,6 +6,7 @@ body {
    position: relative;
    width: 100%;
    /* height: 100vh; */
+   /* padding: 5px; */
 }
 
 ul {
@@ -35,6 +36,7 @@ label, button, select {
 
 button, input, select, textarea {
    margin: 0;
+   line-height: 20px;
    padding: 3px 5px;
    /* background-color: transparent; */
    /* box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075); */
@@ -56,8 +58,8 @@ button, [type=submit], [type=reset], input[type=button] {
    text-transform: uppercase;
    white-space: nowrap;
    background-color: transparent;
-   padding: 5px 20px;
-   transition: background-color 170ms linear;
+   padding: .7em 1em;
+   line-height: normal;
 }
 
 /* :is(button, [type=submit], [type=reset], input[type=button], select, textarea):hover { chrome >=88 */
@@ -71,9 +73,9 @@ textarea:hover {
 }
 
 /* :is(button, input, select):not([disabled]):focus, textarea:not([disabled]):not([readonly]):focus { chrome >=88 */
-button:not([disabled]):focus,
-input:not([disabled]):focus,
-select:not([disabled]):focus,
+button:not([disabled]):not([readonly]):focus,
+input:not([disabled]):not([readonly]):focus,
+select:not([disabled]):not([readonly]):focus,
 textarea:not([disabled]):not([readonly]):focus {
    border-color: #66afe9;
    outline: 0;
@@ -81,6 +83,15 @@ textarea:not([disabled]):not([readonly]):focus {
 }
 
 /* :is(button, input, select, textarea)[disabled] { chrome >=88 */
+[readonly] {
+   opacity: .7;
+}
+
+[readonly]:focus {
+   outline: 1px orangered dashed;
+   border: 0;
+}
+
 [disabled] {
    opacity: .7;
    cursor: not-allowed;

@@ -18,12 +18,13 @@ if (!('MutationObserver' in window)) {
 try {
    // throw 'test';
    document?.body;
-} catch (error) {
+} catch (err) {
    errorAlert('Your browser does not support chaining operator');
 }
 
 // css ":has()" test
 // if (!CSS.supports('selector(:has(*))')
+//    && window?.localStorage
 //    && !localStorage.hasOwnProperty('nova_css_has_skipped')
 //    && location.pathname.endsWith('/embed')
 // ) {

@@ -13,8 +13,8 @@
 window.nova_plugins.push({
    id: 'channel-default-tab',
    title: 'Default tab (for channel page)',
-   'title:zh': '频道页默认选项卡',
-   'title:ja': 'チャンネルページのデフォルトタブ',
+   // 'title:zh': '频道页默认选项卡',
+   // 'title:ja': 'チャンネルページのデフォルトタブ',
    // 'title:ko': '채널 페이지의 기본 탭',
    // 'title:vi': '',
    // 'title:id': 'Tab default di halaman saluran',
@@ -48,7 +48,9 @@ window.nova_plugins.push({
       //    // mouse left click
       // document.addEventListener('click', evt => {
       //    patchLink(evt.target);
+      //    evt.preventDefault();
       //    evt.stopPropagation();
+      //    // evt.stopImmediatePropagation();
       // }, { capture: true });
       //    // document.addEventListener('click', ({ target }) => patchLink(target), { capture: true });
       //    // // mouse middle click
@@ -174,8 +176,8 @@ window.nova_plugins.push({
       channel_default_tab: {
          _tagName: 'select',
          label: 'Default tab',
-         'label:zh': '默认标签页',
-         'label:ja': 'デフォルトのタブ',
+         // 'label:zh': '默认标签页',
+         // 'label:ja': 'デフォルトのタブ',
          // 'label:ko': '기본 탭',
          // 'label:vi': '',
          // 'label:id': 'tab bawaan',
@@ -337,8 +339,8 @@ window.nova_plugins.push({
       channel_default_tab_mode: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',
@@ -360,7 +362,7 @@ window.nova_plugins.push({
          // 'title:pt': 'O redirecionamento é mais seguro, mas mais lento',
          // 'title:fr': 'La redirection est plus sûre mais plus lente',
          // 'title:it': 'Il reindirizzamento è più sicuro ma più lento',
-         // // 'title:tr': 'Yönlendirme daha güvenlidir ancak daha yavaştır',
+         // 'title:tr': 'Yönlendirme daha güvenlidir ancak daha yavaştır',
          // 'title:de': 'Redirect ist sicherer, aber langsamer',
          // 'title:pl': 'Przekierowanie jest bezpieczniejsze, ale wolniejsze',
          // 'title:ua': 'Перенаправлення безпечніше, але повільніше',

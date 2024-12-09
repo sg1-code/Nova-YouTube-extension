@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'square-avatars',
    title: 'Square avatars',
-   'title:zh': '方形头像',
-   'title:ja': '正方形のアバター',
+   // 'title:zh': '方形头像',
+   // 'title:ja': '正方形のアバター',
    // 'title:ko': '정사각형 아바타',
    // 'title:vi': '',
    // 'title:id': 'Avatar persegi',
@@ -42,6 +42,7 @@ window.nova_plugins.push({
 
       NOVA.css.push(
          [
+            // 'img',
             'yt-img-shadow',
             '.ytp-title-channel-logo',
             '#player .ytp-title-channel',

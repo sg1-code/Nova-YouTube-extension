@@ -261,10 +261,9 @@ function registerMenuCommand() {
 // on update this script ver.
 function actualizeStorageVer() {
    // skip same ver.
-   if (GM_info.script.version == +user_settings?.ver) return;
+   if (GM_info.script.version == user_settings?.ver) return;
    // save this ver. number
    user_settings.ver = GM_info.script.version
-   GM_setValue(configStoreName, user_settings);
 
    renameStorageKeys({
       // 'oldKey': 'newKey',
@@ -344,16 +343,16 @@ function actualizeStorageVer() {
       'thumbs_title_show_full': 'thumbs-title-show-full',
    });
 
+   GM_setValue(configStoreName, user_settings);
+
    function renameStorageKeys(key_template_obj = required()) {
-      let needSave;
       for (const oldKey in user_settings) {
          if (newKey = key_template_obj[oldKey]) {
-            console.log(oldKey, '=>', newKey);
-            needSave = true;
-            delete Object.assign(user_settings, { [newKey]: user_settings[oldKey] })[oldKey];
+            console.log('store key rename:', oldKey, '=>', newKey);
+            user_settings[newKey] = user_settings[oldKey];
+            delete user_settings[oldKey];
          }
       }
-      if (needSave) GM_setValue(configStoreName, user_settings);
    }
 }
 
@@ -383,11 +382,11 @@ function insertSettingButton() {
                   </g>
                </svg>
             </yt-icon-button>`);
-            // `<yt-icon-button class="style-scope ytd-button-renderer style-default size-default">
-            //    <svg viewBox="-4 0 20 16">
-            //       <polygon points="0,16 14,8 0,0" fill="deepskyblue" />
-            //    </svg>
-            // </yt-icon-button>`);
+         // `<yt-icon-button class="style-scope ytd-button-renderer style-default size-default">
+         //    <svg viewBox="-4 0 20 16">
+         //       <polygon points="0,16 14,8 0,0" fill="deepskyblue" />
+         //    </svg>
+         // </yt-icon-button>`);
          // btn.style.cssText = '';
          Object.assign(btn.style, {
             'font-size': '24px',

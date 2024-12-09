@@ -8,8 +8,8 @@ window.nova_plugins.push({
    id: 'video-date-format',
    // title: 'Displaying date format',
    title: 'Date format display',
-   'title:zh': '显示日期格式',
-   'title:ja': '日付形式の表示',
+   // 'title:zh': '显示日期格式',
+   // 'title:ja': '日付形式の表示',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -56,27 +56,24 @@ window.nova_plugins.push({
          // console.debug('setVideoDate:', ...arguments);
          const videoId = NOVA.queryURL.get('v') || movie_player.getVideoData().video_id;
 
-         // // has in cache
-         if ((storage = sessionStorage.getItem(CACHE_PREFIX + videoId))
+         // has in cache
+         if (window?.sessionStorage && (storage = sessionStorage.getItem(CACHE_PREFIX + videoId))
             && storage.format == user_settings.video_date_format // if user not set new format
          ) {
             return insertToHTML({ 'text': storage.date, 'container': container });
          }
          // // from local
-         // else if (videoDate = document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.microformat?.playerMicroformatRenderer.publishDate ||
-         //    NOVA.searchInObjectBy.key({
-         //       'obj': (document.body.querySelector('.ytd-page-manager[video-id]')?.playerData
-         //          || document.body.querySelector('ytd-app')?.__data?.data?.response
-         //          || document.body.querySelector('ytd-app')?.data?.response
-         //          || window.ytInitialData
-         //       ),
-         //       'key': 'publishDate',
-         //       match_fn: null,
-         //    })?.data) {
+         // else if (videoDate = movie_player.getPlayerResponse()?.microformat?.playerMicroformatRenderer.publishDate
+         //    // || NOVA.searchInObjectBy.key({
+         //    //    'obj': movie_player.getPlayerResponse(),
+         //    //    'key': 'publishDate',
+         //    //    match_fn: null,
+         //    // })?.data
+         // ) {
          //    videoDate = videoDate.simpleText || videoDate;
          //    insertToHTML({ 'text': videoDate, 'container': container });
          //    // save cache in tabs
-         //    sessionStorage.setItem(CACHE_PREFIX + videoId, videoDate);
+         //    if (window?.sessionStorage) sessionStorage.setItem(CACHE_PREFIX + videoId, videoDate);
          // }
          // from API
          // else {
@@ -143,7 +140,7 @@ window.nova_plugins.push({
 
                         outList.push(
                            // movie_player.getVideoData().isLive  // Doesn't work if the video is not running
-                           document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.videoDetails?.isLiveContent
+                           movie_player.getPlayerResponse()?.videoDetails?.isLiveContent
                               ? 'Streamed'
                               : 'Premiered'
                         );
@@ -173,7 +170,7 @@ window.nova_plugins.push({
                      const publishedDate = new Date(item.snippet.publishedAt);
 
                      if (user_settings.video_date_format == 'ago') {
-                        outList.push(NOVA.formatTimeOut.ago(publishedDate), 'ago');
+                        outList.push(NOVA.formatTime.ago(publishedDate), 'ago');
                      }
                      else {
                         outList.push(NOVA.dateFormat.apply(publishedDate, [user_settings.video_date_format]));
@@ -183,10 +180,12 @@ window.nova_plugins.push({
                   if (outList.length) {
                      insertToHTML({ 'text': outList.join(' '), 'container': container });
                      // save cache in tabs
-                     sessionStorage.setItem(CACHE_PREFIX + videoId, JSON.stringify({
-                        'date': outList.join(' '),
-                        'format': user_settings.video_date_format
-                     }));
+                     if (window?.sessionStorage) {
+                        sessionStorage.setItem(CACHE_PREFIX + videoId, JSON.stringify({
+                           'date': outList.join(' '),
+                           'format': user_settings.video_date_format
+                        }));
+                     }
                   }
                   // else {
                   //    return console.warn('API is change', item);
@@ -197,7 +196,10 @@ window.nova_plugins.push({
 
          function insertToHTML({ text = '', container = required() }) {
             // console.debug('insertToHTML', ...arguments);
-            if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+            if (!(container instanceof HTMLElement)) {
+               console.error('Container is not an HTMLElement:', container);
+               return;
+            }
 
             (document.getElementById(DATE_SELECTOR_ID) || (() => {
                const el = document.createElement('span');

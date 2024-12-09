@@ -66,7 +66,7 @@ const App = {
       this.storage.load.apply(this);
       // load all Plugins
       Plugins.injectScript('window.nova_plugins = [];');
-      Plugins.load(['common.js']);
+      Plugins.load(['NOVA.js']);
       Plugins.load(); // all
    },
 
@@ -158,8 +158,7 @@ const App = {
                ? `plugins loaded: ${window.nova_plugins.length + '/' + plugins_count}`
                : `Critical Error: NOVA core is '${typeof NOVA}'`;
 
-            notice.append(h4);
-            notice.append(div);
+            notice.append(h4, div);
             document.body.append(notice);
          }
       }, 1000 * 3); // 3sec
@@ -254,6 +253,7 @@ App.init();
 // https://www.youtube.com/watch?v=4Zivt4wbvoM - narrow
 // https://www.youtube.com/watch?v=ir6nk2zrMG0 - wide
 // https://www.youtube.com/watch?v=twFNTZ6Y_OI - wide
+// https://www.youtube.com/watch?v=738UOATPjwc - square
 // https://www.youtube.com/watch?v=nX2anEXG0eE - square
 // https://www.youtube.com/watch?v=SDjbK8JWA_Y - square
 

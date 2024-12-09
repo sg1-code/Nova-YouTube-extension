@@ -1,11 +1,11 @@
 // for  test
-// https://www.youtube.com/watch?v=q45jxjne3BU - many ad
-// https://www.youtube.com/watch?v=3eJZcpoSpKY
+// https://www.youtube.com/watch?v=q45jxjne3BU - many ad + chaprtes
+// https://www.youtube.com/watch?v=3eJZcpoSpKY - intro, 3 (ad + chaprtes)
 // https://www.youtube.com/watch?v=pf9WOuzeWhw
 // https://www.youtube.com/watch?v=KboTw3NBuuk - ad in multi chaprtes
 // https://youtu.be/cQUlbFmjDcM?t=190 - filler category
 // https://youtu.be/5S-tTDeFZfY?t=237 - many filler category
-// https://www.youtube.com/watch?v=50yz_BFL7ao- a lot filler category
+// https://www.youtube.com/watch?v=50yz_BFL7ao - a lot filler category
 
 window.nova_plugins.push({
    id: 'sponsor-block',
@@ -36,6 +36,7 @@ window.nova_plugins.push({
       // alt3 - https://github.com/mchangrh/sb.js/blob/main/docs/sb.user.js
       // alt4 - https://chromewebstore.google.com/detail/mnjggcdmjocbbbhaepdhchncahnbgone
       // alt5 - https://chromewebstore.google.com/detail/gimgmkmpmjfjdnlmolehpabbehcflhpc
+      // alt6 - https://greasyfork.org/en/scripts/505870
 
       NOVA.waitSelector('#movie_player video')
          .then(video => {
@@ -57,161 +58,170 @@ window.nova_plugins.push({
             let videoId; // share for console
 
             // reset chapterList
-            // video.addEventListener('loadeddata', async () => segmentsList = await getSkipSegments(videoId) || []);
             video.addEventListener('loadeddata', init.bind(video));
+
+            // apply a skip method
+            video.addEventListener('timeupdate', handleTimeUpdate.bind(video));
 
             async function init() {
                videoId = NOVA.queryURL.get('v') || movie_player.getVideoData().video_id;
-               segmentsList = await getSkipSegments(videoId) || [];
+               segmentsList = await loadSegmentsForSkip(videoId) || [];
                // console.debug('segmentsList', segmentsList);
 
                // render marks for [player-float-progress-bar] plugin
-               if (user_settings['player-float-progress-bar'] && segmentsList.length) {
-                  const SELECTOR = '#nova-player-float-progress-bar-chapters > span[time]';
-                  const deflectionSec = 5;
-
-                  // wait chapters
-                  await NOVA.waitSelector(SELECTOR, { destroy_after_page_leaving: true });
-
-                  document.body.querySelectorAll(SELECTOR)
-                     .forEach((chapterEl, idx, chaptersEls) => {
-                        if (idx === chaptersEls.length - 1) return; // if last chapter
-
-                        const
-                           chapterStart = Math.trunc(NOVA.formatTimeOut.hmsToSec(chapterEl.getAttribute('time'))),
-                           chapterNextStart = Math.trunc(NOVA.formatTimeOut.hmsToSec(chaptersEls[idx + 1].getAttribute('time')));
-
-                        for (const [i, value] of segmentsList.entries()) {
-                           const [segmentStart, segmentEnd, category] = value;
-
-                           // console.debug('chapter', segmentStart, segmentEnd);
-                           // console.debug('chapterStart', chapterStart);
-                           // console.debug('chapterNextStart', chapterNextStart);
-
-                           // if ((Math.trunc(segmentStart) <= chapterNextStart) && (Math.trunc(segmentEnd) >= chapterStart)) {
-                           if (((Math.trunc(segmentStart) + deflectionSec) <= chapterNextStart)
-                              && ((Math.trunc(segmentEnd) - deflectionSec) >= chapterStart)
-                           ) {
-                              let color = user_settings[`sponsor_block_color_${category}`];
-                              if (color) {
-                                 color = convertColor.hex2rgb(color).join(',');
-                              }
-                              // default colors
-                              else {
-                                 switch (category) {
-                                    case 'sponsor': color = '255, 231, 0'; break; // '#ffe700'
-                                    case 'interaction': color = '255, 127, 80'; break; // '#ff7f50'
-                                    case 'selfpromo': color = '255, 99, 71'; break; // '#ff6347'
-                                    case 'intro': color = '255, 165, 0'; break; // '#ffa500'
-                                    case 'outro': color = '255, 165, 0'; break; // '#ffa500'
-                                    default: color = '0, 255, 107'; break; // '#00ff6b'
-                                 }
-                              }
-                              // simple chapter coloring
-                              // chapterEl.style.background = `rgb(${color}, .4`;
-                              // chapterEl.title = [chapterEl.title, categoryNameLabel[category]].join(', ');
-
-                              const
-                                 newChapter = document.createElement('span'),
-                                 startPoint = Math.max(segmentStart, chapterStart),
-                                 sizeChapter = chapterNextStart - chapterStart,
-                                 getPt = d => (d * 100 / sizeChapter) + '%';
-
-                              newChapter.title = category;
-                              // el.style.cssText = '';
-                              Object.assign(newChapter.style, {
-                                 // position: 'absolute',
-                                 // display: 'block',
-                                 width: getPt(Math.min(segmentEnd, chapterNextStart) - startPoint),
-                                 left: getPt(startPoint - chapterStart),
-                                 'background-color': `rgb(${color}, .4`,
-                              });
-                              // chapterEl.style.position = 'relative';
-                              chapterEl.append(newChapter);
-                           }
-                        }
-                     });
-               }
+               // if (user_settings['player-float-progress-bar'] && segmentsList.length) {
+               //    renderMarksForProgressBar(segmentsList);
+               // }
             }
-            // apply a skip method
-            video.addEventListener('timeupdate', function () {
-               // if (!isNaN(video.duration))
 
-               let segmentStart, segmentEnd, category;
+            // eventListener from float-progress-bar
+            if (user_settings['player-float-progress-bar']) {
+               document.addEventListener('render-chapters-markers', ({ detail }) => {
+                  if (segmentsList.length) renderMarksForProgressBar(segmentsList, detail.chapterList);
+               });
+            }
 
-               // for (const [i, value] of segmentsList.entries()) {
-               //    console.debug('>>', value, i);
-               //    const [segmentStart, segmentEnd] = value;
-               for (let i = 0; i < segmentsList.length; i++) {
-                  // console.debug('>>', segmentsList, i);
-                  [segmentStart, segmentEnd, category] = segmentsList[i];
-                  segmentStart = Math.trunc(segmentStart);
-                  segmentEnd = Math.ceil(segmentEnd);
+            function handleTimeUpdate({ target }) { // this == target
+               const now = Math.trunc(this.currentTime);
+               const segmentIdx = segmentsList.findIndex(([segmentStart, segmentEnd]) => now >= segmentStart && now < segmentEnd);
+               let segmentStart, segmentEnd, category; // share for novaNotification
 
-                  const inSegment = (this.currentTime > segmentStart && this.currentTime < segmentEnd);
+               if (segmentIdx !== -1) {
+                  [segmentStart, segmentEnd, category] = segmentsList[segmentIdx];
 
                   switch (user_settings.sponsor_block_action) {
-                     // case 'full': break;
-                     // case 'poi': break;
                      case 'mute':
                         // set Mute
-                        // movie_player.isMuted() == this.muted
-                        if (inSegment && !muteState && !this.muted) {
-                           muteState = true;
+                        if (!muteState) {
+                           muteState = this.muted; // movie_player.isMuted()
                            movie_player.mute(true);
 
-                           return novaNotification('muted');
-                        }
-                        // unMute
-                        else if (!inSegment && muteState && this.muted) {
-                           muteState = false;
-                           movie_player.unMute();
-                           segmentsList.splice(i, 1); // for optimization use segment once
-
-                           return novaNotification('unMuted');
+                           novaNotification('muted');
                         }
                         break;
 
                      // default:
                      case 'skip':
-                        if (inSegment) {
-                           this.currentTime = segmentEnd;
-                           segmentsList.splice(i, 1); // for optimization use segment once
+                        this.currentTime = segmentEnd;
+                        segmentsList.splice(segmentIdx, 1); // for optimization use segment once
 
-                           // return novaNotification('skipped');
-                           return novaNotification();
-                        }
+                        novaNotification();
                         break;
                   }
+               }
+               // unMute
+               else if (muteState) {
+                  muteState = false;
+                  movie_player.unMute(); // this.muted = false
+                  novaNotification('unMuted');
                }
 
                function novaNotification(prefix = '') {
                   if (!user_settings.sponsor_block_notification) return;
 
-                  const msg = `${prefix} ${NOVA.formatTimeOut.HMS.digit(segmentEnd - segmentStart)}「${categoryNameLabel[category]}」• ${NOVA.formatTimeOut.HMS.digit(segmentStart)} - ${NOVA.formatTimeOut.HMS.digit(segmentEnd)}`;
+                  const msg = `${prefix} ${NOVA.formatTime.HMS.digit(segmentEnd - segmentStart)}「${categoryNameLabel[category]}」• ${NOVA.formatTime.HMS.digit(segmentStart)} - ${NOVA.formatTime.HMS.digit(segmentEnd)}`;
                   console.info(videoId, msg); // user log
-                  NOVA.showOSD(msg); // trigger default indicator
+                  NOVA.showOSD({
+                     message: msg,
+                     source: 'sponsor-block',
+                     fade_ms: 1800,
+                  });
                }
-
-            });
+            }
          });
 
+      async function renderMarksForProgressBar(segments_list = required(), chapter_list) {
+         const SELECTOR = '#nova-player-float-progress-bar-chapters > span[time]';
+         const deflectionSec = 5;
 
-      async function getSkipSegments(videoId = required()) {
-         const CACHE_PREFIX = 'nova-sponsor-block:';
+         // // wait chapters
+         // await NOVA.waitSelector(SELECTOR, { destroy_after_page_leaving: true });
 
-         if (
-            navigator.cookieEnabled // fix - Failed to read the 'sessionStorage' property from 'Window': Access is denied for this document.
-            && (storage = sessionStorage.getItem(CACHE_PREFIX + videoId))
-         ) {
+         document.body.querySelectorAll(SELECTOR)
+            .forEach((chapterEl, idx, chaptersEls) => {
+               if (idx === chaptersEls.length - 1) return; // if last chapter
+
+               const
+                  chapterStart = Math.trunc(NOVA.formatTime.hmsToSec(chapterEl.getAttribute('time'))),
+                  chapterNextStart = Math.trunc(NOVA.formatTime.hmsToSec(chaptersEls[idx + 1].getAttribute('time')));
+
+               segments_list.forEach(([segmentStart, segmentEnd, category]) => {
+                  // if ((Math.trunc(segmentStart) <= chapterNextStart) && (Math.trunc(segmentEnd) >= chapterStart)) {
+                  if (((Math.trunc(segmentStart) + deflectionSec) <= chapterNextStart)
+                     && ((Math.trunc(segmentEnd) - deflectionSec) >= chapterStart)
+                  ) {
+                     // create marks
+                     const
+                        newChapter = document.createElement('span'),
+                        startPoint = Math.max(segmentStart, chapterStart),
+                        sizeChapter = chapterNextStart - chapterStart,
+                        getPt = d => (d * 100 / sizeChapter) + '%',
+                        color = getSegmentColor(category);
+
+                     // chapterEl.style.background = `rgb(${color}, .4`;
+                     // chapterEl.title = [chapterEl.title, categoryNameLabel[category]].join(', ');
+                     newChapter.title = category;
+                     // el.style.cssText = '';
+                     Object.assign(newChapter.style, {
+                        // position: 'absolute',
+                        // display: 'block',
+                        width: getPt(Math.min(segmentEnd, chapterNextStart) - startPoint),
+                        left: getPt(startPoint - chapterStart),
+                        'background-color': `rgb(${color}, .4`,
+                     });
+                     // chapterEl.style.position = 'relative';
+                     chapterEl.append(newChapter);
+                  }
+               });
+            });
+
+         function getSegmentColor(category = required()) {
+            let color = user_settings[`sponsor_block_color_${category}`];
+            if (color) {
+               const convertColor = {
+                  /**
+                   * @param  {string} hex
+                   * @return {array}
+                  */
+                  hexToRgb(hex = required()) {
+                     return ['0x' + hex[1] + hex[2] | 0, '0x' + hex[3] + hex[4] | 0, '0x' + hex[5] + hex[6] | 0];
+                  },
+                  // rgbToHex(r = 0, g = 0, b = 0) {
+                  //    return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
+                  // },
+               };
+
+               color = convertColor.hexToRgb(color).join(',');
+            }
+            // default colors
+            else {
+               switch (category) {
+                  case 'sponsor': color = '255, 231, 0'; break; // '#ffe700'
+                  case 'interaction': color = '255, 127, 80'; break; // '#ff7f50'
+                  case 'selfpromo': color = '255, 99, 71'; break; // '#ff6347'
+                  case 'intro': color = '255, 165, 0'; break; // '#ffa500'
+                  case 'outro': color = '255, 165, 0'; break; // '#ffa500'
+                  default: color = '0, 255, 107'; break; // '#00ff6b'
+               }
+            }
+
+            return color;
+         }
+      }
+
+      async function loadSegmentsForSkip(video_id = required()) {
+         const CACHE_PREFIX = 'nova-sponsorblock:';
+
+         if (window?.sessionStorage && (storage = sessionStorage.getItem(CACHE_PREFIX + video_id))) {
             // console.debug('get from cache:', storage);
             return JSON.parse(storage);
          }
          else {
             const
-               actionTypes = (Array.isArray(user_settings.sponsor_block_action)
-                  ? user_settings.sponsor_block_action : [user_settings.sponsor_block_action])
-                  || ['skip', 'mute'], // ['skip', 'mute', 'full', 'poi'],
+               // actionTypes = (Array.isArray(user_settings.sponsor_block_action)
+               //    ? user_settings.sponsor_block_action : [user_settings.sponsor_block_action])
+               //    || ['skip', 'mute'], // ['skip', 'mute', 'full', 'poi'],
+               actionTypes = ['skip', 'mute'],
                // https://wiki.sponsor.ajay.app/w/Guidelines
                categories = user_settings.sponsor_block_category || [
                   'sponsor',
@@ -229,14 +239,21 @@ window.nova_plugins.push({
                   // 'chapter',
                ],
                // https://wiki.sponsor.ajay.app/w/API_Docs
-               params = {
-                  'videoID': videoId,
+               // params = {
+               //    'videoID': videoId,
+               //    'actionTypes': JSON.stringify(actionTypes),
+               //    'categories': JSON.stringify(categories),
+               // },
+               // query = Object.keys(params)
+               //    .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
+               //    .join('&'),
+               // URL = (user_settings.sponsor_block_url || 'https://sponsor.ajay.app') + `/api/skipSegments?${query}`;
+
+               URL = NOVA.queryURL.set({
+                  'videoID': video_id,
                   'actionTypes': JSON.stringify(actionTypes),
                   'categories': JSON.stringify(categories),
-               },
-               query = Object.keys(params)
-                  .map(k => encodeURIComponent(k) + '=' + encodeURIComponent(params[k]))
-                  .join('&');
+               }, (user_settings.sponsor_block_url || 'https://sponsor.ajay.app') + '/api/skipSegments');
 
             // [{
             //    "category": "sponsor",
@@ -251,49 +268,31 @@ window.nova_plugins.push({
             //    "votes": 1,
             //    "description": ""
             // }]
-            const fetchAPI = () => fetch((user_settings.sponsor_block_url || 'https://sponsor.ajay.app')
-               + `/api/skipSegments?${query}`,
-               {
-                  method: 'GET', // *GET, POST, PUT, DELETE, etc.
-                  // mode: 'no-cors', // no-cors, *cors, same-origin
-                  headers: { 'Content-Type': 'application/json' }, // 'Content-Type': 'application/x-www-form-urlencoded',
-               }
-            )
-               // .then(response => response.text())
-               // .then(text => {
-               //    if (text == 'Not Found') {
-               //       const error = new Error('promise chain cancelled');
-               //       error.name = 'CancelPromiseChainError';
-               //       throw error;
-               //    }
-               // })
-               .then(response => response.json()) // text "Not Found"
-               .then(json => json
-                  // .filter(i => i.actionType === 'skip')
-                  // .map(a => a.segment)
-                  .map(a => [...a.segment, a.category])
-               )
-               .catch(error => {
-                  // mute console warn
-                  // console.warn(`Sponsorblock: failed fetching skipSegments for ${videoId}, reason: ${error}`);
-               });
 
-            if (result = await fetchAPI()) {
+            if (result = await fetchAPI(URL)) {
                // console.debug('result sponsor', result
                //    // , (user_settings.sponsor_block_url || 'https://sponsor.ajay.app') + `/api/skipSegments?${query}`
                // );
-               if (navigator.cookieEnabled) {
-                  sessionStorage.setItem(CACHE_PREFIX + videoId, JSON.stringify(result));
+               if (window?.sessionStorage) {
+                  sessionStorage.setItem(CACHE_PREFIX + video_id, JSON.stringify(result));
                }
                return result;
             }
+         }
+
+         async function fetchAPI(url, options = {}) {
+            const response = await NOVA.fetch(url, options);
+
+            return response
+               // .filter(i => i.actionType === 'skip')
+               .map(segment => [...segment.segment, segment.category]);
          }
       }
 
       // alt
       // test https://www.youtube.com/watch?v=9Yhc6mmdJC4
-      // async function getSkipSegments(videoId = required()) {
-      //    const fetchAPI = () => fetch(`https://model.sponsor-skipper.com/getSponsorChaptersFor?videoID=${videoId}`,
+      // async function loadSegmentsForSkip(videoId = required()) {
+      //    const fetchAPI = () => NOVA.fetch(`https://model.sponsor-skipper.com/getSponsorChaptersFor?videoID=${videoId}`,
       //       {
       //          method: 'GET', // *GET, POST, PUT, DELETE, etc.
       //          mode: 'no-cors', // no-cors, *cors, same-origin
@@ -311,34 +310,22 @@ window.nova_plugins.push({
       //          'segmentEnd': o.end_time_sec,
       //       }))
       //       )
-      //       .catch(error => {
+      //       .catch(err => {
       //          // mute console warn
-      //          console.warn(`sponsor-skipper: failed fetching skipSegments for ${videoId}, reason: ${error}`);
+      //          console.warn(`sponsor-skipper: failed fetching skipSegments for ${videoId}, reason: ${err}`);
+      //          // throw new Error(`sponsor-skipper: failed fetching: ${err}`);
       //       });
 
       //    if (result = await fetchAPI()) {
       //       // console.debug('result sponsor', result
       //       //    // , (user_settings.sponsor_block_url || 'https://sponsor.ajay.app') + `/api/skipSegments?${query}`
       //       // );
-      //       if (navigator.cookieEnabled) {
+      //       if (window?.sessionStorage) {
       //          sessionStorage.setItem(CACHE_PREFIX + videoId, JSON.stringify(result));
       //       }
       //       return result;
       //    }
       // }
-
-      const convertColor = {
-         /**
-          * @param  {string} hex
-          * @return {array}
-         */
-         hex2rgb(hex = required()) {
-            return ['0x' + hex[1] + hex[2] | 0, '0x' + hex[3] + hex[4] | 0, '0x' + hex[5] + hex[6] | 0];
-         },
-         // rgbToHex(r = 0, g = 0, b = 0) {
-         //    return "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1);
-         // },
-      };
 
    },
    options: {
@@ -359,8 +346,8 @@ window.nova_plugins.push({
          // 'label:pl': '',
          // 'label:ua': '',
          title: '[Ctrl+Click] to select several',
-         'title:zh': '[Ctrl+Click] 选择多个',
-         'title:ja': '「Ctrl+Click」して、いくつかを選択します',
+         // 'title:zh': '[Ctrl+Click] 选择多个',
+         // 'title:ja': '「Ctrl+Click」して、いくつかを選択します',
          // 'title:ko': '[Ctrl+Click] 여러 선택',
          // 'title:vi': '',
          // 'title:id': '[Ctrl+Klik] untuk memilih beberapa',
@@ -554,8 +541,8 @@ window.nova_plugins.push({
       sponsor_block_action: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',

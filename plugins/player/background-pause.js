@@ -2,12 +2,12 @@
 
 window.nova_plugins.push({
    id: 'pause-background-tab',
-   title: 'Autopause when switching tabs',
-   // title: 'Pauses playing videos in other tabs',
+   // title: 'Autopause when switching tabs',
+   title: 'Pauses playing videos in other tabs',
    // title: 'Autopause all background tabs except the active one',
    // title: 'Only one player instance playing',
-   'title:zh': '自动暂停除活动选项卡以外的所有选项卡',
-   'title:ja': 'アクティブなタブを除くすべてのタブを自動一時停止',
+   // 'title:zh': '自动暂停除活动选项卡以外的所有选项卡',
+   // 'title:ja': 'アクティブなタブを除くすべてのタブを自動一時停止',
    // 'title:ko': '활성 탭을 제외한 모든 탭 자동 일시 중지',
    // 'title:vi': '',
    // 'title:id': 'Jeda otomatis semua tab latar belakang kecuali yang aktif',
@@ -17,7 +17,7 @@ window.nova_plugins.push({
    // 'title:it': 'Metti automaticamente in pausa tutte le schede in background tranne quella attiva',
    // 'title:tr': 'Etkin olan dışındaki tüm sekmeleri otomatik duraklat',
    // 'title:de': 'Alle Tabs außer dem aktiven automatisch pausieren',
-   'title:pl': 'Zatrzymanie kart w tle oprócz aktywnej',
+   // 'title:pl': 'Zatrzymanie kart w tle oprócz aktywnej',
    // 'title:ua': 'Автопауза усіх фонових вкладок окрім активної',
    run_on_pages: 'watch, embed',
    section: 'player',
@@ -42,27 +42,15 @@ window.nova_plugins.push({
       // alt2 - https://greasyfork.org/en/scripts/463632-youtube-pause-background-videos
       // alt3 - https://greasyfork.org/en/scripts/30344-pause-mute-html5-audio-video-on-leaving-tab
 
-      // redirect for localStorage common storage space
+      // redirect for localStorage common storage space.
       if (location.hostname.includes('youtube-nocookie.com')) {
-         location.hostname = 'youtube.com';
+         // Warning broken the reddit.com (ex - https://www.reddit.com/r/gaming/comments/1gevihy/xenoblade_chronicles_x_definitive_edition_coming/)
+         // location.hostname = 'youtube.com';
          return;
       }
 
-      // fix - Failed to read the 'localStorage' property from 'Window': Access is denied for this document. typeof
-      if (typeof window === 'undefined') return;
-      // if (typeof localStorage !== 'object') return;
-
-      // let initPageIsBackgroundTab = !document.hasFocus();
-
-      // function getVisibilityState() {
-      //     // don't react "Video unavailable"
-      //    return {
-      //       0: 'show',
-      //       1: 'moniplayer',
-      //       // 2: '',
-      //       3: 'hide',
-      //    }[movie_player.getVisibilityState()];
-      // }
+      // fix - Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+      if (!window?.localStorage) return;
 
       const
          storeName = 'nova-playing-instanceIDTab',
@@ -86,156 +74,7 @@ window.nova_plugins.push({
       //    }
       // }(HTMLVideoElement.prototype.play);
 
-      NOVA.waitSelector('video')
-         .then(video => {
-            if (user_settings.pause_background_tab_autoplay_onfocus
-               && user_settings.pause_background_tab_autopause_unfocus
-            ) {
-               // fix https://github.com/raingart/Nova-YouTube-extension/issues/101
-               // empty
-            }
-            else {
-               // Solution 2. Mark a playing
-               // video.addEventListener('play', checkInstance); // gaps in initialization
-               video.addEventListener('playing', checkInstance); // more reliable way
-               // remove mark if video stop play
-               ['pause', /*'suspend',*/ 'ended'].forEach(evt => video.addEventListener(evt, removeStorage)); // BUG - "suspend" in google drive player
-               // remove mark if tab closed
-               window.addEventListener('beforeunload', removeStorage);
-
-               // if tab unfocus apply pause
-               window.addEventListener('storage', store => {
-                  if ((!document.hasFocus() || NOVA.currentPage == 'embed') // tab unfocus
-                     && store.key === storeName && store.storageArea === localStorage // checking store target
-                     && localStorage.hasOwnProperty(storeName) && localStorage.getItem(storeName) !== instanceID // active tab not current
-                     && 'PLAYING' == NOVA.getPlayerState()
-                     && !document.pictureInPictureElement
-                  ) {
-                     // console.debug('video pause', localStorage[storeName]);
-                     video.pause();
-                  }
-               });
-
-               function checkInstance() {
-                  if (user_settings.pause_background_tab_autoplay_onfocus !== true
-                     && localStorage.hasOwnProperty(storeName) && localStorage.getItem(storeName) !== instanceID
-                     && !document.pictureInPictureElement
-                  ) {
-                     // console.debug('event interception instanceID:', instanceID, NOVA.queryURL.get('v') || movie_player.getVideoData().video_id);
-                     video.pause();
-                  }
-                  else {
-                     localStorage.setItem(storeName, instanceID);
-                  }
-               }
-            }
-
-            // document.addEventListener('visibilitychange', () => {
-            //    switch (document.visibilityState) {
-            //       case 'visible':
-            //          video.play();
-            //          break;
-
-            //       case 'hidden':
-            //          video.pause();
-            //          break;
-            //    }
-            // });
-
-            // auto play on tab focus
-            if (user_settings.pause_background_tab_autoplay_onfocus) {
-               // if (user_settings.pause_background_tab_autoplay_onfocus) {
-               // document.addEventListener('visibilitychange', () => {
-               //    // if other tabs are not playing
-               //    if (document.visibilityState == 'visible'
-               //       && !localStorage.hasOwnProperty(storeName) // store empty
-               //       // && video.paused  // don't see ENDED
-               //       && ['UNSTARTED', 'PAUSED'].includes(NOVA.getPlayerState())
-               //    ) {
-               //       // console.debug('play video in focus');
-               //       video.play();
-               //    }
-               // });
-               window.addEventListener('focus', () => {
-                  // if other tabs are not playing
-                  if (!localStorage.hasOwnProperty(storeName) && localStorage.getItem(storeName) !== instanceID // store empty
-                     // && video.paused  // don't see ENDED
-                     && ['UNSTARTED', 'PAUSED'].includes(NOVA.getPlayerState())
-                  ) {
-                     // console.debug('focus', 'hidden:', document.hidden, 'visibilityState:', document.visibilityState, 'hasFocus:', document.hasFocus());
-                     // console.debug('play video in focus');
-                     video.play();
-                  }
-               }, user_settings.pause_background_tab_autoplay_onfocus == 'force' ? false : { capture: true, once: true });
-            }
-
-            // pause on tab unfocuse
-            if (user_settings.pause_background_tab_autopause_unfocus) {
-               window.addEventListener('blur', () => {
-                  // ddocument.visibilityState update afterwindow.blur event (https://github.com/raingart/Nova-YouTube-extension/issues/100)
-                  // if (document.visibilityState == 'hidden' && 'PLAYING' == NOVA.getPlayerState()) {
-                  if ('PLAYING' == NOVA.getPlayerState()
-                     && !document.pictureInPictureElement
-                  ) {
-                     // console.debug('blur', 'hidden:', document.hidden, 'visibilityState:', document.visibilityState, 'hasFocus:', document.hasFocus());
-                     // console.debug('pause video on lost focus');
-                     video.pause();
-                  }
-               });
-            }
-
-         });
-
-      // PiP auto enable
-      // alt https://chromewebstore.google.com/detail/gcfcmfbcpibcjmcinnimklngkpkkcing
-      // NOVA.waitSelector('video')
-      //    .then(video => {
-      //       // Detect Picture-in-Picture Support
-      //       if (!document.pictureInPictureEnabled/* || video.disablePictureInPicture*/) {
-      //          return alert('Picture-in-Picture not supported!');
-      //       }
-      //       let PiP_lock;
-      //       // enable PiP
-      //       document.addEventListener('visibilitychange', () => {
-      //          // tab on focus - exit PiP
-      //          if (document.visibilityState == 'visible'
-      //             && document.pictureInPictureElement
-      //             && PiP_lock
-      //          ) {
-      //             console.debug('exitPictureInPicture');
-      //             // video.disablePictureInPicture = true;
-      //             // setTimeout(() => video.disablePictureInPicture = false, 1000 * 2);
-      //             // clearTimeout(timeoutPiP); // reset timeout
-      //             return document.exitPictureInPicture();
-      //          }
-      //          // tab unfocus - enable PiP
-      //          if (document.hasFocus()
-      //             && !document.pictureInPictureElement // PiP not activated
-      //             // && localStorage.hasOwnProperty(storeName) && localStorage.getItem(storeName) !== instanceID // active tab not current
-      //             && ['PLAYING'].includes(NOVA.getPlayerState())
-      //             // && !video.disablePictureInPicture
-      //             && !PiP_lock
-      //          ) {
-      //             console.debug('requestPictureInPicture');
-      //             // video.disablePictureInPicture = false;
-      //             video.requestPictureInPicture();
-
-      //             // timeoutPiP = setTimeout(() => video.requestPictureInPicture(), 1000 * 2);
-      //          }
-      //       });
-      //       // exit PiP
-      //       ['suspend', 'ended'].forEach(evt =>
-      //          video.addEventListener(evt, () => document.pictureInPictureElement && document.exitPictureInPicture()));
-      //       video.addEventListener('leavepictureinpicture', () => {
-      //          console.debug('leavepictureinpicture');
-      //          PiP_lock = false;
-      //       });
-      //       video.addEventListener('enterpictureinpicture', () => {
-      //          console.debug('enterpictureinpicture');
-      //          PiP_lock = true;
-      //       });
-      //    });
-
+      // Solution 2. Working but dangerous method. Significant delay
       // https://stackoverflow.com/questions/6877403/how-to-tell-if-a-video-element-is-currently-playing
       // Object.defineProperty(HTMLMediaElement.prototype, 'playing', {
       //    get: function () {
@@ -247,9 +86,97 @@ window.nova_plugins.push({
       //    // Do anything you want to
       // }
 
+      NOVA.waitSelector('video')
+         .then(video => {
+            // Solution 3. on start playing
+            video.addEventListener('playing', () => {
+               // Pause this if another tab is playing
+               if (localStorage.hasOwnProperty(storeName) && localStorage.getItem(storeName) !== instanceID // other tab active
+                  && !document.pictureInPictureElement
+                  && !user_settings.pause_background_tab_autoplay_onfocus
+               ) {
+                  // console.debug('video pause', localStorage[storeName]);
+                  video.pause();
+               }
+               else {
+                  localStorage.setItem(storeName, instanceID); // Mark this tab as active playing
+               }
+            });
 
+            // Remove mark if the video stops playing
+            ['pause', /*'suspend',*/ 'ended'].forEach(evt => video.addEventListener(evt, removeStorage)); // BUG - "suspend" in Google Drive
+
+            // Remove mark if tab is closed
+            window.addEventListener('beforeunload', removeStorage);
+
+            // Pause when the tab loses focus
+            window.addEventListener('storage', store => {
+               if ((!document.hasFocus() || NOVA.currentPage == 'embed') // Tab unfocused
+                  && store.key === storeName && store.storageArea === localStorage // Check if storage event is intended for this key and area
+                  && localStorage.hasOwnProperty(storeName) && localStorage.getItem(storeName) !== instanceID // Other tab active
+                  && 'PLAYING' == NOVA.getPlayerState.playback()
+                  && !document.pictureInPictureElement
+               ) {
+                  // console.debug('video pause', localStorage[storeName]);
+                  video.pause();
+               }
+            });
+
+            // autoplay on tab focused
+            if (user_settings.pause_background_tab_autoplay_onfocus) {
+               window.addEventListener('focus', () => {
+                  if (['UNSTARTED', 'PAUSED'].includes(NOVA.getPlayerState.playback()) // Ensure the video is not playing or paused
+                     // && video.paused  // Ensure the video is not ended
+                  ) {
+                     // console.debug('focus', 'hidden:', document.hidden, 'visibilityState:', document.visibilityState, 'hasFocus:', document.hasFocus());
+                     // console.debug('play video on tab focus');
+                     video.play();
+
+                     // Fix for "video.addEventListener('playing')"
+                     if (user_settings.pause_background_tab_autoplay_onfocus === true) {
+                        user_settings.pause_background_tab_autoplay_onfocus = false;
+                     }
+                  }
+               }, { capture: true, once: user_settings.pause_background_tab_autoplay_onfocus === true });
+            }
+
+            // pause on tab unfocused
+            // document.visibilityState update afterwindow.blur event (https://github.com/raingart/Nova-YouTube-extension/issues/100)
+            switch (user_settings.pause_background_tab_autopause_unfocus) {
+               case 'focus':
+                  window.addEventListener('blur', () => {
+                     if ('PLAYING' == NOVA.getPlayerState.playback()
+                        && !document.pictureInPictureElement
+                     ) {
+                        // console.debug('blur', 'hidden:', document.hidden, 'visibilityState:', document.visibilityState, 'hasFocus:', document.hasFocus());
+                        // console.debug('pause video on tab lost focus');
+                        video.pause();
+                     }
+                  });
+                  break;
+
+               case 'visibility':
+                  document.addEventListener('visibilitychange', () => {
+                     // document.hidden
+                     switch (document.visibilityState) {
+                        case 'hidden':
+                           video.pause();
+                           break;
+                        // case 'visible':
+                        //    if (user_settings.pause_background_tab_autoplay_onfocus == 'force') {
+                        //       video.play();
+                        //    }
+                        //    break;
+                     }
+                  });
+                  break;
+            }
+
+         });
+
+      // Solution 4. YouTube API
       // replaced with generic HTML5 method
-      // const onPlayerStateChange = state => ('PLAYING' == NOVA.getPlayerState(state)) ? localStorage.setItem(storeName, instanceID) : removeStorage();
+      // const onPlayerStateChange = state => ('PLAYING' == NOVA.getPlayerState.playback(state)) ? localStorage.setItem(storeName, instanceID) : removeStorage();
 
       // NOVA.waitSelector('#movie_player')
       //    .then(movie_player => {
@@ -265,7 +192,7 @@ window.nova_plugins.push({
       //             // has storage
       //             && localStorage[storeName] && localStorage[storeName] !== instanceID
       //             // this player is playing
-      //             && 'PLAYING' == NOVA.getPlayerState()
+      //             && 'PLAYING' == NOVA.getPlayerState.playback()
       //          ) {
       //             console.debug('pause player', localStorage[storeName]);
       //             movie_player.pauseVideo();
@@ -276,30 +203,11 @@ window.nova_plugins.push({
 
    },
    options: {
-      // pause_background_tab_autoplay_onfocus: {
-      //    _tagName: 'input',
-      //    label: 'Autoplay on tab focus',
-      //    'label:zh': '在标签焦点上自动播放',
-      //    'label:ja': 'タブフォーカスでの自動再生',
-      //    'label:ko': '탭 포커스에서 자동 재생',
-      //    'label:vi': '',
-      //    'label:id': 'Putar otomatis pada fokus tab',
-      //    'label:es': 'Reproducción automática en el enfoque de la pestaña',
-      //    // 'label:pt': 'Reprodução automática no foco da guia',
-      //    // 'label:fr': "Lecture automatique sur le focus de l'onglet",
-      //    'label:it': 'Riproduzione automatica su tab focus',
-      //    // 'label:tr': 'Sekme odağında otomatik oynatma',
-      //    // 'label:de': 'Autoplay bei Tab-Fokus',
-      //    'label:pl': 'Autoodtwarzanie po wybraniu karty',
-      //    // 'label:ua': 'Автовідтворення при виборі вкладки',
-      //    type: 'checkbox',
-      //    // title: '',
-      // },
       pause_background_tab_autoplay_onfocus: {
          _tagName: 'select',
-         label: 'Autoplay on tab focus mode',
-         'label:zh': '在标签焦点上自动播放',
-         'label:ja': 'タブフォーカスでの自動再生',
+         label: 'Autoplay on tab focus',
+         // 'label:zh': '在标签焦点上自动播放',
+         // 'label:ja': 'タブフォーカスでの自動再生',
          // 'label:ko': '탭 포커스에서 자동 재생',
          // 'label:vi': '',
          // 'label:id': 'Putar otomatis pada fokus tab',
@@ -311,6 +219,73 @@ window.nova_plugins.push({
          // 'label:de': 'Autoplay bei Tab-Fokus',
          'label:pl': 'Autoodtwarzanie po wybraniu karty',
          // 'label:ua': 'Автовідтворення при виборі вкладки',
+         options: [
+            {
+               label: 'none', /* value: false, */ selected: true, // fill value if no "selected" mark another option
+               // 'label:zh': '',
+               // 'label:ja': '',
+               // 'label:ko': '',
+               // 'label:vi': '',
+               // 'label:id': '',
+               // 'label:es': '',
+               // 'label:pt': '',
+               // 'label:fr': '',
+               // 'label:it': '',
+               // 'label:tr': '',
+               // 'label:de': '',
+               // 'label:pl': '',
+               // 'label:ua': '',
+            },
+            {
+               label: 'once', value: true,
+               // 'label:zh': '',
+               // 'label:ja': '',
+               // 'label:ko': '',
+               // 'label:vi': '',
+               // 'label:id': '',
+               // 'label:es': '',
+               // 'label:pt': '',
+               // 'label:fr': '',
+               // 'label:it': '',
+               // 'label:tr': '',
+               // 'label:de': '',
+               // 'label:pl': '',
+               // 'label:ua': '',
+            },
+            {
+               label: 'always', value: 'force',
+               // 'label:zh': '',
+               // 'label:ja': '',
+               // 'label:ko': '',
+               // 'label:vi': '',
+               // 'label:id': '',
+               // 'label:es': '',
+               // 'label:pt': '',
+               // 'label:fr': '',
+               // 'label:it': '',
+               // 'label:tr': '',
+               // 'label:de': '',
+               // 'label:pl': '',
+               // 'label:ua': '',
+            },
+         ],
+      },
+      pause_background_tab_autopause_unfocus: {
+         _tagName: 'select',
+         label: 'Autopause if tab loses on',
+         // 'label:zh': '如果选项卡失去焦点，则自动暂停视频',
+         // 'label:ja': 'タブがフォーカスを失った場合にビデオを自動一時停止',
+         // 'label:ko': '탭이 초점을 잃으면 비디오 자동 일시 중지',
+         // 'label:vi': '',
+         // 'label:id': 'Jeda otomatis video jika tab kehilangan fokus',
+         // 'label:es': 'Pausa automática del video si la pestaña pierde el foco',
+         // 'label:pt': 'Pausar automaticamente o vídeo se a guia perder o foco',
+         // 'label:fr': "Pause automatique de la vidéo si l'onglet perd le focus",
+         // 'label:it': 'Metti automaticamente in pausa il video se la scheda perde la messa a fuoco',
+         // 'label:tr': 'Sekme odağı kaybederse videoyu otomatik duraklat',
+         // 'label:de': 'Video automatisch pausieren, wenn der Tab den Fokus verliert',
+         'label:pl': 'Automatycznie wstrzymaj wideo, jeśli karta straci ostrość',
+         // 'label:ua': 'Автопауза при зміні вкладки',
          options: [
             {
                label: 'disable', /* value: false, */ selected: true, // fill value if no "selected" mark another option
@@ -329,7 +304,7 @@ window.nova_plugins.push({
                // 'label:ua': '',
             },
             {
-               label: 'once for new tab', value: true,
+               label: 'visibility', value: 'visibility',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -345,7 +320,7 @@ window.nova_plugins.push({
                // 'label:ua': '',
             },
             {
-               label: 'always for not started', value: 'force',
+               label: 'focus', value: 'focus',
                // 'label:zh': '',
                // 'label:ja': '',
                // 'label:ko': '',
@@ -361,25 +336,6 @@ window.nova_plugins.push({
                // 'label:ua': '',
             },
          ],
-      },
-      pause_background_tab_autopause_unfocus: {
-         _tagName: 'input',
-         label: 'Autopause if tab loses focus',
-         'label:zh': '如果选项卡失去焦点，则自动暂停视频',
-         'label:ja': 'タブがフォーカスを失った場合にビデオを自動一時停止',
-         // 'label:ko': '탭이 초점을 잃으면 비디오 자동 일시 중지',
-         // 'label:vi': '',
-         // 'label:id': 'Jeda otomatis video jika tab kehilangan fokus',
-         // 'label:es': 'Pausa automática del video si la pestaña pierde el foco',
-         // 'label:pt': 'Pausar automaticamente o vídeo se a guia perder o foco',
-         // 'label:fr': "Pause automatique de la vidéo si l'onglet perd le focus",
-         // 'label:it': 'Metti automaticamente in pausa il video se la scheda perde la messa a fuoco',
-         // 'label:tr': 'Sekme odağı kaybederse videoyu otomatik duraklat',
-         // 'label:de': 'Video automatisch pausieren, wenn der Tab den Fokus verliert',
-         'label:pl': 'Automatycznie wstrzymaj wideo, jeśli karta straci ostrość',
-         // 'label:ua': 'Автопауза при зміні вкладки',
-         type: 'checkbox',
-         // title: '',
       },
    }
 });

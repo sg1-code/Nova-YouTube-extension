@@ -51,6 +51,7 @@ window.nova_plugins.push({
       document.addEventListener('yt-action', evt => {
          // if (!location.search.includes('list=')) return;
 
+         // if (NOVA.getPlayerState.visibility() == 'MINIPLAYER') {
          // if (NOVA.currentPage != 'watch' && evt.detail?.actionName.includes('miniplayer')) {
          if (evt.detail?.actionName.includes('miniplayer')) {
             // console.debug(evt.detail?.actionName);
@@ -89,13 +90,14 @@ window.nova_plugins.push({
       // document.addEventListener('keydown', ({ keyCode }) => (keyCode === 73)
       // document.addEventListener('keydown', ({ key }) => {
       document.addEventListener('keydown', evt => {
-         if (['input', 'textarea'].includes(evt.target.localName) || evt.target.isContentEditable) return;
+         if (NOVA.editableFocused(evt.target)) return;
+
          if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
 
          if (NOVA.currentPage == 'watch' && evt.code === 'KeyI') {
             evt.preventDefault();
+            evt.stopPropagation();
             // evt.stopImmediatePropagation();
-            // evt.stopPropagation();
          }
       }, { capture: true }); // before all events
 

@@ -9,8 +9,8 @@
 window.nova_plugins.push({
    id: 'player-hide-elements',
    title: 'Hide some player buttons/elements',
-   'title:zh': '隐藏一些播放器按钮/元素',
-   'title:ja': '一部のプレーヤーのボタン/要素を非表示にする',
+   // 'title:zh': '隐藏一些播放器按钮/元素',
+   // 'title:ja': '一部のプレーヤーのボタン/要素を非表示にする',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -23,7 +23,7 @@ window.nova_plugins.push({
    'title:pl': 'Ukryj niektóre przyciski/elementy odtwarzacza',
    // 'title:ua': '',
    run_on_pages: 'watch, embed, -mobile',
-   section: 'control-panel',
+   section: 'player-control',
    // desc: '',
    _runtime: user_settings => {
 
@@ -115,8 +115,8 @@ window.nova_plugins.push({
          // 'label:pl': '',
          // 'label:ua': '',
          title: '[Ctrl+Click] to select several',
-         'title:zh': '[Ctrl+Click] 选择多个',
-         'title:ja': '「Ctrl+Click」して、いくつかを選択します',
+         // 'title:zh': '[Ctrl+Click] 选择多个',
+         // 'title:ja': '「Ctrl+Click」して、いくつかを選択します',
          // 'title:ko': '[Ctrl+Click] 여러 선택',
          // 'title:vi': '',
          // 'title:id': '[Ctrl+Klik] untuk memilih beberapa',

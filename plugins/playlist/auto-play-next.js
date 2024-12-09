@@ -6,8 +6,8 @@
 window.nova_plugins.push({
    id: 'playlist-toggle-autoplay',
    title: 'Add playlist autoplay control button',
-   'title:zh': '播放列表自动播放控制',
-   'title:ja': 'プレイリストの自動再生コントロール',
+   // 'title:zh': '播放列表自动播放控制',
+   // 'title:ja': 'プレイリストの自動再生コントロール',
    // 'title:ko': '재생 목록 자동 재생 제어',
    // 'title:vi': '',
    // 'title:id': 'Tombol kontrol putar otomatis daftar putar',
@@ -89,7 +89,7 @@ window.nova_plugins.push({
 
       NOVA.runOnPageLoad(() => {
          // if (window.nova_playlistReversed) return; // conflict with plugin [playlist-reverse]
-         if (location.search.includes('list=') && NOVA.currentPage == 'watch') {
+         if (NOVA.currentPage == 'watch' && location.search.includes('list=')) {
             // if (!NOVA.queryURL.has('list')/* || !movie_player?.getPlaylistId()*/) return;
             insertButton();
          }
@@ -100,7 +100,10 @@ window.nova_plugins.push({
             .then(el => insertrCheckbox(el));
 
          function insertrCheckbox(container = required()) {
-            if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+            if (!(container instanceof HTMLElement)) {
+               console.error('Container is not an HTMLElement:', container);
+               return;
+            }
 
             document.getElementById(SELECTOR_ID)?.remove(); // clear old
 
@@ -170,8 +173,8 @@ window.nova_plugins.push({
       playlist_autoplay: {
          _tagName: 'select',
          label: 'Default state',
-         'label:zh': '默认状态',
-         'label:ja': 'デフォルト状態',
+         // 'label:zh': '默认状态',
+         // 'label:ja': 'デフォルト状態',
          // 'label:ko': '기본 상태',
          // 'label:vi': '',
          // 'label:id': 'Status default',

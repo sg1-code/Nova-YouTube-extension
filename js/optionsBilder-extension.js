@@ -15,10 +15,12 @@ window.addEventListener('load', () => {
    // export setting
    document.getElementById('settings_export')
       ?.addEventListener('click', () => {
+         const manifest = browser.runtime.getManifest();
+
          Storage.getParams(user_settings => {
             const d = document.createElement('a');
             d.style.display = 'none';
-            d.setAttribute('download', 'nova-backup.json');
+            d.setAttribute('download', `${manifest.short_name || manifest.name}-backup.json`);
             d.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(user_settings)));
             document.body.append(d);
             d.click();

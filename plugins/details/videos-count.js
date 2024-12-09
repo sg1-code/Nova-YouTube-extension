@@ -8,8 +8,8 @@
 window.nova_plugins.push({
    id: 'channel-videos-count',
    title: 'Show channel videos count',
-   'title:zh': '显示频道上的视频数量',
-   'title:ja': 'チャンネルの動画数を表示する',
+   // 'title:zh': '显示频道上的视频数量',
+   // 'title:ja': 'チャンネルの動画数を表示する',
    // 'title:ko': '채널 동영상 수 표시',
    // 'title:vi': '',
    // 'title:id': 'Tampilkan jumlah video saluran',
@@ -89,7 +89,7 @@ window.nova_plugins.push({
          if (!channelId) return console.error('setVideoCount channelId: empty', channelId);
 
          // has in cache
-         if (storage = sessionStorage.getItem(CACHE_PREFIX + channelId)) {
+         if (window?.sessionStorage && (storage = sessionStorage.getItem(CACHE_PREFIX + channelId))) {
             insertToHTML({ 'text': storage, 'container': container });
          }
          else {
@@ -105,7 +105,7 @@ window.nova_plugins.push({
                      if (videoCount = NOVA.numberFormat.abbr(item.statistics.videoCount)) {
                         insertToHTML({ 'text': videoCount, 'container': container });
                         // save cache in tabs
-                        sessionStorage.setItem(CACHE_PREFIX + channelId, videoCount);
+                        if (window?.sessionStorage) sessionStorage.setItem(CACHE_PREFIX + channelId, videoCount);
                      }
                      else console.warn('API is change', item);
                   });
@@ -114,7 +114,10 @@ window.nova_plugins.push({
 
          function insertToHTML({ text = '', container = required() }) {
             // console.debug('insertToHTML', ...arguments);
-            if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+            if (!(container instanceof HTMLElement)) {
+               console.error('Container is not an HTMLElement:', container);
+               return;
+            }
 
             (document.getElementById(SELECTOR_ID) || (function () {
                // container.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(
@@ -129,9 +132,7 @@ window.nova_plugins.push({
                innerSpan.id = SELECTOR_ID;
                innerSpan.textContent = text;
 
-               outerSpan.append(document.createTextNode(' • '));
-               outerSpan.append(innerSpan);
-
+               outerSpan.append(document.createTextNode(' • '), innerSpan);
                container.append(outerSpan);
 
                return innerSpan;

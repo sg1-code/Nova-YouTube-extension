@@ -1,6 +1,3 @@
-// for test:
-// https://www.youtube.com/watch?v=hYHb7rltxrE
-
 window.nova_plugins.push({
    id: 'video-title-hashtag',
    title: 'Title hashtag',
@@ -36,7 +33,8 @@ window.nova_plugins.push({
       }
 
       if (Object.keys(cssObj).length) {
-         NOVA.css.push(cssObj, 'h1 a[href*="/hashtag/"]', 'important');
+         NOVA.css.push(cssObj, 'h1 a[href*="/hashtag/"]', 'important'); // ex - https://www.youtube.com/watch?v=hYHb7rltxrE
+         NOVA.css.push(cssObj, 'h1 a[href*="/@"]', 'important'); // ex - https://www.youtube.com/watch?v=osAn66vdG9Y
       }
 
    },
@@ -44,8 +42,8 @@ window.nova_plugins.push({
       title_hashtag_visibility_mode: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',

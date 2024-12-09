@@ -53,10 +53,11 @@ window.nova_plugins.push({
             .join(',');
 
       // Solution 1 (HTML5). page update event
-      document.addEventListener('scrollend', function self() {
-         if (typeof self.timeout === 'number') clearTimeout(self.timeout);
-         self.timeout = setTimeout(patchThumb, 50); // 50ms
+      document.addEventListener('scroll', () => {
+         requestAnimationFrame(patchThumb);
       });
+
+      document.addEventListener('visibilitychange', () => !document.hidden && patchThumb());
 
       // Solution 2 (API). page update event
       document.addEventListener('yt-action', evt => {
@@ -64,7 +65,7 @@ window.nova_plugins.push({
          switch (evt.detail?.actionName) {
             case 'yt-append-continuation-items-action': // home, results, feed, channel, watch
             case 'ytd-update-grid-state-action': // feed, channel
-            case 'yt-rich-grid-layout-refreshed': // feed
+            // case 'yt-rich-grid-layout-refreshed': // feed. Warning! loads too early
             // case 'ytd-rich-item-index-update-action': // home, channel
             case 'yt-store-grafted-ve-action': // results, watch
                // case 'ytd-update-elements-per-row-action': // feed
@@ -143,9 +144,9 @@ window.nova_plugins.push({
          //    'background-color': 'transparent',
          // });
          btn.addEventListener('click', async evt => {
-            evt.preventDefault();
+            // evt.preventDefault();
             evt.stopPropagation();
-            evt.stopImmediatePropagation();
+            // evt.stopImmediatePropagation();
 
             if (menu = thumb.querySelector('#menu button')) {
                menu.click();
@@ -195,9 +196,6 @@ window.nova_plugins.push({
                      // }
                   });
                break;
-
-            // default:
-            //    break;
          }
       }
 

@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'player-control-below',
    title: 'Control panel below the player',
-   'title:zh': '控制面板位于播放器下方',
-   'title:ja': 'プレーヤーの下にあるコントロールパネル',
+   // 'title:zh': '控制面板位于播放器下方',
+   // 'title:ja': 'プレーヤーの下にあるコントロールパネル',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -15,7 +15,7 @@ window.nova_plugins.push({
    'title:pl': 'Panel sterowania pod odtwarzaczem',
    // 'title:ua': 'Панель керування під плеєром',
    run_on_pages: 'watch, -mobile',
-   section: 'control-panel',
+   section: 'player-control',
    // desc: 'Move player controls down',
    // 'desc:zh': '',
    // 'desc:ja': '',
@@ -132,17 +132,13 @@ window.nova_plugins.push({
             }
          });
 
-      // moveMousePeriodic
-      // this.mouseMoveIntervalId = fixControlFreeze()
       function fixControlFreeze(ms = 2000) { // copy of the function in plugin [player-control-autohide]
          if (user_settings.player_hide_elements?.includes('time_display')
             || (user_settings['theater-mode'] && ['force', 'offset'].includes(user_settings.player_full_viewport_mode))
          ) {
             return;
          }
-         // if (typeof this.mouseMoveIntervalId === 'number') clearTimeout(this.mouseMoveIntervalId); // reset timeout
-         // this.mouseMoveIntervalId = setInterval(() => {
-         return setInterval(() => {
+         setInterval(() => {
             if (user_settings['theater-mode']
                // && ['smart'].includes(user_settings.player_full_viewport_mode)
                && user_settings.player_full_viewport_mode == 'smart'

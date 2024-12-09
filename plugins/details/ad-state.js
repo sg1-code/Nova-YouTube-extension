@@ -28,12 +28,6 @@ window.nova_plugins.push({
 
       // movie_player.getAdState();
 
-      // update state on url change
-      // NOVA.runOnPageLoad(async () => {
-      //    if (NOVA.currentPage != 'watch') return;
-
-      // });
-
       // NOVA.waitSelector('.ytp-paid-content-overlay, ytm-paid-content-overlay-renderer', { destroy_after_page_leaving: true })
       //    .then(el => {
       //       insertToHTML({ 'text': `【Monetized (${adCount} ads)】`, 'container': el });
@@ -54,7 +48,10 @@ window.nova_plugins.push({
 
       function insertToHTML({ text = '', container = required() }) {
          // console.debug('insertToHTML', ...arguments);
-         if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+         if (!(container instanceof HTMLElement)) {
+            console.error('Container is not an HTMLElement:', container);
+            return;
+         }
 
          (document.getElementById(SELECTOR_ID) || (() => {
             const el = document.createElement('span');

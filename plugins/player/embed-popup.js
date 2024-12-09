@@ -4,13 +4,14 @@
 // https://www.youtube.com/embed/QQr3XlJQEgE - https://paymoneytomypain.com/
 // https://galengames.itch.io/academy-carols
 // https://www.youtube.com/embed/bA56gvFi878
+// https://sonichits.com/video/Reanimedia/Koi_no_Mikuru_Densetsu?track=1
 
 window.nova_plugins.push({
    // id: 'embed-redirect-watch',
    id: 'embed-popup',
-   title: 'Open small embedded in popup',
-   'title:zh': '将嵌入式视频重定向到弹出窗口',
-   'title:ja': '埋め込まれたビデオをポップアップにリダイレクトします',
+   title: 'Open small embedded in Pop-ups',
+   // 'title:zh': '将嵌入式视频重定向到弹出窗口',
+   // 'title:ja': '埋め込まれたビデオをポップアップにリダイレクトします',
    // 'title:ko': '포함된 비디오를 팝업으로 리디렉션',
    // 'title:vi': '',
    // 'title:id': '포함된 비디오를 팝업으로 리디렉션',
@@ -44,24 +45,27 @@ window.nova_plugins.push({
       // alt1 - https://greasyfork.org/en/scripts/466414-youtube-embed-to-watch-redirector
       // alt2 - https://greasyfork.org/en/scripts/467070-youtube-popup-window
 
-      // enable only in iframe
-      if (window.top === window.self // not iframe
+      // Enable only in iframe
+      if (window.top === window.self // is not iframe
          || location.hostname.includes('googleapis.com') // exclude Gdrive
          || NOVA.queryURL.has('popup') // self
       ) {
          return;
       }
 
-      // fix conflict with [theater-mode] plugin (some options)
+      // Fix conflict with [theater-mode] plugin (some options)
       if (user_settings.player_full_viewport_mode == 'redirect_watch_to_embed') return;
-      // fix conflict with [player-fullscreen-mode]
+      // Fix conflict with [player-fullscreen-mode] plugin
       if (user_settings['player-fullscreen-mode']) return;
 
-      // get iframe size
-      // alert(window.innerWidth)
-      // alert(document.documentElement.clientWidth)
-      // add emdeb popup only for small frame size
-      if (window.innerWidth > (+user_settings.embed_popup_min_width || 720) && window.innerHeight > 480) return;
+      const minWidth = +user_settings.embed_popup_min_width || 720;
+      const minHeight = 480;
+      // Get iframe size
+      const windowWidth = window.innerWidth || document.documentElement.clientWidth;
+      const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+
+      // Add emdeb popup only for small frame size
+      if (windowWidth > minWidth && windowHeight > minHeight) return;
 
       NOVA.waitSelector('#movie_player video')
          .then(video => {
@@ -72,38 +76,44 @@ window.nova_plugins.push({
          });
 
       function createPopup() {
-         if (this.videoHeight < window.innerWidth && this.videoHeight < window.innerHeight) return;
+         const videoWidth = this.videoWidth || NOVA.videoElement.videoWidth;
+         const videoHeight = this.videoHeight || NOVA.videoElement.videoHeight;
+
+         // Ensure the video dimensions are not too large relative to the window size
+         if (videoWidth < windowWidth && videoHeight < windowHeight) return;
 
          // this == NOVA.videoElement
          const { width, height } = NOVA.aspectRatio.sizeToFit({
-            'src_width': this.videoWidth || NOVA.videoElement.videoWidth,
-            'src_height': this.videoHeight || NOVA.videoElement.videoHeight,
-            'max_width': Math.min(screen.width, this.videoWidth || NOVA.videoElement.videoWidth),
-            'max_height': Math.min(screen.height, this.videoHeight || NOVA.videoElement.videoHeight),
+            'src_width': videoWidth,
+            'src_height': videoHeight,
+            'max_width': Math.min(screen.width, videoWidth),
+            'max_height': Math.min(screen.height, videoHeight),
          });
 
-         // stop playing in parent tab
-         // location.assign(NOVA.queryURL.set({ 'autoplay': false }));
+         // Stop playing in parent tab
          movie_player.stopVideo();
+         // location.assign(NOVA.queryURL.set({ 'autoplay': false }));
 
-         const url = new URL(
+         // Determine the URL for the embed popup
+         const embedUrl = new URL(
             document.head.querySelector('link[itemprop="embedUrl"][href]')?.href
             || (location.origin + '/embed/' + movie_player.getVideoData().video_id)
          );
          // list param ex.
          // https://www.youtube.com/embed/PBlOi5OVcKs?start=0&amp;playsinline=1&amp;controls=0&amp;fs=20&amp;disablekb=1&amp;rel=0&amp;origin=https%3A%2F%2Ftyping-tube.net&amp;enablejsapi=1&amp;widgetid=1
 
-         url.searchParams.set('autoplay', 1);
-         url.searchParams.set('popup', true); // mark for deactivate self (plugin)
+         // Set necessary parameters for the popup
+         embedUrl.searchParams.set('autoplay', 1);
+         embedUrl.searchParams.set('popup', true); // Mark for deactivate self (plugin)
 
-         NOVA.openPopup({ 'url': url.href, 'width': width, 'height': height });
+         NOVA.openPopup({ 'url': embedUrl.href, 'width': width, 'height': height });
       }
 
    },
    options: {
       embed_popup_min_width: {
          _tagName: 'input',
-         label: 'Min iframe width',
+         label: 'If the width iframe is smaller',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',

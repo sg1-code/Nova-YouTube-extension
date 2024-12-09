@@ -1,8 +1,9 @@
 window.nova_plugins.push({
    id: 'comments-dropdown',
-   title: 'Comments section in dropdown menu',
-   'title:zh': '下拉菜单中的评论部分',
-   'title:ja': 'ドロップダウンメニューのコメントセクション',
+   title: 'Dropdown comments section',
+   // title: 'Comments section in dropdown menu',
+   // 'title:zh': '下拉菜单中的评论部分',
+   // 'title:ja': 'ドロップダウンメニューのコメントセクション',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -174,9 +175,9 @@ window.nova_plugins.push({
    options: {
       comments_dropdown_width: {
          _tagName: 'input',
-         label: 'Width',
-         'label:zh': '宽度',
-         'label:ja': '幅',
+         label: 'Width %',
+         // 'label:zh': '宽度',
+         // 'label:ja': '幅',
          // 'label:ko': '',
          // 'label:vi': '',
          // 'label:id': '',
@@ -213,8 +214,8 @@ window.nova_plugins.push({
       comments_dropdown_hide_textarea: {
          _tagName: 'input',
          label: 'Hide textarea',
-         'label:zh': '隐藏文本区域',
-         'label:ja': 'テキストエリアを隠す',
+         // 'label:zh': '隐藏文本区域',
+         // 'label:ja': 'テキストエリアを隠す',
          // 'label:ko': '',
          // 'label:vi': '',
          // 'label:id': '',

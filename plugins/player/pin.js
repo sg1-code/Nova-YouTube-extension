@@ -2,6 +2,8 @@
 // https://www.youtube.com/watch?v=d94PwdKQ3Ag
 // https://www.youtube.com/watch?v=twFNTZ6Y_OI - wide
 // https://www.youtube.com/watch?v=WbrSLLv0AlA - wide
+// https://www.youtube.com/watch?v=lxyBamfovIs - ultra-wide
+// https://www.youtube.com/watch?v=Z_ZkUROJ86Y - ultra-wide
 // https://www.youtube.com/watch?v=nX2anEXG0eE - square
 // https://www.youtube.com/watch?v=SDjbK8JWA_Y - square
 // https://www.youtube.com/watch?v=FGBhQbmPwH8 - square
@@ -10,8 +12,8 @@
 window.nova_plugins.push({
    id: 'player-pin-scroll',
    title: 'Pin player while scrolling',
-   'title:zh': '滚动时固定播放器',
-   'title:ja': 'スクロール中にプレイヤーを固定する',
+   // 'title:zh': '滚动时固定播放器',
+   // 'title:ja': 'スクロール中にプレイヤーを固定する',
    // 'title:ko': '스크롤하는 동안 플레이어 고정',
    // 'title:vi': '',
    // 'title:id': 'Sematkan pemutar saat menggulir',
@@ -56,12 +58,16 @@ window.nova_plugins.push({
          UNPIN_BTN_CLASS_VALUE = CLASS_VALUE + '-unpin-btn',
          UNPIN_BTN_SELECTOR = '.' + UNPIN_BTN_CLASS_VALUE; // for css
 
+      let makeDraggable;
+
       // toggle pin state
       document.addEventListener('scroll', () => { // fix bug when initial (document.documentElement.scrollHeight != window.innerHeight) and it's running IntersectionObserver
          // NOVA.waitSelector('#player-container')
          // NOVA.waitSelector('#player-wide-container')
          NOVA.waitSelector('#ytd-player')
             .then(container => {
+               makeDraggable = new NOVA.Draggable();
+
                // movie_player / #ytd-player
                new IntersectionObserver(([entry]) => {
                   // no horizontal scroll in page
@@ -82,7 +88,7 @@ window.nova_plugins.push({
                      // add drag
                      makeDraggable.init(movie_player);
                      // dragElement(player); // incorrect work
-                     if (makeDraggable.storePos?.X) makeDraggable.moveByCoordinates(makeDraggable.storePos); // restore pos
+                     if (makeDraggable.dragging.final) makeDraggable.moveByCoordinates(makeDraggable.dragging.final); // restore pos
                   }
 
                   window.dispatchEvent(new Event('resize')); // fix: restore player size on pin/unpin
@@ -112,16 +118,16 @@ window.nova_plugins.push({
             insertUnpinButton(player);
 
             // if player fullscreen disable float mode
-            document.addEventListener('fullscreenchange', () =>
+            document.addEventListener('fullscreenchange', () => {
                document.fullscreenElement && movie_player.classList.remove(CLASS_VALUE)
-            );
+            });
             // .ytd-page-manager[video-id]:not([fullscreen])
 
             // resize on video change
             NOVA.waitSelector('#movie_player video')
                .then(video => {
                   video.addEventListener('loadeddata', () => {
-                     if (NOVA.currentPage != 'watch') return;
+                     if (NOVA.currentPage != 'watch') return; // skip channel trailer
 
                      NOVA.waitSelector(PINNED_SELECTOR, { destroy_after_page_leaving: true })
                         .then(() => {
@@ -151,7 +157,7 @@ window.nova_plugins.push({
                document.addEventListener('fullscreenchange', () => {
                   if (!document.fullscreenElement
                      && scrollPos // >0
-                     && makeDraggable.storePos // not cleared yet
+                     && (makeDraggable.dragging.final !== 0 && makeDraggable.dragging.final !== 0) // not cleared yet
                   ) {
                      window.scrollTo({
                         top: scrollPos,
@@ -283,12 +289,12 @@ window.nova_plugins.push({
             }`);
 
          // fix control-player panel
-         NOVA.css.push(`
-            ${PINNED_SELECTOR} .ytp-preview,
+         NOVA.css.push(
+            `${PINNED_SELECTOR} .ytp-preview,
             ${PINNED_SELECTOR} .ytp-scrubber-container,
             ${PINNED_SELECTOR} .ytp-hover-progress,
             ${PINNED_SELECTOR} .ytp-gradient-bottom { display:none !important; }
-            /*${PINNED_SELECTOR} .ytp-chrome-bottom { width: var(--width) !important; }*/
+            /* ${PINNED_SELECTOR} .ytp-chrome-bottom { width: var(--width) !important; } */
             ${PINNED_SELECTOR} .ytp-chrome-bottom { width: 96% !important; }
             ${PINNED_SELECTOR} .ytp-chapters-container { display: flex; }`);
 
@@ -307,7 +313,7 @@ window.nova_plugins.push({
 
       function insertUnpinButton(player = movie_player) {
          NOVA.css.push(
-            UNPIN_BTN_SELECTOR + ` { display: none; }
+            `${UNPIN_BTN_SELECTOR} { display: none; }
 
             ${PINNED_SELECTOR} ${UNPIN_BTN_SELECTOR} {
                display: inherit !important;
@@ -340,7 +346,7 @@ window.nova_plugins.push({
          btnUnpin.textContent = '×'; // ✖
          btnUnpin.addEventListener('click', () => {
             player.classList.remove(CLASS_VALUE);
-            makeDraggable.reset('clear storePos');
+            makeDraggable.reset('clear_final');
             window.dispatchEvent(new Event('resize')); // fix: restore player size if unpinned
          });
          player.append(btnUnpin);
@@ -350,259 +356,12 @@ window.nova_plugins.push({
             if (player.classList.contains(CLASS_VALUE)) {
                player.classList.remove(CLASS_VALUE);
                makeDraggable.reset(); // save storePos state
-               // makeDraggable.reset('clear storePos'); // storePos
+               // makeDraggable.reset('clear_final'); // storePos
             }
          });
 
          // window.addEventListener('resize', updatePos);
       }
-
-      const makeDraggable = {
-         // DEBUG: true,
-
-         // xOffset: 0,
-         // yOffset: 0,
-         // currentX: 0,
-         // currentY: 0,
-         // dragTarget: HTMLElement,
-         // active: false,
-         // storePos: { X, Y },
-         attrNameMoving: 'nova-el-moving',
-
-         init(el_target = required()) {
-            this.log('drag init', ...arguments);
-            if (!(el_target instanceof HTMLElement)) return console.error('el_target not HTMLElement:', el_target);
-
-            this.dragTarget = el_target;
-
-            // touchs
-            document.addEventListener('touchstart', this.dragStart.bind(this));
-            document.addEventListener('touchend', this.dragEnd.bind(this));
-            document.addEventListener('touchmove', this.draging.bind(this));
-            // document.addEventListener('focusin', this..bind(this));
-            // document.addEventListener('focusout', this..bind(this));
-            // mouse
-            document.addEventListener('mousedown', this.dragStart.bind(this));
-            document.addEventListener('mouseup', this.dragEnd.bind(this));
-            document.addEventListener('mousemove', this.draging.bind(this));
-
-            // css on moving
-            // NOVA.css.push(
-            //    `[${this.attrNameMoving}]:active {
-            //       pointer-events: none;
-            //       cursor: grab; /* <-- Doesn't work */
-            //       outline: 2px dashed #3ea6ff !important;
-            //    }`);
-         },
-
-         reset(clear_storePos) {
-            // switchElement.style.transform = ''; // clear drag state
-            this.dragTarget?.style.removeProperty('transform');// clear drag state
-            this.storePos = clear_storePos
-               ? this.xOffset = this.yOffset = 0
-               : { 'X': this.xOffset, 'Y': this.yOffset }; // save pos
-         },
-
-         disable() {
-            this.log('dragDisable', ...arguments);
-
-            this.dragTarget = null;
-
-            // touchs
-            document.removeEventListener('touchstart', this.dragStart);
-            document.removeEventListener('touchend', this.dragEnd);
-            document.removeEventListener('touchmove', this.draging);
-            // document.removeEventListener('focusin', this..bind(this));
-            // document.removeEventListener('focusout', this..bind(this));
-            // mouse
-            document.removeEventListener('mousedown', this.dragStart);
-            document.removeEventListener('mouseup', this.dragEnd);
-            document.removeEventListener('mousemove', this.draging);
-         },
-
-         dragStart(evt) {
-            // console.debug('dragStart:', evt.target, this.dragTarget);
-            if (!this.dragTarget.contains(evt.target)) return;
-            // if (!evt.target.querySelector(PINNED_SELECTOR)) return; // Doesn't work
-            this.log('dragStart');
-
-            switch (evt.type) {
-               case 'touchstart':
-                  this.initialX = evt.touches[0].clientX - (this.xOffset || 0);
-                  this.initialY = evt.touches[0].clientY - (this.yOffset || 0);
-                  break;
-               case 'mousedown':
-                  this.initialX = evt.clientX - (this.xOffset || 0);
-                  this.initialY = evt.clientY - (this.yOffset || 0);
-                  break;
-            }
-
-            this.moving = true;
-         },
-
-         dragEnd(evt) {
-            if (!this.moving) return;
-            this.log('dragEnd');
-
-            this.initialX = this.currentX;
-            this.initialY = this.currentY;
-
-            this.moving = false;
-            this.dragTarget.style.pointerEvents = null;
-            document.body.style.removeProperty('cursor');
-            this.dragTarget.removeAttribute(this.attrNameMoving); // unmark after moved
-         },
-
-         draging(evt) {
-            if (!this.moving) return;
-
-            this.log('draging');
-
-            this.dragTarget.style.pointerEvents = 'none';
-            // document.body.style.cursor = 'grab';
-            document.body.style.cursor = 'move';
-            if (!this.dragTarget.hasAttribute(this.attrNameMoving)) this.dragTarget.setAttribute(this.attrNameMoving, true); //  mark on moving
-
-            switch (evt.type) {
-               case 'touchmove':
-                  this.currentX = evt.touches[0].clientX - this.initialX;
-                  this.currentY = evt.touches[0].clientY - this.initialY;
-                  break;
-               case 'mousemove':
-                  const
-                     rect = this.dragTarget.getBoundingClientRect();
-                  // pointOnElX = evt.clientX - rect.left,
-                  // pointOnElY = evt.clientY - rect.top;
-                  // console.debug('evt.clientX', evt.clientX, evt.clientX - pointOnElX);
-
-                  // max viewport - right
-                  if (rect.left >= document.body.clientWidth - this.dragTarget.offsetWidth) {
-                     this.currentX = Math.min(
-                        evt.clientX - this.initialX,
-                        document.body.clientWidth - this.dragTarget.offsetWidth - this.dragTarget.offsetLeft
-                     );
-                  }
-                  // max viewport - left
-                  // else if (rect.left >= 0) {
-                  else {
-                     this.currentX = Math.max(evt.clientX - this.initialX, 0 - this.dragTarget.offsetLeft);
-                  }
-
-                  // max viewport - buttom
-                  if (rect.top >= window.innerHeight - this.dragTarget.offsetHeight) {
-                     this.currentY = Math.min(
-                        evt.clientY - this.initialY,
-                        window.innerHeight - this.dragTarget.offsetHeight - this.dragTarget.offsetTop
-                     );
-                  }
-                  // max viewport - top
-                  // else if (rect.top >= 0 - this.dragTarget.offsetTop) {
-                  else {
-                     this.currentY = Math.max(evt.clientY - this.initialY, 0 - this.dragTarget.offsetTop);
-                  }
-
-                  // no limit viewport
-                  // this.currentX = evt.clientX - this.initialX;
-                  // this.currentY = evt.clientY - this.initialY;
-
-                  break;
-            }
-
-            this.xOffset = this.currentX;
-            this.yOffset = this.currentY;
-
-            this.moveByCoordinates({ 'X': this.currentX, 'Y': this.currentY });
-         },
-
-         moveByCoordinates({ X = required(), Y = required() }) {
-            this.log('moveByCoordinates', ...arguments);
-            this.dragTarget.style.transform = `translate3d(${X}px, ${Y}px, 0)`;
-         },
-
-         log() {
-            if (this.DEBUG && arguments.length) {
-               console.groupCollapsed(...arguments);
-               console.trace();
-               console.groupEnd();
-            }
-         },
-      };
-
-      /**
-      * Makes an elemenet draggable around the screen.
-      * @param {string} el Select an element from the DOM to become draggable
-      */
-      // function dragElement(el) {
-      //    let pos1 = pos2 = pos3 = pos4 = 0;
-
-      //    if (document.body.querySelector(".js-inject-header")) {
-      //       document.body.querySelector(".js-inject-header").onmousedown = dragMouseDown;
-      //    }
-      //    else {
-      //       el.onmousedown = dragMouseDown;
-      //    }
-
-      //    function dragMouseDown(e) {
-      //       e = e || window.event;
-      //       e.preventDefault();
-      //       pos3 = e.clientX;
-      //       pos4 = e.clientY;
-      //       document.onmouseup = closeDragElement;
-      //       document.onmousemove = elementDrag;
-      //    }
-
-      //    function elementDrag(e) {
-      //       e = e || window.event;
-      //       e.preventDefault();
-      //       pos1 = pos3 - e.clientX;
-      //       pos2 = pos4 - e.clientY;
-      //       pos3 = e.clientX;
-      //       pos4 = e.clientY;
-      //       el.style.top = (el.offsetTop - pos2) + "px";
-      //       el.style.left = (el.offsetLeft - pos1) + "px";
-      //    }
-
-      //    function closeDragElement() {
-      //       document.onmouseup = document.onmousemove = null;
-      //    }
-      // }
-
-      // function dragElement(elem) {
-      //    const handler = (e) => {
-      //       e = e || window.event
-      //       e.preventDefault()
-      //       pos3 = e.clientX
-      //       pos4 = e.clientY
-      //       document.onmouseup = closeDragger
-      //       document.onmousemove = enableDragger
-      //    }
-
-      //    const enableDragger = (e) => {
-      //       e = e || window.event
-      //       e.preventDefault()
-      //       pos1 = pos3 - e.clientX
-      //       pos2 = pos4 - e.clientY
-      //       pos3 = e.clientX
-      //       pos4 = e.clientY
-
-      //       elem.style.top = (elem.offsetTop - pos2) + "px"
-      //       elem.style.left = (elem.offsetLeft - pos1) + "px"
-      //    }
-
-      //    const closeDragger = () => {
-      //       document.onmouseup = null
-      //       document.onmousemove = null
-      //    }
-
-      //    let pos1, pos2, pos3, pos4
-
-      //    if (document.getElementsByClassName("drDrag").length > 0) {
-      //       document.getElementsByClassName("drDrag")[0].onmousedown = handler
-      //    }
-      //    else {
-      //       elem.onmousedown = handler
-      //    }
-      // }
 
    },
    options: {
@@ -631,8 +390,8 @@ window.nova_plugins.push({
       player_float_scroll_size_ratio: {
          _tagName: 'input',
          label: 'Player size',
-         'label:zh': '播放器尺寸',
-         'label:ja': 'プレーヤーのサイズ',
+         // 'label:zh': '播放器尺寸',
+         // 'label:ja': 'プレーヤーのサイズ',
          // 'label:ko': '플레이어 크기',
          // 'label:vi': '',
          // 'label:id': 'Ukuran pemain',
@@ -646,8 +405,8 @@ window.nova_plugins.push({
          // 'label:ua': 'Розмір відтворювача',
          type: 'number',
          title: 'Less value - larger size',
-         'title:zh': '较小的值 - 较大的尺寸',
-         'title:ja': '小さい値-大きいサイズ',
+         // 'title:zh': '较小的值 - 较大的尺寸',
+         // 'title:ja': '小さい値-大きいサイズ',
          // 'title:ko': '더 작은 값 - 더 큰 크기',
          // 'title:vi': '',
          // 'title:id': 'Nilai lebih kecil - ukuran lebih besar',
@@ -661,7 +420,7 @@ window.nova_plugins.push({
          // 'title:ua': 'Менше значення - більший розмір',
          placeholder: '2-5',
          step: 0.1,
-         min: 1,
+         min: 2,
          max: 5,
          value: 2.5,
          // 'data-dependent': { 'player_pin_mode': ['float'] },
@@ -670,8 +429,8 @@ window.nova_plugins.push({
          _tagName: 'select',
          // label: 'Player position in the corner',
          label: 'Player position',
-         'label:zh': '球员位置',
-         'label:ja': 'プレイヤーの位置',
+         // 'label:zh': '球员位置',
+         // 'label:ja': 'プレイヤーの位置',
          // 'label:ko': '선수 위치',
          // 'label:vi': '',
          // 'label:id': 'Posisi pemain',

@@ -5,8 +5,8 @@ window.nova_plugins.push({
    // id: 'video-stop-preload',
    id: 'video-autostop',
    title: 'Stop video preload',
-   'title:zh': '停止视频预加载',
-   'title:ja': 'ビデオのプリロードを停止します',
+   // 'title:zh': '停止视频预加载',
+   // 'title:ja': 'ビデオのプリロードを停止します',
    // 'title:ko': '비디오 미리 로드 중지',
    // 'title:vi': '',
    // 'title:id': 'Hentikan pramuat video',
@@ -51,7 +51,7 @@ window.nova_plugins.push({
       if (NOVA.queryURL.has('popup')) return;
 
       if (user_settings.video_autostop_embed && NOVA.currentPage != 'embed'
-         // for video_autostop_comment_link
+         // pass to block if url has a comment link
          && (!user_settings.video_autostop_comment_link
             || (user_settings.video_autostop_comment_link && !NOVA.queryURL.has('lc')) //!location.search.includes('$lc=')
          )
@@ -91,28 +91,30 @@ window.nova_plugins.push({
             `.unstarted-mode {
                background: url("https://i.ytimg.com/vi/${NOVA.queryURL.get('v')}/maxresdefault.jpg") center center / contain no-repeat content-box;
             }
-            .unstarted-mode video {
-               opacity: 0 !important;
-            }`);
+            .unstarted-mode video { visibility: hidden; }`);
       }
+
+      let disableStop;
 
       // Solution 2
       NOVA.waitSelector('#movie_player')
          .then(async movie_player => {
-            let disableStop;
-
             // reset disableStop (before on page change)
             document.addEventListener('yt-navigate-start', () => disableStop = false);
 
             await NOVA.waitUntil(() => typeof movie_player === 'object' && typeof movie_player.stopVideo === 'function', 100); // fix specific error for firefox
 
             movie_player.stopVideo(); // init before update onStateChange
-
             movie_player.addEventListener('onStateChange', onPlayerStateChange.bind(this));
 
+            addCancelEvents(movie_player);
+
             function onPlayerStateChange(state) {
-               if (!user_settings.video_autostop_comment_link || (user_settings.video_autostop_comment_link && !NOVA.queryURL.has('lc'))) {
-                  // console.debug('onStateChange', NOVA.getPlayerState(state), document.visibilityState);
+               // video_autostop_comment_link has high priority
+               if (!user_settings.video_autostop_comment_link
+                  || (user_settings.video_autostop_comment_link && !NOVA.queryURL.has('lc'))
+               ) {
+                  // console.debug('onStateChange', NOVA.getPlayerState.playback(state), document.visibilityState);
                   if (user_settings.video_autostop_ignore_playlist && location.search.includes('list=')) return;
                   // if (user_settings.video_autostop_ignore_playlist && (NOVA.queryURL.has('list')/* || !movie_player?.getPlaylistId()*/)) return;
                   // // stop inactive tab
@@ -130,56 +132,61 @@ window.nova_plugins.push({
                // 2: paused
                // 3: buffering
                // 5: cued
-               // if (!disableStop && ['BUFFERING', 'PAUSED', 'PLAYING'].includes(NOVA.getPlayerState(state))) {
+               // if (!disableStop && ['BUFFERING', 'PAUSED', 'PLAYING'].includes(NOVA.getPlayerState.playback(state))) {
                if (!disableStop && state > 0 && state < 5) {
                   movie_player.stopVideo();
                }
             }
+         });
 
-            document.addEventListener('keyup', evt => {
-               if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
+      function addCancelEvents(movie_player) {
+         document.addEventListener('keyup', evt => {
+            if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
+            if (NOVA.editableFocused(evt.target)) return;
+            if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
 
-               if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
-               if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
-
-               switch (evt.code) {
-                  // Keyboard code - https://docs.microsoft.com/en-us/dotnet/api/android.views.keycode?view=xamarin-android-sdk-12
-                  case 'KeyK':
-                  case 'Space':
-                  case 'MediaPlay':
-                  case 'MediaPlayPause':
-                     disableHoldStop();
-                     break;
-               }
-            });
-            navigator.mediaSession.setActionHandler('play', disableHoldStop); // add Media hotkeys support
-            document.addEventListener('click', evt => {
-               if (evt.isTrusted
-                  // Solution 1 (Universal), click is inside the player
-                  && evt.target.closest('#movie_player') // movie_player.contains(document.activeElement)
-                  // Solution 2. Click from some elements
-                  // && ['button[class*="play-button"]',
-                  //    '.ytp-cued-thumbnail-overlay-image',
-                  //    '.ytp-player-content'
-                  // ].some(s => evt.srcElement.matches(s))
-                  && !disableStop
-               ) {
-                  // fix. stop pause
-                  evt.preventDefault();
-                  // evt.stopPropagation();
-                  evt.stopImmediatePropagation();
-
+            switch (evt.code) {
+               // Keyboard code - https://docs.microsoft.com/en-us/dotnet/api/android.views.keycode?view=xamarin-android-sdk-12
+               case 'KeyK':
+               case 'Space':
+               case 'MediaPlay':
+               case 'MediaPlayPause':
                   disableHoldStop();
-               }
-            }, { capture: true });
-
-            function disableHoldStop() {
-               if (!disableStop) {
-                  disableStop = true;
-                  movie_player.playVideo(); // dirty fix. onStateChange starts before click/keyup
-               }
+                  break;
             }
          });
+
+         // Media hotkeys support
+         navigator.mediaSession.setActionHandler('play', disableHoldStop);
+
+         // Click event listener to trigger autopause on trusted clicks within the player area
+         document.addEventListener('click', evt => {
+            if (evt.isTrusted
+               // Solution 1 (Universal), click is inside the player
+               && evt.target.closest('#movie_player') // movie_player.contains(document.activeElement)
+               // Solution 2. Click from some elements
+               // && ['button[class*="play-button"]',
+               //    '.ytp-cued-thumbnail-overlay-image',
+               //    '.ytp-player-content'
+               // ].some(s => evt.srcElement.matches(s))
+               && !disableStop
+            ) {
+               // fix. stop pause
+               evt.preventDefault();
+               // evt.stopPropagation();
+               evt.stopImmediatePropagation();
+
+               disableHoldStop();
+            }
+         }, { capture: true });
+
+         function disableHoldStop() {
+            if (!disableStop) {
+               disableStop = true;
+               movie_player.playVideo(); // dirty fix. onStateChange starts before click/keyup
+            }
+         }
+      }
 
    },
    options: {
@@ -236,9 +243,9 @@ window.nova_plugins.push({
       },
       video_autostop_ignore_playlist: {
          _tagName: 'input',
-         label: 'Ignore in playlist',
-         'label:zh': '忽略播放列表',
-         'label:ja': 'プレイリストを無視する',
+         label: 'Ignore playlist',
+         // 'label:zh': '忽略播放列表',
+         // 'label:ja': 'プレイリストを無視する',
          // 'label:ko': '재생목록 무시',
          // 'label:vi': '',
          // 'label:id': 'Abaikan daftar putar',
@@ -360,7 +367,7 @@ window.nova_plugins.push({
       // },
       video_autostop_comment_link: {
          _tagName: 'input',
-         label: 'Apply if URL has link to comment',
+         label: 'Apply if URL references a comment',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',
@@ -389,6 +396,7 @@ window.nova_plugins.push({
          // 'title:de': '',
          // 'title:pl': '',
          // 'label:ua': '',
+         // 'data-dependent': { 'video_autostop_embed': false && 'video_autostop_ignore_playlist': true && 'video_autostop_ignore_live': true },
       },
    }
 });

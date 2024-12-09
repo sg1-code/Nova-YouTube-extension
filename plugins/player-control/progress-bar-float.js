@@ -1,12 +1,14 @@
 // for test
 // https://www.youtube.com/embed/yWUMMg3dmFY?wmode=opaque&amp;rel=0&amp;controls=0&amp;modestbranding=1&amp;showinfo=0&amp;enablejsapi=1 - embed when disable chrome-bottom
 
+// https://www.youtube.com/watch?v=pf9WOuzeWhw - chapters from section
+
 window.nova_plugins.push({
    id: 'player-float-progress-bar',
    // title: 'Sticky progress bar',
    title: 'Float player progress bar',
-   'title:zh': '浮动播放器进度条',
-   'title:ja': 'フロートプレーヤーのプログレスバー',
+   // 'title:zh': '浮动播放器进度条',
+   // 'title:ja': 'フロートプレーヤーのプログレスバー',
    // 'title:ko': '플로팅 플레이어 진행률 표시줄',
    // 'title:vi': '',
    // 'title:id': 'Bilah kemajuan pemain mengambang',
@@ -19,7 +21,7 @@ window.nova_plugins.push({
    'title:pl': 'Pływający pasek postępu odtwarzacza',
    // 'title:ua': 'Плаваючий індикатор прогресу відтворення',
    run_on_pages: 'watch, embed, -mobile',
-   section: 'control-panel',
+   section: 'player-control',
    // desc: '',
    // 'plugins-conflict': 'description-expand',
    _runtime: user_settings => {
@@ -61,7 +63,7 @@ window.nova_plugins.push({
                bufferEl = document.getElementById(`${SELECTOR_ID}-buffer`),
                progressEl = document.getElementById(`${SELECTOR_ID}-progress`);
 
-            insertChapters.init(video); // init "resetBar()"
+            renderChapters.init(video); // init "resetBar()"
 
             // resetBar on new video loaded
             video.addEventListener('progress', () => container.classList.add('transition'), { capture: true, once: true }); // skip on init transition
@@ -95,6 +97,20 @@ window.nova_plugins.push({
             renderBuffer.apply(video); // init. For faster render
             video.addEventListener('progress', renderBuffer.bind(video));
             video.addEventListener('seeking', renderBuffer.bind(video));
+
+            // document.addEventListener('visibilitychange', () => document.hidden && renderBuffer.bind(video));
+            // fix notInteractiveToRender -> document.visibilityState == 'hidden' // tab inactive
+            // document.addEventListener('visibilitychange', () => {
+            //    // document.hidden
+            //    switch (document.visibilityState) {
+            //       case 'hidden':
+            //          break;
+            //       case 'visible':
+            //          renderBuffer.bind(video);
+            //          progressEl.style.transform = `scaleX(${this.currentTime / this.duration})`;
+            //          break;
+            //    }
+            // });
 
             function renderBuffer() {
                if (notInteractiveToRender()) return;
@@ -131,12 +147,13 @@ window.nova_plugins.push({
                progressEl.style.transform = 'scaleX(0)';
                container.classList.add('transition');
 
-               insertChapters.init(video);
+               renderChapters.init(video);
             }
 
             function notInteractiveToRender() {
-               return (document.visibilityState == 'hidden' // tab inactive
-                  || movie_player.getVideoData().isLive
+               return (movie_player.getVideoData().isLive
+                  // || document.hidden
+                  // || document.visibilityState == 'hidden' || // tab inactive. See fix bug on visibilitychange event
                   // || !movie_player.classList.contains('ytp-autohide') // dubious optimization hack
                );
             }
@@ -176,10 +193,8 @@ window.nova_plugins.push({
             // const chapters = document.createElement('div');
             // chapters.id = `${SELECTOR_ID}-chapters`;
 
-            // innerContainer.append(buffer);
-            // innerContainer.append(progress);
-            // container.append(innerContainer);
-            // container.append(chapters);
+            // innerContainer.append(buffer, progress);
+            // container.append(innerContainer, chapters);
             // init_container.append(container);
             // // end fix - This document requires 'TrustedHTML' assignment.
 
@@ -203,11 +218,6 @@ window.nova_plugins.push({
                   width: 100%;
                   height: var(--height);
                   visibility: hidden;
-               }
-
-               /*.ytp-chrome-bottom[hidden],*/
-               ${SELECTOR_CONTAINER} ${SELECTOR} {
-                  visibility: visible;
                }
 
                /*${SELECTOR} .container {
@@ -281,27 +291,32 @@ window.nova_plugins.push({
                switch (user_settings.player_control_autohide_container) {
                   case 'player':
                      NOVA.css.push(
-                        `${SELECTOR_CONTAINER}:not(:hover) ${SELECTOR} {
-                           visibility: visible !important;
+                        `#movie_player:not(:hover) ${SELECTOR} {
+                           visibility: visible;
                         }`);
                      break;
 
                   case 'control':
                      NOVA.css.push(
-                        // #movie_player:not(.ytp-autohide):hover ${SELECTOR} {
-                        //    visibility: visible !important;
-                        // }
-                        `.ytp-chrome-bottom:not(:hover) ~ ${SELECTOR} {
-                           visibility: visible !important;
+                        `.ytp-chrome-bottom:not(:hover) ~ ${SELECTOR},
+                        #movie_player:has(> .ytp-chrome-bottom:not(:hover)) ${SELECTOR} {
+                           visibility: visible;
                         }`);
                      break;
                }
                if (user_settings.player_control_autohide_show_on_seek) {
                   NOVA.css.push(
                      `[style*="opacity: 1"] ~ ${SELECTOR} {
-                        visibility: hidden !important;
+                        visibility: hidden;
                      }`);
                }
+            }
+            else {
+               NOVA.css.push(
+                  /*.ytp-chrome-bottom[hidden],*/
+                  `${SELECTOR_CONTAINER} ${SELECTOR} {
+                     visibility: visible;
+                  }`);
             }
 
             return document.getElementById(SELECTOR_ID);
@@ -315,7 +330,7 @@ window.nova_plugins.push({
 
          function showChapterSwitch(evt) {
             if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
-            if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
+            if (NOVA.editableFocused(evt.target)) return;
             // if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
 
             if ((el = document.getElementById(SELECTOR_ID))
@@ -326,6 +341,10 @@ window.nova_plugins.push({
                      // if (/*evt.ctrlKey || */evt.altKey || evt.shiftKey || evt.metaKey) {
                      const hotkey = user_settings.player_float_progress_bar_hotkey.length === 1 ? evt.key : evt.code;
                      if (user_settings.player_float_progress_bar_hotkey == hotkey && !hotkeyActivated) {
+                        evt.preventDefault();
+                        evt.stopPropagation();
+                        // evt.stopImmediatePropagation();
+
                         el.classList.add(CHP_JUMP_TOGGLE_CLASS_VALUE);
                         hotkeyActivated = true;
                      }
@@ -340,12 +359,12 @@ window.nova_plugins.push({
                }
             }
          }
-         // click event
+         // click event (seek)
          document.getElementById(SELECTOR_ID)
             .addEventListener('click', ({ target }) => {
                if (!(secTime = target.getAttribute('time'))) return;
 
-               const sec = NOVA.formatTimeOut.hmsToSec(secTime);
+               const sec = NOVA.formatTime.hmsToSec(secTime);
                // console.debug('jump chapter start:', sec);
 
                if (typeof movie_player.seekBy === 'function') {
@@ -355,12 +374,24 @@ window.nova_plugins.push({
                else if (NOVA.videoElement) {
                   NOVA.videoElement.currentTime = sec;
                }
-            }, { capture: true });
+            });
 
+         // dblclick (copy)
+         document.getElementById(SELECTOR_ID)
+            .addEventListener('dblclick', ({ target }) => {
+               if (!(secTime = target.getAttribute('title'))) return;
+
+               navigator.clipboard.writeText(target.title)
+                  .then(() => NOVA.showOSD({ message: 'Chapter name copied to clipboard', source: 'player-float-progress-bar' }))
+                  .catch(err => {
+                     console.error('Failed copy to clipboard:\n', err);
+                     NOVA.showOSD({ message: 'Failed copy to clipboard' });
+                  });
+            });
       }
 
       // alt - https://chromewebstore.google.com/detail/jahmafmcpgdedfjfknmfkhaiejlfdcfc
-      const insertChapters = {
+      const renderChapters = {
          async init(vid) {
             if (NOVA.currentPage == 'watch' && !(vid instanceof HTMLElement)) {
                return console.error('vid not HTMLElement:', chaptersContainer);
@@ -383,13 +414,32 @@ window.nova_plugins.push({
                case 'embed':
                   // fix loaded - window.ytPubsubPubsubInstance and chaptersContainer to from_div
                   let chaptersContainer;
-                  await NOVA.waitUntil(() => (
-                     chaptersContainer = document.body.querySelector('.ytp-chapters-container'))
-                     && chaptersContainer?.children.length > 1
-                     , 1000); // 1sec
+                  await NOVA.waitUntil(() => (chaptersContainer = document.body.querySelector('.ytp-chapters-container'))
+                     && chaptersContainer?.children.length > 1, 1000); // 1sec
 
-                  this.insertChaptersMarkers(vid.duration) || this.from_div(chaptersContainer);
+                  this.renderChaptersMarkers(vid.duration) || this.from_div(chaptersContainer);
                   break;
+            }
+
+            if (user_settings['sponsor-block']) {
+               setTimeout(() => {
+                  if (document.body.querySelector(`#${SELECTOR_ID}-chapters > span[time]`)) return;
+
+                  const
+                     chaptersContainer = document.getElementById(`${SELECTOR_ID}-chapters`),
+                     newChapter = document.createElement('span'),
+                     newChapter2 = document.createElement('span');
+
+                  newChapter.setAttribute('time', '0:00');
+                  newChapter.style.width = '100%';
+
+                  newChapter2.setAttribute('time', '0:01');
+                  newChapter2.style.width = 0;
+
+                  chaptersContainer.append(newChapter, newChapter2);
+
+                  this.callEvent();
+               }, 5 * 1000);
             }
          },
 
@@ -403,18 +453,18 @@ window.nova_plugins.push({
             // search in description (#structured-description)
             // NOVA.waitSelector(`ytd-watch-metadata #description #video-lockups a`)
             NOVA.waitSelector(`ytd-watch-metadata #description.ytd-watch-metadata ${selectorTimestampLink}`, { destroy_after_page_leaving: true })
-               .then(() => this.insertChaptersMarkers(duration));
+               .then(() => this.renderChaptersMarkers(duration));
 
             // search in comments
             NOVA.waitSelector(`#comments #comment #comment-content ${selectorTimestampLink}`, { destroy_after_page_leaving: true })
                .then(() => {
                   // skip if get successfully from description
                   if (document.body.querySelector(`${SELECTOR}-chapters > span[time]`)) return;
-                  this.insertChaptersMarkers(duration);
+                  this.renderChaptersMarkers(duration);
                });
             // search in first/pinned comment
             // NOVA.waitSelector(`#comments ytd-comment-thread-renderer:first-child #content ${selectorTimestampLink}`)
-            //    .then(() => this.insertChaptersMarkers(duration));
+            //    .then(() => this.renderChaptersMarkers(duration));
          },
 
          from_div(chapters_container = required()) {
@@ -436,8 +486,8 @@ window.nova_plugins.push({
             }
          },
 
-         insertChaptersMarkers(duration = required()) {
-            // console.debug('insertChaptersMarkers', ...arguments);
+         renderChaptersMarkers(duration = required()) {
+            // console.debug('renderChaptersMarkers', ...arguments);
             if (isNaN(duration)) return console.error('duration isNaN:', duration);
 
             if (chaptersContainer = document.getElementById(`${SELECTOR_ID}-chapters`)) {
@@ -449,7 +499,7 @@ window.nova_plugins.push({
             // if (user_settings['sponsor-block']) {
             //    const CACHE_PREFIX = 'nova-videos-sponsor-block:';
             //    const videoId = NOVA.queryURL.get('v') || movie_player.getVideoData().video_id;
-            //    if (storage = sessionStorage.getItem(CACHE_PREFIX + videoId)) {
+            //    if (window?.sessionStorage && (storage = sessionStorage.getItem(CACHE_PREFIX + videoId))) {
             //       segmentsList = JSON.parse(storage);
             //    }
             // }
@@ -469,11 +519,26 @@ window.nova_plugins.push({
                   //    // newChapter.style.backgroundColor = '';
                   // }
 
-                  chaptersContainer && chaptersContainer.append(newChapter);
+                  chaptersContainer?.append(newChapter);
                });
 
-            // console.debug('insertChaptersMarkers', chapterList);
-            return chapterList; // return dependency
+            // console.debug('renderChaptersMarkers', chapterList);
+            // return chapterList; // return dependency
+
+            this.callEvent(chapterList);
+         },
+
+         callEvent(chapterList) {
+            document.dispatchEvent(
+               new CustomEvent(
+                  'render-chapters-markers',
+                  {
+                     bubbles: true,
+                     detail: {
+                        'chapterList': chapterList,
+                     }
+                  })
+            );
          },
       };
 
@@ -482,8 +547,8 @@ window.nova_plugins.push({
       player_float_progress_bar_height: {
          _tagName: 'input',
          label: 'Height',
-         'label:zh': '高度',
-         'label:ja': '身長',
+         // 'label:zh': '高度',
+         // 'label:ja': '身長',
          // 'label:ko': '키',
          // 'label:vi': '',
          // 'label:id': 'Tinggi',
@@ -518,8 +583,8 @@ window.nova_plugins.push({
       player_float_progress_bar_opacity: {
          _tagName: 'input',
          label: 'Opacity',
-         'label:zh': '不透明度',
-         'label:ja': '不透明度',
+         // 'label:zh': '不透明度',
+         // 'label:ja': '不透明度',
          // 'label:ko': '불투명',
          // 'label:vi': '',
          // 'label:id': 'Kegelapan',
@@ -542,8 +607,8 @@ window.nova_plugins.push({
       player_float_progress_bar_hotkey: {
          _tagName: 'select',
          label: 'Hotkey to chapters jump (by click)',
-         'label:zh': '章节跳转热键（点击）',
-         'label:ja': '章にジャンプするホットキー (クリックによる)',
+         // 'label:zh': '章节跳转热键（点击）',
+         // 'label:ja': '章にジャンプするホットキー (クリックによる)',
          // 'label:ko': '',
          // 'label:vi': '',
          // 'label:id': '',
@@ -555,7 +620,20 @@ window.nova_plugins.push({
          // 'label:de': '',
          // 'label:pl': '',
          // 'label:ua': '',
-         // title: '',
+         title: 'Double click copies chapter name',
+         // 'title:zh': '',
+         // 'title:ja': '',
+         // 'title:ko': '',
+         // 'title:vi': '',
+         // 'title:id': '',
+         // 'title:es': '',
+         // 'title:pt': '',
+         // 'title:fr': '',
+         // 'title:it': '',
+         // 'title:tr': '',
+         // 'title:de': '',
+         // 'title:pl': '',
+         // 'title:ua': '',
          options: [
             { label: 'none', /* value: false, */ }, // fill value if no "selected" mark another option
             // { label: 'none', value: false },

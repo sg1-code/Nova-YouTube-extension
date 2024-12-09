@@ -6,8 +6,8 @@
 window.nova_plugins.push({
    id: 'thumbs-clear',
    title: 'Thumbnails preview image',
-   'title:zh': '清除缩略图',
-   'title:ja': 'サムネイルをクリアする',
+   // 'title:zh': '清除缩略图',
+   // 'title:ja': 'サムネイルをクリアする',
    // 'title:ko': '썸네일 지우기',
    // 'title:vi': '',
    // 'title:id': 'Hapus gambar mini',
@@ -56,7 +56,8 @@ window.nova_plugins.push({
             'ytm-item-section-renderer' // mobile /subscriptions page
          ];
 
-      // alt - https://greasyfork.org/en/scripts/422843-youtube-remove-clickable-labels-on-watch-later-and-add-to-queue-buttons
+      // alt1 - https://greasyfork.org/en/scripts/422843-youtube-remove-clickable-labels-on-watch-later-and-add-to-queue-buttons
+      // alt2 - https://greasyfork.org/en/scripts/489605-youtube-watch-later-remove-button-on-hover
       if (user_settings.thumbs_clear_overlay) {
          NOVA.css.push(
             `#hover-overlays {
@@ -65,10 +66,11 @@ window.nova_plugins.push({
       }
 
       // Solution 1 (HTML5). page update event
-      document.addEventListener('scrollend', function self () {
-         if (typeof self.timeout === 'number') clearTimeout(self.timeout);
-         self.timeout = setTimeout(patchThumb, 50); // 50ms
+      document.addEventListener('scroll', () => {
+         requestAnimationFrame(patchThumb);
       });
+
+      document.addEventListener('visibilitychange', () => !document.hidden && patchThumb());
 
       // Solution 2 (API). page update event
       // when thums update
@@ -77,10 +79,10 @@ window.nova_plugins.push({
          switch (evt.detail?.actionName) {
             case 'yt-append-continuation-items-action': // home, results, feed, channel, watch
             case 'ytd-update-grid-state-action': // feed, channel
-            case 'yt-rich-grid-layout-refreshed': // feed
+            // case 'yt-rich-grid-layout-refreshed': // feed. Warning! loads too early
             // case 'ytd-rich-item-index-update-action': // home, channel
             case 'yt-store-grafted-ve-action': // results, watch
-               // case 'ytd-update-elements-per-row-action': // feed
+            case 'ytd-update-elements-per-row-action': // feed
 
                // universal
                // case 'ytd-update-active-endpoint-action':
@@ -88,7 +90,6 @@ window.nova_plugins.push({
                // case 'yt-service-request': // results, watch
 
                // console.debug(evt.detail?.actionName); // flltered
-
                patchThumb();
                break;
          }
@@ -105,8 +106,9 @@ window.nova_plugins.push({
 
 
       // // dirty fix bug with not updating thumbnails
-      // // document.addEventListener('yt-navigate-finish', () =>
-      // //    document.body.querySelectorAll(`[${ATTR_MARK}]`).forEach(e => e.removeAttribute(ATTR_MARK)));
+      // // document.addEventListener('yt-navigate-finish', () => {
+      // //    document.body.querySelectorAll(`[${ATTR_MARK}]`).forEach(e => e.removeAttribute(ATTR_MARK));
+      // // });
 
       // patch end card
       // if (user_settings.thumbs_clear_videowall && !user_settings['pages-clear']) {
@@ -124,8 +126,8 @@ window.nova_plugins.push({
       //    NOVA.waitSelector('#movie_player')
       //       .then(movie_player => {
       //          movie_player.addEventListener('onStateChange', state => {
-      //             // console.debug('playerState', NOVA.getPlayerState(state));
-      //             if (NOVA.getPlayerState(state) == 'ENDED') {
+      //             // console.debug('playerState', NOVA.getPlayerState.playback(state));
+      //             if (NOVA.getPlayerState.playback(state) == 'ENDED') {
       //                document.body.querySelectorAll('.ytp-videowall-still-image[style*="qdefault.jpg"]')
       //                   .forEach(img => {
       //                      img.style.backgroundImage = patchImg(img.style.backgroundImage);
@@ -146,21 +148,30 @@ window.nova_plugins.push({
       // }
 
       function patchThumb() {
-         document.body.querySelectorAll(
-            `#thumbnail:not(.ytd-playlist-thumbnail):not([class*=markers]):not([href*="/shorts/"]) img[src]:not([src*="_live.jpg"]):not([${ATTR_MARK}]),
+         // console.debug(evt.detail?.actionName); // flltered
+         switch (NOVA.currentPage) {
+            case 'home':
+            // case 'results':
+            case 'feed':
+            case 'channel':
+            case 'watch':
+               document.body.querySelectorAll(
+                  `#thumbnail:not(.ytd-playlist-thumbnail):not([class*=markers]):not([href*="/shorts/"]) img[src]:not([src*="_live.jpg"]):not([${ATTR_MARK}]),
             a:not([href*="/shorts/"]) img.video-thumbnail-img[src]:not([src*="_live.jpg"]):not([${ATTR_MARK}])`
-         )
-            .forEach(img => {
-               img.setAttribute(ATTR_MARK, true);
-               // img.src = patchImg(img.src);
-               passImg(img);
-            });
+               )
+                  .forEach(img => {
+                     img.setAttribute(ATTR_MARK, true);
+                     // img.src = patchImg(img.src);
+                     passImg(img);
+                  });
 
-         // if (user_settings.thumbs_overlay_playing) {
-         //    // alt - https://greasyfork.org/en/scripts/454694-disable-youtube-inline-playback-on-all-pages
-         //    document.body.querySelectorAll('#mouseover-overlay')
-         //       .forEach(el => el.remove());
-         // }
+               // if (user_settings.thumbs_overlay_playing) {
+               //    // alt - https://greasyfork.org/en/scripts/454694-disable-youtube-inline-playback-on-all-pages
+               //    document.body.querySelectorAll('#mouseover-overlay')
+               //       .forEach(el => el.remove());
+               // }
+               break;
+         }
       }
 
       let DISABLE_YT_IMG_DELAY_LOADING_default = false; // fix conflict with yt-flags
@@ -211,8 +222,8 @@ window.nova_plugins.push({
          _tagName: 'select',
          // label: 'Thumbnail timestamps moment',
          label: 'Timestamps moment',
-         'label:zh': '缩略图时间戳',
-         'label:ja': 'サムネイルのタイムスタンプ',
+         // 'label:zh': '缩略图时间戳',
+         // 'label:ja': 'サムネイルのタイムスタンプ',
          // 'label:ko': '썸네일 타임스탬프',
          // 'label:vi': '',
          // 'label:id': 'Stempel waktu gambar mini',
@@ -225,8 +236,8 @@ window.nova_plugins.push({
          'label:pl': 'Znaczniki czasowe miniatur',
          // 'label:ua': 'Мітки часу мініатюр',
          title: 'Show thumbnail from video time position',
-         'title:zh': '从视频时间位置显示缩略图',
-         'title:ja': 'ビデオの時間位置からサムネイルを表示',
+         // 'title:zh': '从视频时间位置显示缩略图',
+         // 'title:ja': 'ビデオの時間位置からサムネイルを表示',
          // 'title:ko': '비디오 시간 위치에서 썸네일 표시',
          // 'title:vi': '',
          // 'title:id': 'Tampilkan thumbnail dari posisi waktu video',
@@ -241,8 +252,8 @@ window.nova_plugins.push({
          options: [
             {
                label: 'start', value: 'hq1',
-               'label:zh': '开始',
-               'label:ja': '始まり',
+               // 'label:zh': '开始',
+               // 'label:ja': '始まり',
                // 'label:ko': '시작',
                // 'label:vi': '',
                // 'label:id': 'awal',
@@ -257,8 +268,8 @@ window.nova_plugins.push({
             }, // often shows intro
             {
                label: 'middle', value: 'hq2', selected: true,
-               'label:zh': '中间',
-               'label:ja': '真ん中',
+               // 'label:zh': '中间',
+               // 'label:ja': '真ん中',
                // 'label:ko': '아니다',
                // 'label:vi': '',
                // 'label:id': 'tengah',
@@ -273,8 +284,8 @@ window.nova_plugins.push({
             },
             {
                label: 'end', value: 'hq3',
-               'label:zh': '结尾',
-               'label:ja': '終わり',
+               // 'label:zh': '结尾',
+               // 'label:ja': '終わり',
                // 'label:ko': '끝',
                // 'label:vi': '',
                // 'label:id': 'akhir',
@@ -292,8 +303,8 @@ window.nova_plugins.push({
       thumbs_clear_overlay: {
          _tagName: 'input',
          label: 'Hide overlay buttons on a thumbnail',
-         'label:zh': '隐藏覆盖在缩略图上的按钮',
-         'label:ja': 'サムネイルにオーバーレイされたボタンを非表示にする',
+         // 'label:zh': '隐藏覆盖在缩略图上的按钮',
+         // 'label:ja': 'サムネイルにオーバーレイされたボタンを非表示にする',
          // 'label:ko': '축소판에서 오버레이 버튼 숨기기',
          // 'label:vi': '',
          // 'label:id': 'Sembunyikan tombol overlay pada thumbnail',

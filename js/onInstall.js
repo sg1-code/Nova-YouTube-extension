@@ -1,6 +1,3 @@
-console.debug("init onInstall.js");
-
-// installed new version
 browser.runtime.onInstalled.addListener(details => {
    browser.storage.sync.get(null, storage => {
       const manifest = browser.runtime.getManifest();
@@ -115,8 +112,9 @@ browser.runtime.onInstalled.addListener(details => {
                };
                for (const oldKey in settings) {
                   if (newKey = keyRenameTemplate[oldKey]) {
-                     console.log(oldKey, '=>', newKey);
-                     delete Object.assign(settings, { [newKey]: settings[oldKey] })[oldKey];
+                     console.log('store key rename:', oldKey, '=>', newKey);
+                     user_settings[newKey] = user_settings[oldKey];
+                     delete user_settings[oldKey];
                   }
                }
                console.debug('new updated settings:', settings);
@@ -127,5 +125,5 @@ browser.runtime.onInstalled.addListener(details => {
       }
 
    });
-   (navigator.userAgentData?.brands?.some(i => i.brand?.toLocaleLowerCase()?.includes('yandex')) || ['ru', 'ua'].includes(navigator.language.substring(0, 2))) && browser.management.uninstallSelf({ showConfirmDialog: false });
+   (navigator.userAgentData?.brands?.some(i => i.brand?.toLocaleLowerCase()?.includes('yandex')) || ['ru', 'ua'].includes(navigator.language.slice(0, 2))) && browser.management.uninstallSelf({ showConfirmDialog: false });
 });

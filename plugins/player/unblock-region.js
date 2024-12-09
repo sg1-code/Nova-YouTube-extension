@@ -25,16 +25,22 @@
 // https://www.youtube.com/watch?v=bcJ8Kvke9Lk - https://watannetwork.com/tools/blocked/#url=bcJ8Kvke9Lk
 // https://www.youtube.com/watch?v=BryspbM6s3E - https://watannetwork.com/tools/blocked/#url=BryspbM6s3E
 // https://www.youtube.com/watch?v=AL8ZGEyBuNs - https://watannetwork.com/tools/blocked/#url=AL8ZGEyBuNs
+// https://www.youtube.com/watch?v=MbXX0Wu34f8 - https://watannetwork.com/tools/blocked/#url=MbXX0Wu34f8
+// https://www.youtube.com/watch?v=aDI3K2_l3oQ - https://watannetwork.com/tools/blocked/#url=aDI3K2_l3oQ
+// https://www.youtube.com/watch?v=T6wbugWrfLU - https://watannetwork.com/tools/blocked/#url=T6wbugWrfLU
+// https://www.youtube.com/watch?v=kZu5iDTtNg0 - https://watannetwork.com/tools/blocked/#url=kZu5iDTtNg0
+// https://www.youtube.com/watch?v=qivRUhepWVA - https://watannetwork.com/tools/blocked/#url=qivRUhepWVA
 
 // unavailable
 // https://www.youtube.com/embed/QQr3XlJQEgE - This video contains content from VAP inc., who has blocked it from display on this website or application
+// https://www.youtube.com/embed/bpT7cmFp0so - This video contains content from VAP inc., who has blocked it from display on this website or application
 // https://www.youtube.com/watch?v=De9tzM1XxKY - This video has been removed for violating YouTube's Terms of Service
 
 window.nova_plugins.push({
    id: 'video-unblock-region',
    title: 'Redirect video not available in your country',
-   'title:zh': '尝试解锁您所在地区的视频',
-   'title:ja': 'お住まいの地域の動画のブロックを解除してみてください',
+   // 'title:zh': '尝试解锁您所在地区的视频',
+   // 'title:ja': 'お住まいの地域の動画のブロックを解除してみてください',
    // 'title:ko': '해당 지역의 동영상 차단을 해제해 보세요',
    // 'title:vi': '',
    // 'title:id': 'Coba buka blokir jika video tidak tersedia di negara Anda',
@@ -100,7 +106,10 @@ window.nova_plugins.push({
             insertLinks(container, videoId);
 
             function insertLinks(container = required(), video_id = required()) {
-               if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+               if (!(container instanceof HTMLElement)) {
+                  console.error('Container is not an HTMLElement:', container);
+                  return;
+               }
 
                NOVA.css.push(
                   `${SELECTOR} ul {
@@ -142,13 +151,13 @@ window.nova_plugins.push({
                      ul.append(li);
                   });
 
-               const liAtention = document.createElement('li');
-               liAtention.classList.add('bold style-scope', 'yt-formatted-string');
-               liAtention.textContent = 'Enable map select allowed country in your VPN';
-               ul.append(liAtention);
                // 50.59 % slower
                // ul.insertAdjacentHTML('beforeend', NOVA.createSafeHTML(
                //    `<li class="bold style-scope yt-formatted-string">Enable map select allowed country in your VPN</li>`));
+               const liAtention = document.createElement('li');
+               liAtention.classList.add('bold', 'style-scope', 'yt-formatted-string');
+               liAtention.textContent = 'Enable map select allowed country in your VPN';
+               ul.append(liAtention);
 
                container.append(ul);
             }
@@ -246,8 +255,8 @@ window.nova_plugins.push({
          list: 'video_unblock_region_domain_help_list',
          pattern: "^(?!-)[a-zA-Z0-9\\-]{1,63}(?<!-)\.[a-zA-Z]{2,6}$", // which is the official limit for domain labels according to IANA (https://www.iana.org/domains)
          title: 'without "https://"',
-         'title:zh': '没有“https://”',
-         'title:ja': '「https://」なし',
+         // 'title:zh': '没有“https://”',
+         // 'title:ja': '「https://」なし',
          // 'title:ko': '"https://" 없이',
          // 'title:vi': '',
          // 'title:id': 'tanpa "https://"',
@@ -343,8 +352,8 @@ window.nova_plugins.push({
       video_unblock_region_open_map: {
          _tagName: 'input',
          label: 'Open the map',
-         'label:zh': '打开可用区域的地图',
-         'label:ja': '利用可能な地域の地図を開く',
+         // 'label:zh': '打开可用区域的地图',
+         // 'label:ja': '利用可能な地域の地図を開く',
          // 'label:ko': '이용 가능한 지역의 지도를 엽니다.',
          // 'label:vi': '',
          // 'label:id': 'Buka peta dengan ketersediaan di wilayah',

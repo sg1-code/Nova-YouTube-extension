@@ -4,8 +4,8 @@
 window.nova_plugins.push({
    id: 'livechat-visibility',
    title: 'Collapse livechat',
-   'title:zh': '隐藏实时聊天',
-   'title:ja': 'ライブチャットを非表示',
+   // 'title:zh': '隐藏实时聊天',
+   // 'title:ja': 'ライブチャットを非表示',
    // 'title:ko': '실시간 채팅 숨기기',
    // 'title:vi': '',
    // 'title:id': 'Sembunyikan obrolan langsung',
@@ -26,24 +26,19 @@ window.nova_plugins.push({
 
       // alt1 - https://github.com/skoshy/YouTubeHideChatByDefaultUserscript
       // alt2 - https://chromewebstore.google.com/detail/fcchghcgfeadhdmkmpkedplecikkajnp
-
-      // if (window['nova-lock-live-chat']) return;
-
-      // window['nova-lock-live-chat'] = true; // set lock
+      // alt3 - https://greasyfork.org/en/scripts/507558-youtube-hide-chat-by-default
 
       if (user_settings.livechat_visibility_mode == 'disable') {
-         // live_chat - iframe#chatframe #chat-messages #close-button button
          NOVA.waitSelector('#chat', { destroy_after_page_leaving: true })
             .then(chat => {
                chat.remove();
-               // window['nova-lock-live-chat'] = false; // unlock
             });
       }
       else {
+         // iframe#chatframe #chat-messages #close-button button
          NOVA.waitSelector('#chat:not([collapsed]) #show-hide-button button', { destroy_after_page_leaving: true })
             .then(btn => {
                btn.click();
-               // window['nova-lock-live-chat'] = false; // unlock
             });
       }
 
@@ -52,8 +47,8 @@ window.nova_plugins.push({
       livechat_visibility_mode: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',
@@ -84,8 +79,8 @@ window.nova_plugins.push({
             },
             {
                label: 'remove', value: 'disable',
-               'label:zh': '消除',
-               'label:ja': '削除',
+               // 'label:zh': '消除',
+               // 'label:ja': '削除',
                // 'label:ko': '제거하다',
                // 'label:vi': '',
                // 'label:id': 'menghapus',

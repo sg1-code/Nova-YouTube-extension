@@ -48,7 +48,10 @@ window.nova_plugins.push({
                ) {
                   // Timer.disable();
                   Timer.disable = true;
-                  // NOVA.showOSD('Auto-like is disable');
+                  // NOVA.showOSD({
+                  //    message: 'Auto-like is disable',
+                  //    source: 'auto-likes',
+                  // });
                }
                else Timer.reset.bind(Timer)
             });
@@ -64,7 +67,10 @@ window.nova_plugins.push({
                   // Timer.disable();
                   Timer.disable = true;
                   setLike();
-                  NOVA.showOSD('Auto-like is activation');
+                  NOVA.showOSD({
+                     message: 'Auto-like is activation',
+                     source: 'auto-likes',
+                  });
                }
                // console.debug('Auto-like timeupdate');
             });
@@ -79,7 +85,10 @@ window.nova_plugins.push({
                if (Timer.disable) return;
                // Timer.disable();
                Timer.disable = true;
-               NOVA.showOSD('Auto-like is deactivated');
+               NOVA.showOSD({
+                  message: 'Auto-like is deactivated',
+                  source: 'auto-likes',
+               });
             });
 
          if (user_settings.auto_likes_for_subscribed) {
@@ -89,7 +98,10 @@ window.nova_plugins.push({
                .then(() => {
                   // Timer.reset();
                   Timer.disable = false;
-                  NOVA.showOSD('Auto-like is enable');
+                  NOVA.showOSD({
+                     message: 'Auto-like is enable',
+                     source: 'auto-likes',
+                  });
                });
          }
 
@@ -158,8 +170,8 @@ window.nova_plugins.push({
       auto_likes_percent: {
          _tagName: 'input',
          label: 'Watch threshold in %',
-         'label:zh': '观察阈值（%）',
-         'label:ja': '監視しきい値 (%)',
+         // 'label:zh': '观察阈值（%）',
+         // 'label:ja': '監視しきい値 (%)',
          // 'label:ko': '감시 임계값(%)',
          // 'label:vi': '',
          // 'label:id': 'Ambang batas tontonan dalam %',
@@ -174,8 +186,8 @@ window.nova_plugins.push({
          type: 'number',
          title: '10-90%',
          title: 'Percentage of views at which a video is liked',
-         'title:zh': '视频在时间进度后被点赞',
-         'title:ja': '時間の経過後にビデオが「いいね！」される',
+         // 'title:zh': '视频在时间进度后被点赞',
+         // 'title:ja': '時間の経過後にビデオが「いいね！」される',
          // 'title:ko': '',
          // 'title:vi': '',
          // 'title:id': '',

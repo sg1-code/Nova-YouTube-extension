@@ -5,8 +5,8 @@ window.nova_plugins.push({
    id: 'playlist-reverse',
    // title: 'Enable reverse playlist control',
    title: 'Add playlist reverse order button',
-   'title:zh': '添加按钮反向播放列表顺序',
-   'title:ja': 'ボタンの逆プレイリストの順序を追加',
+   // 'title:zh': '添加按钮反向播放列表顺序',
+   // 'title:ja': 'ボタンの逆プレイリストの順序を追加',
    // 'title:ko': '버튼 역 재생 목록 순서 추가',
    // 'title:vi': '',
    // 'title:id': 'Tambahkan tombol urutan terbalik daftar putar',
@@ -35,7 +35,7 @@ window.nova_plugins.push({
 
       // init reverseBtn style
       NOVA.css.push(
-         SELECTOR + ` {
+         `${SELECTOR} {
             background: none;
             border: 0;
          }
@@ -58,7 +58,7 @@ window.nova_plugins.push({
       }
 
       NOVA.runOnPageLoad(async () => {
-         if (location.search.includes('list=') && NOVA.currentPage == 'watch') {
+         if (NOVA.currentPage == 'watch' && location.search.includes('list=')) {
             // if (!NOVA.queryURL.has('list')/* || !movie_player?.getPlaylistId()*/) return;
             reverseControl(); // set event
 
@@ -75,8 +75,12 @@ window.nova_plugins.push({
          NOVA.waitSelector('.ytd-page-manager[video-id] #playlist #playlist-action-menu .top-level-buttons:not([hidden]), #secondary #playlist #playlist-action-menu #top-level-buttons-computed', { destroy_after_page_leaving: true })
             .then(el => createButton(el));
 
-         function createButton(container = required()) {
-            if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+         async function createButton(container = required()) {
+            if (!(container instanceof HTMLElement)) {
+               console.error('Container is not an HTMLElement:', container);
+               return;
+            }
+            await NOVA.delay(500);
 
             document.getElementById(SELECTOR_ID)?.remove(); // clear old
 
@@ -103,7 +107,7 @@ window.nova_plugins.push({
             // </yt-icon-button>`);
             // fix - This document requires 'TrustedHTML' assignment.
             reverseBtn.append((function createSvgIcon() {
-               const iconButton = document.createElement('yt-icon-button');
+               const iconBtn = document.createElement('yt-icon-button');
 
                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                svg.setAttribute('viewBox', '0 0 381.399 381.399');
@@ -118,9 +122,9 @@ window.nova_plugins.push({
 
                g.append(path);
                svg.append(g);
-               iconButton.append(svg);
+               iconBtn.append(svg);
 
-               return iconButton;
+               return iconBtn;
             })());
 
             reverseBtn.addEventListener('click', () => {
@@ -144,7 +148,6 @@ window.nova_plugins.push({
             // button visibility state
             document.getElementById('nova-playlist-duration')
                // .remove();
-               // .innerHTML = '&nbsp; [out of reach] &nbsp;';
                .textContent = '';
          }
 
@@ -163,23 +166,20 @@ window.nova_plugins.push({
             && (playlist = data.playlist?.playlist)
             && (autoplay = data.autoplay?.autoplay)
          ) {
-
+            // const { playlist, autoplay } = data;
             playlist.contents.reverse();
 
             playlist.currentIndex = (playlist.totalVideos - playlist.currentIndex) - 1;
             playlist.localCurrentIndex = (playlist.contents.length - playlist.localCurrentIndex) - 1;
 
-            // if ('sets' in autoplay) {
             for (const i of autoplay.sets) {
                i.autoplayVideo = i.previousButtonVideo;
                i.previousButtonVideo = i.nextButtonVideo;
                i.nextButtonVideo = i.autoplayVideo;
             }
-            // }
 
-            // if ('updatePageData_' in ytdWatch)
-            ytdWatch.updatePageData_(data);
-            // }
+            if (ytdWatch.updatePageData_) ytdWatch.updatePageData_(data);
+            else throw new Error('updatePageData_ is ' + updatePageData_);
 
             if ((manager = document.body.querySelector('yt-playlist-manager'))
                // && 'updatePlayerComponents_' in manager
@@ -201,8 +201,9 @@ window.nova_plugins.push({
       //    if (!window.nova_playlistReversed) return;
 
       //    // auto next click
-      //    NOVA.videoElement?.addEventListener('ended', () =>
-      //       window.nova_playlistReversed && movie_player.previousVideo(), { capture: true, once: true });
+      //    NOVA.videoElement?.addEventListener('ended', () => {
+      //       window.nova_playlistReversed && movie_player.previousVideo();
+      //    }, { capture: true, once: true });
 
       //    // update UI
       //    // Solution 1 (JS hack). Emulate scroll
@@ -243,10 +244,10 @@ window.nova_plugins.push({
       //    }
       // }
 
-      function scrollToElement(targetEl = required()) {
-         if (!(targetEl instanceof HTMLElement)) return console.error('targetEl not HTMLElement:', targetEl);
-         const container = targetEl.parentElement;
-         container.scrollTop = targetEl.offsetTop - container.offsetTop;
+      function scrollToElement(target_el = required()) {
+         if (!(target_el instanceof HTMLElement)) return console.error('target_el not HTMLElement:', target_el);
+         const container = target_el.parentElement;
+         container.scrollTop = target_el.offsetTop - container.offsetTop;
       }
 
    },
@@ -254,8 +255,8 @@ window.nova_plugins.push({
       playlist_reverse_auto_enabled: {
          _tagName: 'input',
          label: 'Default enabled state',
-         'label:zh': '默认启用',
-         'label:ja': 'デフォルトで有効になっています',
+         // 'label:zh': '默认启用',
+         // 'label:ja': 'デフォルトで有効になっています',
          // 'label:ko': '기본적으로 활성화됨',
          // 'label:vi': '',
          // 'label:id': '',

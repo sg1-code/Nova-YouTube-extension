@@ -12,8 +12,8 @@
 window.nova_plugins.push({
    id: 'playlist-duration',
    title: 'Show playlist duration',
-   'title:zh': '显示播放列表持续时间',
-   'title:ja': 'プレイリストの期間を表示',
+   // 'title:zh': '显示播放列表持续时间',
+   // 'title:ja': 'プレイリストの期間を表示',
    // 'title:ko': '재생목록 재생시간 표시',
    // 'title:vi': '',
    // 'title:id': 'Tampilkan durasi daftar putar',
@@ -73,11 +73,12 @@ window.nova_plugins.push({
                   }
 
                   function getPlaylistDuration() {
-                     // if (storage = sessionStorage.getItem(STORE_NAME)) {
+                     // if (window?.sessionStorage && (storage = sessionStorage.getItem(STORE_NAME))) {
                      //    // console.debug(`get from cache [${CACHE_PREFIX + playlistId}]`, storage);
                      //    return storage;
                      // }
 
+                     // document.body.querySelector('yt-playlist-manager')?.polymerController?
                      const vids_list = (document.body.querySelector('ytd-app')?.data?.response || window.ytInitialData)
                         .contents.twoColumnBrowseResultsRenderer
                         ?.tabs[0].tabRenderer?.content?.sectionListRenderer
@@ -103,7 +104,7 @@ window.nova_plugins.push({
                         playlistLength = movie_player.getPlaylist()?.length, // || document.body.querySelector('ytd-player')?.player_?.getPlaylist()?.length,
                         playlistList = document.body.querySelector('yt-playlist-manager')?.currentPlaylistData_?.contents
                            .filter(e => e.playlistPanelVideoRenderer?.lengthText?.simpleText)
-                           .map(e => NOVA.formatTimeOut.hmsToSec(e.playlistPanelVideoRenderer.lengthText.simpleText));
+                           .map(e => NOVA.formatTime.hmsToSec(e.playlistPanelVideoRenderer.lengthText.simpleText));
 
                      console.assert(playlistList?.length === playlistLength, 'playlist loading:', playlistList?.length + '/' + playlistLength);
 
@@ -137,7 +138,7 @@ window.nova_plugins.push({
                   //       playlistLength = movie_player.getPlaylist()?.length, // || document.body.querySelector('ytd-player')?.player_?.getPlaylist()?.length,
                   //       playlistList = document.body.querySelector('yt-playlist-manager')?.currentPlaylistData_?.contents
                   //          .filter(e => e.playlistPanelVideoRenderer?.lengthText?.simpleText)
-                  //          .map(e => NOVA.formatTimeOut.hmsToSec(e.playlistPanelVideoRenderer.lengthText.simpleText));
+                  //          .map(e => NOVA.formatTime.hmsToSec(e.playlistPanelVideoRenderer.lengthText.simpleText));
 
                   //    console.assert(playlistList?.length === playlistLength, 'playlist loading:', playlistList?.length + '/' + playlistLength);
 
@@ -210,7 +211,7 @@ window.nova_plugins.push({
          function getTotalTime(nodes) {
             // console.debug('getTotalTime', ...arguments);
             const arr = [...nodes]
-               .map(e => NOVA.formatTimeOut.hmsToSec(e.textContent))
+               .map(e => NOVA.formatTime.hmsToSec(e.textContent))
                .filter(Number); // filter PREMIERE
 
             return arr.length && arr.reduce((acc, time) => acc + +time, 0);
@@ -218,9 +219,9 @@ window.nova_plugins.push({
          // function getTotalTime(nodes) {
          //    // console.debug('getTotalTime', ...arguments);
          //    return [...nodes]
-         //       // .map(e => NOVA.formatTimeOut.hmsToSec(e.textContent))
+         //       // .map(e => NOVA.formatTime.hmsToSec(e.textContent))
          //       // .filter(t => !isNaN(+t)) // filter PREMIERE
-         //       .flatMap(e => NOVA.formatTimeOut.hmsToSec(e.textContent) || [])
+         //       .flatMap(e => NOVA.formatTime.hmsToSec(e.textContent) || [])
          //       .reduce((acc, time) => acc + time, 0);
          // }
       }
@@ -229,7 +230,7 @@ window.nova_plugins.push({
          // console.debug('outFormat', ...arguments);
          let outArr = [
             // time
-            NOVA.formatTimeOut.HMS.digit(
+            NOVA.formatTime.HMS.digit(
                (NOVA.currentPage == 'watch' && NOVA.videoElement?.playbackRate)
                   ? (duration / NOVA.videoElement.playbackRate)
                   : duration
@@ -248,7 +249,10 @@ window.nova_plugins.push({
 
       function insertToHTML({ text = '', container = required() }) {
          // console.debug('insertToHTML', ...arguments);
-         if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+         if (!(container instanceof HTMLElement)) {
+            console.error('Container is not an HTMLElement:', container);
+            return;
+         }
 
          // (document.getElementById(SELECTOR_ID) || (function () { // for 1 pages
          (container.querySelector(`#${SELECTOR_ID}`) || (function () { // for 2 parallel pages - playlist, watch
@@ -264,7 +268,7 @@ window.nova_plugins.push({
          })())
             .textContent = ' ' + text;
 
-         // sessionStorage.setItem(STORE_NAME, text); // save in sessionStorage
+         // if (window?.sessionStorage) sessionStorage.setItem(STORE_NAME, text); // save in sessionStorage
       }
 
    },
@@ -272,8 +276,8 @@ window.nova_plugins.push({
       playlist_duration_progress_type: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',
@@ -286,8 +290,8 @@ window.nova_plugins.push({
          'label:pl': 'Tryb',
          // 'label:ua': 'Режим',
          label: 'Time display mode',
-         'title:zh': '时间显示方式',
-         'title:ja': '時間表示モード',
+         // 'title:zh': '时间显示方式',
+         // 'title:ja': '時間表示モード',
          // 'title:ko': '시간 표시 모드',
          // 'title:vi': '',
          // 'title:id': 'Mode tampilan waktu',
@@ -302,8 +306,8 @@ window.nova_plugins.push({
          options: [
             {
                label: 'done', value: 'done',
-               'label:zh': '结束',
-               'label:ja': '終わり',
+               // 'label:zh': '结束',
+               // 'label:ja': '終わり',
                // 'label:ko': '보았다',
                // 'label:vi': '',
                // 'label:id': '',
@@ -318,8 +322,8 @@ window.nova_plugins.push({
             },
             {
                label: 'left', value: 'left',
-               'label:zh': '剩下',
-               'label:ja': '残り',
+               // 'label:zh': '剩下',
+               // 'label:ja': '残り',
                // 'label:ko': '왼쪽',
                // 'label:vi': '',
                // 'label:id': '',
@@ -334,8 +338,8 @@ window.nova_plugins.push({
             },
             {
                label: 'total', value: false, selected: true,
-               'label:zh': '全部的',
-               'label:ja': '全て',
+               // 'label:zh': '全部的',
+               // 'label:ja': '全て',
                // 'label:ko': '총',
                // 'label:vi': '',
                // 'label:id': '',
@@ -354,8 +358,8 @@ window.nova_plugins.push({
          _tagName: 'input',
          // label: 'Add percentage',
          label: 'Add %',
-         'label:zh': '显示百分比',
-         'label:ja': 'パーセンテージを表示',
+         // 'label:zh': '显示百分比',
+         // 'label:ja': 'パーセンテージを表示',
          // 'label:ko': '백분율 추가',
          // 'label:vi': '',
          // 'label:id': 'Tambahkan persentase',

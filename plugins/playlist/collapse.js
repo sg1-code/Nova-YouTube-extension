@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'playlist-collapse',
    title: 'Collapse playlist',
-   'title:zh': '播放列表自动折叠',
-   'title:ja': 'プレイリストの自動折りたたみ',
+   // 'title:zh': '播放列表自动折叠',
+   // 'title:ja': 'プレイリストの自動折りたたみ',
    // 'title:ko': '재생목록 자동 축소',
    // 'title:vi': '',
    // 'title:id': 'Penciutan otomatis daftar putar',

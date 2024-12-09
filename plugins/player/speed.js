@@ -11,8 +11,8 @@
 window.nova_plugins.push({
    id: 'video-rate',
    title: 'Playback speed',
-   'title:zh': '播放速度控制',
-   'title:ja': '再生速度制御',
+   // 'title:zh': '播放速度控制',
+   // 'title:ja': '再生速度制御',
    // 'title:ko': '재생 속도 제어',
    // 'title:vi': '',
    // 'title:id': 'Kontrol kecepatan pemutaran',
@@ -56,6 +56,8 @@ window.nova_plugins.push({
       // alt4 (mobile) - https://greasyfork.org/en/scripts/477218-m-youtube-com-more-playback-speeds
       // alt5 - https://greasyfork.org/en/scripts/485372-youtube-com-video-speed-buttons
 
+      // alt - https://greasyfork.org/en/scripts/503771-youtube-remember-speed
+
       // NOVA.waitSelector('#movie_player')
       //    .then(movie_player => {
       //       // trigger default indicator
@@ -65,23 +67,61 @@ window.nova_plugins.push({
       //       });
       //    });
 
-      if (user_settings.rate_overlay_time && +user_settings.rate_default !== 1) {
-         reCalcOverlayTime();
+      if (user_settings.rate_overlay_time && +user_settings.rate_default !== 1 && window?.localStorage) {
+         let channelsSpeed = user_settings['save-channel-state'] && JSON.parse(localStorage.getItem(NOVA.storage_obj_manager.STORAGE_NAME_SPEED)); // { @channelA: 1.25, @channelB ... }
+
+         // set a channel speed correction data
+         if (user_settings['save-channel-state']
+            && !channelsSpeed
+            && NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed'
+         ) {
+            if (customChannels = JSON.parse(localStorage.getItem(NOVA.storage_obj_manager.STORAGE_NAME))) {
+               const channelIds = Object.keys(customChannels);
+
+               // https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelIds.join(',')}&key=${apiKey}
+               NOVA.request.API({
+                  request: 'channels',
+                  params: {
+                     part: 'snippet',
+                     id: channelIds.join(','),
+                  },
+                  api_key: user_settings['user-api-key'],
+               })
+                  .then(res => {
+                     let newStorage = {};
+                     res.items?.forEach(item => {
+                        const channelSpeedData = customChannels[item.id]?.speed;
+                        if (channelSpeedData) newStorage[item.snippet.customUrl.toLowerCase()] = channelSpeedData;
+                     });
+                     channelsSpeed = newStorage;
+                     localStorage.setItem(NOVA.storage_obj_manager.STORAGE_NAME_SPEED, JSON.stringify(newStorage));
+
+                     reCalcOverlayTime(newStorage); // fix initial on channelsSpeed is empty
+                  })
+            }
+         }
+         else {
+            reCalcOverlayTime(channelsSpeed);
+         }
       }
 
       NOVA.waitSelector('#movie_player video')
          .then(video => {
             const sliderContainer = insertSlider.apply(video);
-            // console.debug('sliderContainer', sliderContainer);
 
             // trigger default indicator
             // Solution 2
             video.addEventListener('ratechange', function () {
                // console.debug('ratechange', movie_player.getPlaybackRate(), this.playbackRate);
-               NOVA.showOSD(this.playbackRate + 'x');
+               NOVA.showOSD({
+                  message: this.playbackRate + 'x',
+                  ui_value: this.playbackRate,
+                  ui_max: +user_settings.rate_max || 2,
+                  source: 'rate',
+               });
 
                // slider update
-               if (Object.keys(sliderContainer).length) {
+               if (user_settings.rate_slider && Object.keys(sliderContainer).length) {
                   sliderContainer.slider.value = this.playbackRate;
                   sliderContainer.slider.title = `Speed (${this.playbackRate})`;
                   sliderContainer.sliderLabel.textContent = `Speed (${this.playbackRate})`;
@@ -93,7 +133,7 @@ window.nova_plugins.push({
 
             video.addEventListener('loadeddata', setDefaultRate); // update
 
-            if (Object.keys(sliderContainer).length) {
+            if (user_settings.rate_slider && Object.keys(sliderContainer).length) {
                sliderContainer.slider.addEventListener('input', ({ target }) => playerRate.set(target.value));
                sliderContainer.slider.addEventListener('change', ({ target }) => playerRate.set(target.value));
                sliderContainer.slider.addEventListener('wheel', evt => {
@@ -109,15 +149,15 @@ window.nova_plugins.push({
             // NOVA.runOnPageLoad(() => (NOVA.currentPage == 'watch') && expandAvailableRatesMenu());
 
             NOVA.runOnPageLoad(async () => {
+               if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
+
                // alt - https://greasyfork.org/en/scripts/27091-youtube-speed-rememberer
-               if (NOVA.currentPage == 'watch' || NOVA.currentPage == 'embed') {
-                  // custom speed from [save-channel-state] plugin
-                  if (user_settings['save-channel-state'] && (customRate = await NOVA.storage_obj_manager.getParam('speed'))) {
-                     video.addEventListener('playing', () => playerRate.set(customRate), { capture: true, once: true });
-                  }
-                  // expand memu
-                  expandAvailableRatesMenu();
+               // custom speed from [save-channel-state] plugin
+               if (user_settings['save-channel-state'] && (customRate = await NOVA.storage_obj_manager.getParam('speed'))) {
+                  video.addEventListener('playing', () => playerRate.set(customRate), { capture: true, once: true });
                }
+               // expand memu
+               expandAvailableRatesMenu();
             });
 
          });
@@ -131,11 +171,8 @@ window.nova_plugins.push({
       if (user_settings.rate_hotkey == 'keyboard') {
          document.addEventListener('keydown', evt => {
             if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
-
-            // movie_player.contains(document.activeElement) // don't use! stay overline
-            if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
+            if (NOVA.editableFocused(evt.target)) return;
             if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
-            // console.debug('evt.code', evt.code);
 
             let delta;
             switch (user_settings.rate_hotkey_custom_up.length === 1 ? evt.key : evt.code) {
@@ -144,7 +181,7 @@ window.nova_plugins.push({
             }
             if (delta) {
                evt.preventDefault();
-               // evt.stopPropagation();
+               evt.stopPropagation();
                // evt.stopImmediatePropagation();
 
                if (step = +user_settings.rate_step * Math.sign(delta)) {
@@ -162,10 +199,11 @@ window.nova_plugins.push({
                container.addEventListener('wheel', evt => {
                   evt.preventDefault();
 
-                  if (evt[user_settings.rate_hotkey] || (user_settings.rate_hotkey == 'none'
-                     && !evt.ctrlKey && !evt.altKey && !evt.shiftKey && !evt.metaKey)
+                  if (evt[user_settings.rate_hotkey]
+                     || (user_settings.rate_hotkey == 'wheel' && !evt.ctrlKey && !evt.altKey && !evt.shiftKey && !evt.metaKey)
                   ) {
-                     if (step = +user_settings.rate_step * Math.sign(evt.wheelDelta)) {
+                     const step = +user_settings.rate_step * Math.sign(evt.wheelDelta);
+                     if (step) {
                         const rate = playerRate.adjust(step);
                         // console.debug('current rate:', rate);
                      }
@@ -179,22 +217,22 @@ window.nova_plugins.push({
       if (+user_settings.rate_default !== 1 && user_settings.rate_apply_music) {
          // 'Official Artist' badge
          NOVA.waitSelector('#upload-info #channel-name .badge-style-type-verified-artist')
-            .then(icon => playerRate.set(1));
+            .then(() => playerRate.set(1));
 
          NOVA.waitSelector('#upload-info #channel-name a[href]', { destroy_after_page_leaving: true })
-            .then(channelName => {
-               // channelNameVEVO
-               if (/(VEVO|Topic|Records|AMV)$/.test(channelName.textContent)
-                  || channelName.textContent.toUpperCase().includes('MUSIC')
+            .then(channel_name => {
+               // channel_nameVEVO
+               if (/(VEVO|Topic|Records|AMV)$/.test(channel_name.textContent)
+                  || channel_name.textContent.toUpperCase().includes('MUSIC')
                ) {
                   playerRate.set(1);
                }
-               // channelNameRecords:
+               // channel_nameRecords:
                // https://www.youtube.com/channel/UCQnWm_Nnn35u3QGVkcAf87Q
                // https://www.youtube.com/channel/UCpDJl2EmP7Oh90Vylx0dZtA
                // https://www.youtube.com/channel/UCC7ElkFVK3m03gEMfaq6Ung
-               // channelNameAMV - https://www.youtube.com/channel/UCtrt9u1luNTxXFDuYIoK2FA
-               // special case channelNameLyrics - https://www.youtube.com/channel/UCK9HbSctHJ8n-aZmJsGD7_w
+               // channel_nameAMV - https://www.youtube.com/channel/UCtrt9u1luNTxXFDuYIoK2FA
+               // special case channel_nameLyrics - https://www.youtube.com/channel/UCK9HbSctHJ8n-aZmJsGD7_w
             });
       }
 
@@ -297,6 +335,8 @@ window.nova_plugins.push({
          },
 
          saveInSession(level = required()) {
+            if (!window?.sessionStorage) return;
+
             try {
                // https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API/Using
                sessionStorage['yt-player-playback-rate'] = JSON.stringify({
@@ -311,6 +351,8 @@ window.nova_plugins.push({
          },
 
          clearInSession() {
+            if (!window?.sessionStorage) return;
+
             const keyName = 'yt-player-playback-rate';
             try {
                // https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API/Using
@@ -335,7 +377,7 @@ window.nova_plugins.push({
          // init rate_default
          // console.debug('setDefaultRate', +user_settings.rate_default, user_settings.rate_apply_music, isMusic());
          if (+user_settings.rate_default !== 1) {
-            const is_music = NOVA.isMusic();
+            const is_music = NOVA.isMusic(user_settings.rate_apply_music == 'expanded');
             // console.debug('isMusic', is_music);
             if (this.playbackRate !== +user_settings.rate_default
                && (!user_settings.rate_apply_music || !is_music)
@@ -357,6 +399,8 @@ window.nova_plugins.push({
       // alt3 - https://greasyfork.org/en/scripts/470633-ytspeed
       // alt4 - https://greasyfork.org/en/scripts/483341-speed
       function insertSlider() {
+         if (!user_settings.rate_slider) return;
+
          const
             SELECTOR_ID = 'nova-rate-slider-menu',
             SELECTOR = '#' + SELECTOR_ID; // for css
@@ -464,6 +508,7 @@ window.nova_plugins.push({
       //    return out;
       // }
 
+      // alt - https://greasyfork.org/en/scripts/507200-youtube-4x-speed
       function expandAvailableRatesMenu() {
          if (typeof _yt_player !== 'object') {
             return console.error('expandAvailableRatesMenu > _yt_player is empty', _yt_player);
@@ -524,18 +569,31 @@ window.nova_plugins.push({
 
       }
 
-      function reCalcOverlayTime() {
+      function reCalcOverlayTime(channels_speed) {
          const
-            ATTR_MARK = 'nova-thumb-overlay-time-recalc';
+            ATTR_MARK = 'nova-thumb-overlay-time-recalc',
+            thumbsSelectors = [
+               'ytd-rich-item-renderer', // home, channel, feed
+               'ytd-video-renderer', // results, feed (list)
+               'ytd-playlist-renderer', // results
+               // 'ytd-grid-video-renderer', // feed (old)
+               'ytd-compact-video-renderer', // sidepanel in watch
+               'yt-append-continuation-items-action', // adding a sidebar in watch
+               'ytm-compact-video-renderer', // mobile /results page (ytm-rich-item-renderer)
+               'ytm-item-section-renderer' // mobile /subscriptions page
+            ]
+               .join(',');
+
          // insert "⚡" icon
          NOVA.css.push(
             `#thumbnail #overlays [${ATTR_MARK}]:not(:empty):before { content: '⚡'; }`);
 
          // Solution 1 (HTML5). page update event
-         document.addEventListener('scrollend', function self() {
-            if (typeof self.timeout === 'number') clearTimeout(self.timeout);
-            self.timeout = setTimeout(reCalc, 50); // 50ms
+         document.addEventListener('scroll', () => {
+            requestAnimationFrame(reCalc);
          });
+
+         document.addEventListener('visibilitychange', () => !document.hidden && reCalc());
 
          // Solution 2 (API). page update event
          document.addEventListener('yt-action', evt => {
@@ -543,10 +601,11 @@ window.nova_plugins.push({
             switch (evt.detail?.actionName) {
                case 'yt-append-continuation-items-action': // home, results, feed, channel, watch
                case 'ytd-update-grid-state-action': // feed, channel
+               // case 'yt-rich-grid-layout-refreshed': // feed. Warning! loads too early
                case 'yt-service-request': // results, watch
                case 'ytd-rich-item-index-update-action': // home, channel
-                  // case 'yt-rich-grid-layout-refreshed': // channel
 
+                  // console.debug(evt.detail?.actionName); // flltered
                   reCalc();
                   break;
             }
@@ -564,20 +623,24 @@ window.nova_plugins.push({
                   // document.body.querySelectorAll(`#thumbnail #overlays #text:not([${ATTR_MARK}])`)
                   document.body.querySelectorAll(`#thumbnail #overlays ytd-thumbnail-overlay-time-status-renderer .badge-shape-wiz__text:not([${ATTR_MARK}])`)
                      .forEach(overlay => {
-                        if ((timeLabelEl = overlay.textContent.trim())
-                           && timeLabelEl.includes(':')// has digit time
-                        ) {
+                        const channelURLName = overlay.closest(thumbsSelectors)
+                           ?.querySelector('#channel-name a[href]')?.href
+                           ?.split('/')?.pop()?.toLowerCase();
+                        const rate = channels_speed?.[channelURLName] || user_settings.rate_default;
+
+                        // if (channels_speed[channelURLName])
+                        //    console.debug('channels_speed[%s]:%s', channelURLName, channels_speed[channelURLName]);
+
+                        const timeLabelEl = overlay.textContent.trim();
+                        if (timeLabelEl?.includes(':')) { // has digit time
                            overlay.setAttribute(ATTR_MARK, true); // mark
                            // overlay.style.border = '2px solid orange'; // mark for test
                            // if (timeLabelEl.includes(':')) return;
-                           const timeSec = NOVA.formatTimeOut.hmsToSec(timeLabelEl);
-                           overlay.textContent = NOVA.formatTimeOut.HMS.digit(timeSec / user_settings.rate_default);
+                           const timeSec = NOVA.formatTime.hmsToSec(timeLabelEl);
+                           overlay.textContent = NOVA.formatTime.HMS.digit(timeSec / rate);
                         }
                      });
                   break;
-
-               // default:
-               //    break;
             }
          }
       }
@@ -589,8 +652,8 @@ window.nova_plugins.push({
          // label: 'Default rate',
          // label: 'Speed at startup',
          label: 'Default speed',
-         'label:zh': '启动速度',
-         'label:ja': '起動時の速度',
+         // 'label:zh': '启动速度',
+         // 'label:ja': '起動時の速度',
          // 'label:ko': '시작 시 속도',
          // 'label:vi': '',
          // 'label:id': 'Kecepatan saat startup',
@@ -608,6 +671,40 @@ window.nova_plugins.push({
          min: 1,
          max: 5, // rate_max
          value: 1,
+      },
+      rate_overlay_time: {
+         _tagName: 'input',
+         label: 'Recalculate time in thumbnail',
+         // 'label:zh': '',
+         // 'label:ja': '',
+         // 'label:ko': '',
+         // 'label:vi': '',
+         // 'label:id': '',
+         // 'label:es': '',
+         // 'label:pt': '',
+         // 'label:fr': '',
+         // 'label:it': '',
+         // 'label:tr': '',
+         // 'label:de': '',
+         // 'label:pl': '',
+         // 'label:ua': '',
+         type: 'checkbox',
+         title: 'by "startup" value',
+         // 'title:zh': '',
+         // 'title:ja': '',
+         // 'title:ko': '',
+         // 'title:vi': '',
+         // 'title:id': '',
+         // 'title:es': '',
+         // 'title:pt': '',
+         // 'title:fr': '',
+         // 'title:it': '',
+         // 'title:tr': '',
+         // 'title:de': '',
+         // 'title:pl': '',
+         // 'title:ua': '',
+         'data-dependent': { 'rate_default': '!1' },
+         opt_api_key_warn: true,
       },
       rate_apply_music: {
          _tagName: 'select',
@@ -656,21 +753,21 @@ window.nova_plugins.push({
                // 'label:pl': 'tęsknić',
                // 'label:ua': 'пропустити',
             },
-            // {
-            //    label: 'skip (extended)', value: 'expanded',
-            //    'label:zh': '跳过（扩展检测）',
-            //    'label:ja': 'スキップ（拡張検出）',
-            //    'label:ko': '건너뛰다(확장)',
-            //    'label:id': 'lewati (diperpanjang)',
-            //    'label:es': 'omitir (extendida)',
-            //    // 'label:pt': 'pular (estendido)',
-            //    // 'label:fr': 'sauter (étendu)',
-            //    'label:it': 'salta (esteso)',
-            //    // 'label:tr': 'atlamak (genişletilmiş)',
-            //    // 'label:de': 'überspringen (erweitert)',
-            //    'label:pl': 'pomiń (rozszerzony)',
-            //    // 'label:ua': 'пропустити (розширено)',
-            // },
+            {
+               label: 'ignore (extended)', value: 'expanded',
+               // 'label:zh': '跳过（扩展检测）',
+               // 'label:ja': 'スキップ（拡張検出）',
+               // 'label:ko': '건너뛰다(확장)',
+               // 'label:id': 'lewati (diperpanjang)',
+               // 'label:es': 'omitir (extendida)',
+               // 'label:pt': 'pular (estendido)',
+               // 'label:fr': 'sauter (étendu)',
+               // 'label:it': 'salta (esteso)',
+               // 'label:tr': 'atlamak (genişletilmiş)',
+               // 'label:de': 'überspringen (erweitert)',
+               // 'label:pl': 'pomiń (rozszerzony)',
+               // 'label:ua': 'пропустити (розширено)',
+            },
             {
                label: 'apply', value: false,
                // 'label:zh': '施力',
@@ -690,44 +787,11 @@ window.nova_plugins.push({
          ],
          'data-dependent': { 'rate_default': '!1' },
       },
-      rate_overlay_time: {
-         _tagName: 'input',
-         label: 'Recalculate time in thumbnail overlay',
-         // 'label:zh': '',
-         // 'label:ja': '',
-         // 'label:ko': '',
-         // 'label:vi': '',
-         // 'label:id': '',
-         // 'label:es': '',
-         // 'label:pt': '',
-         // 'label:fr': '',
-         // 'label:it': '',
-         // 'label:tr': '',
-         // 'label:de': '',
-         // 'label:pl': '',
-         // 'label:ua': '',
-         type: 'checkbox',
-         title: 'by "startup" value',
-         // 'title:zh': '',
-         // 'title:ja': '',
-         // 'title:ko': '',
-         // 'title:vi': '',
-         // 'title:id': '',
-         // 'title:es': '',
-         // 'title:pt': '',
-         // 'title:fr': '',
-         // 'title:it': '',
-         // 'title:tr': '',
-         // 'title:de': '',
-         // 'title:pl': '',
-         // 'title:ua': '',
-         'data-dependent': { 'rate_default': '!1' },
-      },
       rate_hotkey: {
          _tagName: 'select',
          label: 'Hotkey',
-         'label:zh': '热键',
-         'label:ja': 'ホットキー',
+         // 'label:zh': '热键',
+         // 'label:ja': 'ホットキー',
          // 'label:ko': '단축키',
          // 'label:vi': '',
          // 'label:id': 'Tombol pintas',
@@ -745,7 +809,7 @@ window.nova_plugins.push({
             { label: 'alt+wheel', value: 'altKey', selected: true },
             { label: 'shift+wheel', value: 'shiftKey' },
             { label: 'ctrl+wheel', value: 'ctrlKey' },
-            { label: 'wheel', value: 'none' },
+            { label: 'wheel', value: 'wheel' },
             { label: 'keyboard', value: 'keyboard' },
          ],
       },
@@ -904,8 +968,8 @@ window.nova_plugins.push({
       rate_step: {
          _tagName: 'input',
          label: 'Hotkey step',
-         'label:zh': '步',
-         'label:ja': 'ステップ',
+         // 'label:zh': '步',
+         // 'label:ja': 'ステップ',
          // 'label:ko': '단계',
          // 'label:vi': '',
          // 'label:id': 'Melangkah',
@@ -976,6 +1040,38 @@ window.nova_plugins.push({
          max: 5, // rate_default
          value: 2,
          'data-dependent': { 'rate_hotkey': ['!false'] },
+      },
+      rate_slider: {
+         _tagName: 'input',
+         label: 'Show slider',
+         // 'label:zh': '',
+         // 'label:ja': '',
+         // 'label:ko': '',
+         // 'label:vi': '',
+         // 'label:id': '',
+         // 'label:es': '',
+         // 'label:pt': '',
+         // 'label:fr': '',
+         // 'label:it': '',
+         // 'label:tr': '',
+         // 'label:de': '',
+         // 'label:pl': '',
+         // 'label:ua': '',
+         type: 'checkbox',
+         title: 'in "gear" dropdown menu',
+         // 'title:zh': '',
+         // 'title:ja': '',
+         // 'title:ko': '',
+         // 'title:vi': '',
+         // 'title:id': '',
+         // 'title:es': '',
+         // 'title:pt': '',
+         // 'title:fr': '',
+         // 'title:it': '',
+         // 'title:tr': '',
+         // 'title:de': '',
+         // 'title:pl': '',
+         // 'title:ua': '',
       },
    }
 });

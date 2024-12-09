@@ -2,8 +2,8 @@ window.nova_plugins.push({
    id: 'save-channel-state',
    // title: 'Save for specific channel',
    title: 'Add button "Save params for the channel"',
-   'title:zh': '특정 채널에 저장',
-   'title:ja': '特定のチャンネル用に保存',
+   // 'title:zh': '특정 채널에 저장',
+   // 'title:ja': '特定のチャンネル用に保存',
    // 'title:ko': '특정 채널에 저장',
    // 'title:vi': '',
    // 'title:id': 'Simpan untuk saluran tertentu',
@@ -16,7 +16,7 @@ window.nova_plugins.push({
    'title:pl': 'Zapisz dla określonego kanału',
    // 'title:ua': 'Зберегти для конкретного каналу',
    run_on_pages: 'watch, embed',
-   section: 'control-panel',
+   section: 'player-control',
    // desc: '',
    _runtime: user_settings => {
 
@@ -29,6 +29,9 @@ window.nova_plugins.push({
          There isn't currently, but it's easy to copy it over yourself. Press F12 and open Local Storage. In Chrome it's under "Application", expand "Local storage" on the left and select "https://www.youtube.com". In Firefox it's in the "Storage" tab.
          Search for "nova" and you should see "nova-channels-state". Just copy the value from there, move it to the other PC and paste it into the same SELECTOR_BTN_ID entry.
       */
+
+      // fix - Failed to read the 'localStorage' property from 'Window': Access is denied for this document.
+      if (!window?.localStorage) return;
 
       const
          // container <a>
@@ -48,72 +51,76 @@ window.nova_plugins.push({
             initStyles();
 
             NOVA.runOnPageLoad(async () => {
-               if (NOVA.currentPage == 'watch' || NOVA.currentPage == 'embed') {
-                  // init storage
-                  await NOVA.storage_obj_manager.initStorage();
-                  // const
-                  //    CACHE_PREFIX = 'nova-channels-state:',
-                  //    channelId = NOVA.getChannelId(user_settings['user-api-key']);
-                  // // init storage
-                  // NOVA.storage_obj_manager.STORAGE_NAME = CACHE_PREFIX + channelId;
+               if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
 
-                  if (btn = document.getElementById(SELECTOR_BTN_ID)) {
-                     btn.append(genList());
-                  }
-                  else {
-                     const btn = document.createElement('button');
-                     btn.id = SELECTOR_BTN_ID;
-                     btn.classList.add('ytp-button', SELECTOR_BTN_CLASS_NAME);
-                     // empty opacity
-                     // if (!NOVA.storage_obj_manager.read()) {
-                     //    btn.style.opacity = .5;
-                     // }
-                     // btn.style.minWidth = getComputedStyle(container).width || '48px';
-                     btn.title = 'Save channel state';
-                     // btnPopup.setAttribute('aria-label','');
-                     // btn.textContent = `save`;
+               // init storage
+               await NOVA.storage_obj_manager.initStorage();
+               // const
+               //    CACHE_PREFIX = 'nova-channels-state:',
+               //    channelId = NOVA.getChannelId(user_settings['user-api-key']);
+               // // init storage
+               // NOVA.storage_obj_manager.STORAGE_NAME = CACHE_PREFIX + channelId;
 
-                     const btnTitle = document.createElement('span');
-                     btnTitle.id = SELECTOR_BTN_TITLE_ID;
-                     btnTitle.style.display = 'flex';
-                     // btnTitle.innerHTML = NOVA.createSafeHTML(
-                     //    `<svg width="100%" height="100%" viewBox="0 0 36 36">
-                     //       <g fill="currentColor">
-                     //          <path d="M23.4 24.2c-.3.8-1.1 1.4-2 1.4-.9 0-1.7-.6-2-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.5 2.1-1.5s1.8.6 2.1 1.5h3.2c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.4zm-7.7-5.3c-.3.9-1.1 1.5-2.1 1.5s-1.8-.6-2.1-1.5H9.3c-.3 0-.6-.3-.6-.6V18c0-.3.3-.6.6-.6h2.2c.3-.8 1.1-1.4 2.1-1.4s1.8.6 2.1 1.4h11.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6H15.7zm7.9-5.4c-.3.8-1.1 1.4-2.1 1.4-.9 0-1.7-.6-2.1-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.6 2.1-1.6s1.9.7 2.1 1.6h3.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.1z" />
-                     //       </g>
-                     //    </svg>`;
-                     // `<svg width="100%" height="100%" viewBox="-300 -300 1000 1000">
-                     //    <g fill="currentColor">
-                     //       <path d="M388.49,0H0.022v453.03h452.986V64.561L388.49,0z M385.017,221.834H110.68V25.691h274.337V221.834z"/>
-                     //       <rect x="272.568" y="46.701" width="80.718" height="154.102" />
-                     //    </g>
-                     // </svg>`);
-                     // fix - This document requires 'TrustedHTML' assignment.
-                     btnTitle.append((function createSvgIcon() {
-                        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                        svg.setAttribute('width', '100%');
-                        svg.setAttribute('height', '100%');
-                        svg.setAttribute('viewBox', '0 0 36 36');
-
-                        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-                        g.setAttribute('fill', 'currentColor');
-
-                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                        path.setAttribute('d', 'M23.4 24.2c-.3.8-1.1 1.4-2 1.4-.9 0-1.7-.6-2-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.5 2.1-1.5s1.8.6 2.1 1.5h3.2c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.4zm-7.7-5.3c-.3.9-1.1 1.5-2.1 1.5s-1.8-.6-2.1-1.5H9.3c-.3 0-.6-.3-.6-.6V18c0-.3.3-.6.6-.6h2.2c.3-.8 1.1-1.4 2.1-1.4s1.8.6 2.1 1.4h11.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6H15.7zm7.9-5.4c-.3.8-1.1 1.4-2.1 1.4-.9 0-1.7-.6-2.1-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.6 2.1-1.6s1.9.7 2.1 1.6h3.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.1z');
-
-                        g.append(path);
-                        svg.append(g);
-
-                        return svg;
-                     })());
-
-                     btn.prepend(btnTitle);
-                     btn.append(genList());
-                     // container.after(btn);
-                     container.prepend(btn);
-                  }
-                  btnTitleStateUpdate(Boolean(NOVA.storage_obj_manager.read()));
+               if (btn = document.getElementById(SELECTOR_BTN_ID)) {
+                  btn.append(genList());
                }
+               else {
+                  const btn = document.createElement('button');
+                  btn.id = SELECTOR_BTN_ID;
+                  btn.classList.add('ytp-button');
+                  // collapse in menu
+                  if (!user_settings.player_buttons_custom_autohide
+                     || (user_settings.player_buttons_custom_autohide && !Boolean(NOVA.storage_obj_manager.read()))) {
+                     btn.classList.add(SELECTOR_BTN_CLASS_NAME);
+                  }
+                  // empty opacity
+                  // if (!NOVA.storage_obj_manager.read()) {
+                  //    btn.style.opacity = .5;
+                  // }
+                  // btn.style.minWidth = getComputedStyle(container).width || '48px';
+                  btn.title = 'Save channel state';
+                  // btnPopup.setAttribute('aria-label','');
+                  // btn.textContent = `save`;
+
+                  const btnTitle = document.createElement('span');
+                  btnTitle.id = SELECTOR_BTN_TITLE_ID;
+                  btnTitle.style.display = 'flex';
+                  // btnTitle.innerHTML = NOVA.createSafeHTML(
+                  //    `<svg width="100%" height="100%" viewBox="0 0 36 36">
+                  //       <g fill="currentColor">
+                  //          <path d="M23.4 24.2c-.3.8-1.1 1.4-2 1.4-.9 0-1.7-.6-2-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.5 2.1-1.5s1.8.6 2.1 1.5h3.2c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.4zm-7.7-5.3c-.3.9-1.1 1.5-2.1 1.5s-1.8-.6-2.1-1.5H9.3c-.3 0-.6-.3-.6-.6V18c0-.3.3-.6.6-.6h2.2c.3-.8 1.1-1.4 2.1-1.4s1.8.6 2.1 1.4h11.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6H15.7zm7.9-5.4c-.3.8-1.1 1.4-2.1 1.4-.9 0-1.7-.6-2.1-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.6 2.1-1.6s1.9.7 2.1 1.6h3.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.1z" />
+                  //       </g>
+                  //    </svg>`;
+                  // `<svg width="100%" height="100%" viewBox="-300 -300 1000 1000">
+                  //    <g fill="currentColor">
+                  //       <path d="M388.49,0H0.022v453.03h452.986V64.561L388.49,0z M385.017,221.834H110.68V25.691h274.337V221.834z"/>
+                  //       <rect x="272.568" y="46.701" width="80.718" height="154.102" />
+                  //    </g>
+                  // </svg>`);
+                  // fix - This document requires 'TrustedHTML' assignment.
+                  btnTitle.append((function createSvgIcon() {
+                     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                     svg.setAttribute('width', '100%');
+                     svg.setAttribute('height', '100%');
+                     svg.setAttribute('viewBox', '0 0 36 36');
+
+                     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                     g.setAttribute('fill', 'currentColor');
+
+                     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                     path.setAttribute('d', 'M23.4 24.2c-.3.8-1.1 1.4-2 1.4-.9 0-1.7-.6-2-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.5 2.1-1.5s1.8.6 2.1 1.5h3.2c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.4zm-7.7-5.3c-.3.9-1.1 1.5-2.1 1.5s-1.8-.6-2.1-1.5H9.3c-.3 0-.6-.3-.6-.6V18c0-.3.3-.6.6-.6h2.2c.3-.8 1.1-1.4 2.1-1.4s1.8.6 2.1 1.4h11.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6H15.7zm7.9-5.4c-.3.8-1.1 1.4-2.1 1.4-.9 0-1.7-.6-2.1-1.4H9.3c-.3 0-.6-.3-.6-.6v-.3c0-.3.3-.6.6-.6h10.1c.3-.9 1.1-1.6 2.1-1.6s1.9.7 2.1 1.6h3.1c.3 0 .6.3.6.6v.3c0 .3-.3.6-.6.6h-3.1z');
+
+                     g.append(path);
+                     svg.append(g);
+
+                     return svg;
+                  })());
+
+                  btn.append(btnTitle, genList());
+                  // container.after(btn);
+                  container.prepend(btn);
+               }
+               btnTitleStateUpdate(Boolean(NOVA.storage_obj_manager.read()));
             });
 
          });
@@ -169,7 +176,13 @@ window.nova_plugins.push({
          }
          if (user_settings['video-rate']) {
             // listItem.push({ name: 'speed', get_current_state: movie_player.getPlaybackRate });
-            listItem.push({ name: 'speed', get_current_state: () => NOVA.videoElement.playbackRate });
+            // listItem.push({ name: 'speed', get_current_state: () => NOVA.videoElement.playbackRate });
+            listItem.push({
+               name: 'speed', get_current_state: () => {
+                  localStorage.removeItem(NOVA.storage_obj_manager.STORAGE_NAME_SPEED); // reset store for [video-rate] plugin
+                  return NOVA.videoElement.playbackRate;
+               }
+            });
          }
          if (user_settings['video-volume']) {
             listItem.push({ name: 'volume', get_current_state: () => Math.round(movie_player.getVolume()) });
@@ -270,16 +283,12 @@ window.nova_plugins.push({
             //    </label>`);
             // fix - This document requires 'TrustedHTML' assignment.
             const label = document.createElement('label');
+            label.append(document.createTextNode(SLIDER_LABEL));
             label.setAttribute('for', `checkbox-${SLIDER_STORAGE_NAME}`);
 
-            const labelText = document.createTextNode(SLIDER_LABEL);
-            label.append(labelText);
-
-            if (storage) {
-               const span = document.createElement('span');
-               span.textContent = storage;
-               label.append(span);
-            }
+            const span = document.createElement('span');
+            if (storage) span.textContent = storage;
+            label.append(span);
 
             li.append(label);
             // end fix - This document requires 'TrustedHTML' assignment.

@@ -2,8 +2,8 @@ window.nova_plugins.push({
    id: 'channel-play-all',
    // title: 'Add "Play All" button to channel page',
    title: 'Add "Play All" button',
-   'title:zh': '在频道页面添加“Play All”按钮',
-   'title:ja': 'チャンネルページに「Play All」ボタンを追加',
+   // 'title:zh': '在频道页面添加“Play All”按钮',
+   // 'title:ja': 'チャンネルページに「Play All」ボタンを追加',
    // 'title:ko': '채널 페이지에 "Play All" 버튼 추가',
    // 'title:vi': '',
    // 'title:id': '',
@@ -54,12 +54,15 @@ window.nova_plugins.push({
 
                      insertToHTML({
                         'container': container,
-                        'url': endpoint + btnList.id + channelId.substring(2),
+                        'url': endpoint + btnList.id + channelId.slice(2),
                      });
 
                      function insertToHTML({ url = required(), container = required() }) {
                         // console.debug('insertToHTML', ...arguments);
-                        if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+                        if (!(container instanceof HTMLElement)) {
+                           console.error('Container is not an HTMLElement:', container);
+                           return;
+                        }
 
                         (document.getElementById(SELECTOR_ID) || (function () {
                            const el = document.createElement('a');
@@ -142,14 +145,14 @@ window.nova_plugins.push({
                   // btn.title = 'Play all uploads videos from the channel';
 
                   // if (channelId = NOVA.getChannelId(user_settings['user-api-key'])) {
-                  //    btn.href = '/playlist?list=UU' + channelId.substring(2);
+                  //    btn.href = '/playlist?list=UU' + channelId.slice(2);
                   // }
                   btn.addEventListener('click', () => {
                      if (channelId = NOVA.getChannelId(user_settings['user-api-key'])) {
                         // list=UU<ID> adds shorts into the playlist
                         // list=UULF<ID> videos without shorts
                         // list=UULP<ID> videos sorted by popular
-                        location.href = endpoint + btnList.id + channelId.substring(2);
+                        location.href = endpoint + btnList.id + channelId.slice(2);
                      }
                   });
 
@@ -168,7 +171,7 @@ window.nova_plugins.push({
                   // btn2.textContent = '► Play MOST POPULAR';
                   // btn2.addEventListener('click', () => {
                   //    if (channelId = NOVA.getChannelId(user_settings['user-api-key'])) {
-                  //       location.href = `/playlist?v=${vidId}&list=PU` + channelId.substring(2);
+                  //       location.href = `/playlist?v=${vidId}&list=PU` + channelId.slice(2);
                   //    }
                   // });
 
@@ -189,7 +192,7 @@ window.nova_plugins.push({
 
                   //       const a = document.createElement('a');
                   //       li.classList.add('style-scope', 'yt-formatted-string', 'bold');
-                  //       // a.href = `/playlist?${item.list}` + channelId.substring(2);
+                  //       // a.href = `/playlist?${item.list}` + channelId.slice(2);
                   //       a.target = '_blank';
                   //       a.textContent = item.label;
                   //       a.title = 'Open with ' + item.label;
@@ -209,8 +212,8 @@ window.nova_plugins.push({
       channel_play_all_mode: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',

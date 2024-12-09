@@ -12,8 +12,8 @@
 window.nova_plugins.push({
    id: 'comments-sort',
    title: 'Comments sort',
-   'title:zh': '评论排序',
-   'title:ja': 'コメントの並べ替え',
+   // 'title:zh': '评论排序',
+   // 'title:ja': 'コメントの並べ替え',
    // 'title:ko': '댓글 정렬',
    // 'title:vi': '',
    // 'title:id': 'Mengurutkan komentar',
@@ -58,20 +58,22 @@ window.nova_plugins.push({
 
       // #comments #contents #submessage[is-empty] - "Comments are turned off."
 
-      // exclude (Width < 700px)
+      // is no point in displaying on a small iframe
       if (NOVA.currentPage == 'embed' && window.innerWidth < 700) return;
 
       const
-         MAX_COMMENTS = (user_settings['user-api-key'] && +user_settings.comments_sort_max) || 250, // no API key limit comments
+         MAX_COMMENTS = Math.min(100, (user_settings['user-api-key'] && +user_settings.comments_sort_max)) || 100,
          BTN_CLASS_NAME = 'nova-comments-sort',
          // CACHE_PREFIX = 'nova-channel-videos-count:',
          MODAL_NAME_SELECTOR_ID = 'nova-modal-comments',
          MODAL_CONTENT_SELECTOR_ID = 'modal-content',
-         NOVA_REPLYS_SELECTOR_ID = 'nova-replys',
-         NOVA_REPLYS_SWITCH_CLASS_NAME = NOVA_REPLYS_SELECTOR_ID + '-switch',
+         NOVA_REPLIES_SELECTOR_ID = 'nova-replies',
+         NOVA_REPLIES_SWITCH_CLASS_NAME = NOVA_REPLIES_SELECTOR_ID + '-switch',
          // textarea to array
          BLOCK_KEYWORDS = NOVA.strToArray(user_settings.comments_sort_blocklist?.toLowerCase());
       // getCacheName = () => CACHE_PREFIX + ':' + (NOVA.queryURL.get('v') || movie_player.getVideoData().video_id);
+
+      let sortable;
 
       insertButton();
 
@@ -111,9 +113,9 @@ window.nova_plugins.push({
                })());
 
                btn.addEventListener('click', evt => {
-                  evt.preventDefault();
+                  // evt.preventDefault();
                   evt.stopPropagation();
-                  evt.stopImmediatePropagation();
+                  // evt.stopImmediatePropagation();
                   // once if not inited
                   if (!document.body.querySelector(`#${MODAL_CONTENT_SELECTOR_ID} table`)) {
                      getComments();
@@ -162,7 +164,7 @@ window.nova_plugins.push({
                // if #page-manager #owner
                // menu.append(btn);
 
-               insertModal();
+               insertModal((NOVA.currentPage == 'embed') ? movie_player : document.body);
 
                prepareModal();
                // clear table after page transition
@@ -177,11 +179,12 @@ window.nova_plugins.push({
                   }
                });
 
-               function prepareModal() {
-                  // document.getElementById(MODAL_CONTENT_SELECTOR_ID).innerHTML = NOVA.createSafeHTML('<pre>Loading data...</pre>');
+               function prepareModal(container = document.getElementById(MODAL_CONTENT_SELECTOR_ID)) {
+                  // container.innerHTML = NOVA.createSafeHTML('<pre>Loading data...</pre>');
                   const pre = document.createElement('pre');
                   pre.textContent = 'Loading data...';
-                  document.getElementById(MODAL_CONTENT_SELECTOR_ID)?.append(pre);
+                  container.textContent = '';
+                  container.append(pre);
                }
 
             });
@@ -201,6 +204,8 @@ window.nova_plugins.push({
                case 'embed':
                   out = '.ytp-chrome-top-buttons';
                   css = 'float: left; padding: 20px;';
+                  // NOVA.css.push(`${out}:not(:hover) .${BTN_CLASS_NAME} { display: none; }`);
+                  NOVA.css.push(`.ytp-autohide .${BTN_CLASS_NAME} { display: none; }`);
                   break;
             }
 
@@ -222,7 +227,7 @@ window.nova_plugins.push({
       let commentList = [];
 
       function getComments(next_page_token) {
-         // console.debug('genTable:', ...arguments);
+         // console.LOG_FILTER('genTable:', ...arguments);
          // const channelId = NOVA.getChannelId(user_settings['user-api-key']);
          // if (!channelId) return console.error('genTable channelId: empty', channelId);
 
@@ -238,7 +243,7 @@ window.nova_plugins.push({
 
          // chunkArray(ids, YOUTUBE_API_MAX_IDS_PER_CALL)
          //    .forEach(id_part => {
-         // console.debug('id_part', id_part);
+         // console.LOG_FILTER('id_part', id_part);
 
          const params = {
             'videoId': NOVA.queryURL.get('v') || movie_player.getVideoData().video_id,
@@ -262,7 +267,8 @@ window.nova_plugins.push({
                   if (res.reason) {
                      document.getElementById(MODAL_NAME_SELECTOR_ID)
                         .dispatchEvent(new CustomEvent(MODAL_NAME_SELECTOR_ID, { bubbles: true, detail: 'test' }));
-                     return alert(`Error [${res.code}]: ${res.reason}`);
+                     alert(`Error [${res.code}]: ${res.reason}`);
+                     return;
                   }
                   // modal message
                   else {
@@ -272,44 +278,39 @@ window.nova_plugins.push({
                   }
                }
 
-               res?.items?.forEach(item => {
-                  if (comment = item.snippet?.topLevelComment?.snippet) {
-
-                     // "id": "Ug...",
-                     // {
-                     //    "snippet": {
-                     //       "videoId": "xxx..",
-                     //       "textDisplay": "text", // html inicode
-                     //       "textOriginal": "text",
-                     //       "authorDisplayName": "@usernick",
-                     //       "authorProfileImageUrl": "https://yt3.ggpht.com/ytc/..",
-                     //       "authorChannelUrl": "http://www.youtube.com/channel/UC1..",
-                     //       "authorChannelId": { "value": "UC.." },
-                     //       "canRate": true,
-                     //       "viewerRating": "none",
-                     //       "likeCount": 5,
-                     //       "publishedAt": "2022-01-01T01:23:00Z",
-                     //       "updatedAt": "2022-01-01T01:23:00Z"
-                     //    },
-                     // "canReply": true,
-                     // "totalReplyCount": 7,
-                     // "isPublic": true
-                     // }
-                     // save cache in tabs
-                     // sessionStorage.setItem(CACHE_PREFIX + channelId, videoCount);
-                     commentList.push(
-                        Object.assign(
-                           { 'totalReplyCount': item.snippet.totalReplyCount },
-                           { 'id': item.id },
-                           comment,
-                           item.replies,
-                        )
-                     );
-                  }
-                  else {
-                     console.warn('API is change', item);
+               commentList = res?.items?.map(item => {
+                  // "id": "Ug...",
+                  // {
+                  //    "snippet": {
+                  //       "videoId": "xxx..",
+                  //       "textDisplay": "text", // html inicode
+                  //       "textOriginal": "text",
+                  //       "authorDisplayName": "@usernick",
+                  //       "authorProfileImageUrl": "https://yt3.ggpht.com/ytc/..",
+                  //       "authorChannelUrl": "http://www.youtube.com/channel/UC1..",
+                  //       "authorChannelId": { "value": "UC.." },
+                  //       "canRate": true,
+                  //       "viewerRating": "none",
+                  //       "likeCount": 5,
+                  //       "publishedAt": "2022-01-01T01:23:00Z",
+                  //       "updatedAt": "2022-01-01T01:23:00Z"
+                  //    },
+                  // "canReply": true,
+                  // "totalReplyCount": 7,
+                  // "isPublic": true
+                  // }
+                  const comment = item.snippet?.topLevelComment?.snippet;
+                  if (comment) {
+                     return {
+                        ...comment,
+                        totalReplyCount: item.snippet.totalReplyCount,
+                        id: item.id,
+                        replies: item.replies?.comments,
+                     };
                   }
                });
+               // save cache in tabs
+               // sessionStorage.setItem(CACHE_PREFIX + channelId, comment);
 
                // no API key limit comments
                if (commentList.length >= MAX_COMMENTS) {
@@ -331,7 +332,7 @@ window.nova_plugins.push({
                }
                // pages are over
                else {
-                  // console.debug('>', res);
+                  // console.LOG_FILTER('>', res);
                   genTable();
                }
             });
@@ -353,14 +354,8 @@ window.nova_plugins.push({
                try {
                   if (!(comment.textDisplay = filterStr(comment.textDisplay, comment.authorDisplayName))) return; // continue
 
-                  // the word is too long
-                  if (comment.textOriginal.length > 100 && comment.textOriginal.split(' ')?.some(word => word.length > 100)) {
-                     console.debug('comment istoo long:\n', comment.textOriginal);
-                     return;
-                  }
-
                   const
-                     replyInputName = `${NOVA_REPLYS_SELECTOR_ID}-${comment.id}`,
+                     replyInputName = `${NOVA_REPLIES_SELECTOR_ID}-${comment.id}`,
                      li = document.createElement('tr');
 
                   let replyCount = 0;
@@ -372,19 +367,23 @@ window.nova_plugins.push({
                   // invalid time "updatedAt" - https://www.youtube.com/watch?v=1RjnI64Rwqs&lc=Uggcg-Z0w-cmRXgCoAEC
 
                   li.innerHTML = NOVA.createSafeHTML(
-                     `<td>${comment.likeCount}</td>
-                     <td sorttable_customkey="${comment.totalReplyCount}" class="${NOVA_REPLYS_SWITCH_CLASS_NAME}">
-                     ${comment.comments?.length
-                        ? `<a href="https://www.youtube.com/watch?v=${comment.videoId}&lc=${comment.id}" target="_blank" title="Open comment link">${comment.totalReplyCount}</a> <label for="${replyInputName}"></label>`
+                     `<td sorttable_customkey="-${comment.likeCount}">${comment.likeCount}</td>
+                     <td sorttable_customkey="-${comment.totalReplyCount}" class="${NOVA_REPLIES_SWITCH_CLASS_NAME}">
+                     ${comment.replies?.length
+                        ? `<a href="/watch?v=${comment.videoId}&lc=${comment.id}" target="_blank">${comment.totalReplyCount}</a>
+                        <label for="${replyInputName}"></label>`
                         : ''}</td>
-                     <td sorttable_customkey="${new Date(comment.publishedAt).getTime()}">${NOVA.formatTimeOut.ago(new Date(comment.publishedAt))}</td>
-                     <td>
+                     <td sorttable_customkey="-${new Date(comment.publishedAt).getTime()}">${NOVA.formatTime.ago(new Date(comment.publishedAt))}</td>
+                     <td title="${comment.authorDisplayName}">
                         <a href="${comment.authorChannelUrl}" target="_blank" title="${comment.authorDisplayName}">
                            <img src="${comment.authorProfileImageUrl}" alt="${comment.authorDisplayName}" />
                         </a>
                      </td>
-                     <td sorttable_customkey="${comment.textOriginal.length}">
-                        <span class="text-overflow-dynamic-ellipsis">${comment.textDisplay}</span>
+                     <td sorttable_customkey="-${comment.textOriginal.length}">
+                        <span class="nova-reply-text">
+                           <a href="/watch?v=${comment.videoId}&lc=${comment.id}" class="nova-reply-copy-link" target="_blank" title="Open comment link"></a>
+                           ${comment.textDisplay}
+                        </span>
                         ${renderReplies()?.outerHTML || ''}
                      </td>`);
                   // fix - This document requires 'TrustedHTML' assignment.
@@ -399,11 +398,11 @@ window.nova_plugins.push({
 
                   // function createCommentLinkCell(comment, replyInputName) {
                   //    const td = document.createElement('td');
-                  //    td.classList.add(NOVA_REPLYS_SWITCH_CLASS_NAME);
+                  //    td.classList.add(NOVA_REPLIES_SWITCH_CLASS_NAME);
 
-                  //    if (comment.comments?.length) {
+                  //    if (comment.replies?.length) {
                   //       const link = document.createElement('a');
-                  //       link.href = `https://www.youtube.com/watch?v=${comment.videoId}&lc=${comment.id}`;
+                  //       link.href = `/watch?v=${comment.videoId}&lc=${comment.id}`;
                   //       link.target = '_blank';
                   //       link.title = 'Open comment link';
                   //       link.textContent = comment.totalReplyCount;
@@ -411,8 +410,7 @@ window.nova_plugins.push({
                   //       const label = document.createElement('label');
                   //       label.htmlFor = replyInputName;
 
-                  //       td.append(link);
-                  //       td.append(label);
+                  //       td.append(link, label);
                   //    }
 
                   //    return td;
@@ -420,13 +418,14 @@ window.nova_plugins.push({
 
                   // function createCommentDateCell(comment) {
                   //    const td = document.createElement('td');
-                  //    td.setAttribute('sorttable_customkey', new Date(comment.publishedAt).getTime());
-                  //    td.textContent = NOVA.formatTimeOut.ago(new Date(comment.publishedAt));
+                  //    td.setAttribute('sorttable_customkey', -new Date(comment.publishedAt).getTime());
+                  //    td.textContent = NOVA.formatTime.ago(new Date(comment.publishedAt));
                   //    return td;
                   // }
 
                   // function createCommentAuthorCell(comment) {
                   //    const td = document.createElement('td');
+                  //    td.title = comment.authorDisplayName;
                   //    const link = document.createElement('a');
                   //    link.href = comment.authorChannelUrl;
                   //    link.target = '_blank';
@@ -437,15 +436,25 @@ window.nova_plugins.push({
                   //    img.alt = comment.authorDisplayName;
 
                   //    link.append(img);
-                  //    return td.appendChild(link);
+                  //    td.append(link);
+                  //    return td;
                   // }
 
                   // function createCommentTextCell(comment) {
                   //    const td = document.createElement('td');
+                  //    td.setAttribute('sorttable_customkey', -comment.textOriginal.length);
                   //    const span = document.createElement('span');
-                  //    span.classList.add('text-overflow-dynamic-ellipsis');
+                  //    span.classList.add('nova-reply-text');
                   //    span.textContent = comment.textDisplay;
 
+                  //    const copyLink = document.createElement('a');
+                  //    copyLink.className = 'nova-reply-copy-link';
+                  //    copyLink.href = `/watch?v=${comment.videoId}&lc=${comment.id}`;
+                  //    copyLink.target = '_blank';
+                  //    // copyLink.title = '';
+                  //    copyLink.textContent = 'link';
+
+                  //    span.append(copyLink);
                   //    td.append(span);
                   //    // Assuming renderReplies() creates content
                   //    if (repliesDom = renderReplies()) td.append(repliesDom);
@@ -459,11 +468,7 @@ window.nova_plugins.push({
                   // const authorCell = createCommentAuthorCell(comment);
                   // const textCell = createCommentTextCell(comment);
 
-                  // li.append(likeCountCell);
-                  // li.append(replyCountCell);
-                  // li.append(dateCell);
-                  // li.append(authorCell);
-                  // li.append(textCell);
+                  // li.append(likeCountCell, replyCountCell, dateCell, authorCell, textCell);
                   // end fix - This document requires 'TrustedHTML' assignment.
 
                   ul.append(li);
@@ -475,9 +480,15 @@ window.nova_plugins.push({
                      checkbox.type = 'checkbox';
                      checkbox.id = checkbox.name = replyInputName;
                      checkbox.addEventListener('change', ({ target }) => {
-                        // console.debug('change', target, 'name:', target.name);
-                        document.body.querySelector(`table[${NOVA_REPLYS_SELECTOR_ID}="${target.name}"]`)
-                           .classList.toggle('nova-hide');
+                        // console.LOG_FILTER('change', target, 'name:', target.name);
+                        const table_element = document.body.querySelector(`table[${NOVA_REPLIES_SELECTOR_ID}="${target.name}"]`);
+                        table_element.classList.toggle('nova-hide');
+                        // sort tree replies
+                        const th = table_element.querySelector('th:first-child')
+                        if (th && !th.classList.contains('sorttable_sorted')) {
+                           sorttable.makeSortable(table_element);
+                           th.click();
+                        }
                      });
                      li.querySelector('td label[for]')
                         ?.before(checkbox);
@@ -488,36 +499,62 @@ window.nova_plugins.push({
                      if (!+comment.totalReplyCount) return '';
 
                      const table = document.createElement('table');
-                     table.className = 'nova-hide';
-                     table.setAttribute(NOVA_REPLYS_SELECTOR_ID, replyInputName); // mark
+                     table.innerHTML = NOVA.createSafeHTML(
+                        `<thead style="display:none">
+                           <tr>
+                              <th class="sorttable_alpha">answer</th>
+                              <th class="sorttable_nosort">avatar</th>
+                              <th class="sorttable_alpha">replies</th>
+                           </tr>
+                        </thead>`);
+
+                     // table.className = 'nova-hide';
+                     table.classList.add('nova-hide', 'sortable');
+                     table.setAttribute(NOVA_REPLIES_SELECTOR_ID, replyInputName); // mark
                      // replies
-                     comment.comments
-                        // ?.reverse() // order by
-                        ?.forEach(reply => {
-                           if (!(reply.snippet.textDisplay = filterStr(reply.snippet.textDisplay, reply.snippet.authorDisplayName))) return; // continue
+                     comment.replies
+                        // ?.sort((a, b) => new Date(a.snippet.publishedAt).getTime() - new Date(b.snippet.publishedAt).getTime())
+                        .forEach((reply, idx) => {
+                           let replyText = reply.snippet.textDisplay;
+
+                           // const matchesUsers = replyText.match(/@[\w\d_\-.]+/)?.[0]; // Latin letters only
+                           const matchesUsers = replyText.match(/@([^@\s]+)/)?.[0];
+                           // if (replyText.startsWith(matchesUsers)) {
+                           replyText = replyText.replace(/@+\S+/, '');
+                           // }
+
+                           if (!(replyText = filterStr(replyText, reply.snippet.authorDisplayName, 'ignore_min_words'))) return; // continue
 
                            replyCount++;
 
                            const li = document.createElement('tr');
+                           if (matchesUsers) li.classList.add('answer');
                            // li.className = 'item';
                            // isAuthor
                            if (channelName && reply.snippet.authorChannelUrl.includes(channelName)) li.classList.add('author');
                            // Solution 1
                            // li.innerHTML = NOVA.createSafeHTML(
-                           //    `<td>
+                           //    `<td style="display:none" sorttable_customkey="${matchesUsers || reply.snippet.authorDisplayName}-${replyCount}" >
+                           //       ${reply.snippet.likeCount ? `↪ ${matchesUsers}` : ''}
+                           //    </td>
+                           //    <td title="${reply.snippet.authorDisplayName}">
                            //       <a href="${reply.snippet.authorChannelUrl}" target="_blank" title="${reply.snippet.authorDisplayName}">
                            //          <img src="${reply.snippet.authorProfileImageUrl}" alt="${reply.snippet.authorDisplayName}" />
                            //       </a>
                            //    </td>
-                           //    <td>
-                           //       <span class="text-overflow-dynamic-ellipsis">
-                           //          <div class="nova-reply-time-text">${reply.snippet.likeCount
-                           //       ? `${reply.snippet.likeCount} likes` : ''}</div>
-                           //          <div>${reply.snippet.textDisplay}</div>
-                           //       </span>
+                           //    <td sorttable_customkey="${matchesUsers || reply.snippet.authorDisplayName}-${replyCount}">
+                           //          <a href="/watch?v=${comment.videoId}&lc=${reply.id}" target="_blank" class="nova-reply-copy-link"></a>
+                           //          ${reply.snippet.likeCount ? `<span class="nova-reply-likes-count">${reply.snippet.likeCount} like${reply.snippet.likeCount > 1 ? `s` : ''}</span>` : ''}
+                           //          <div class="nova-reply-text">${replyText}</div>
                            //    </td>`);
                            // Solution 2
+                           const answerCell = document.createElement('td');
+                           answerCell.setAttribute('sorttable_customkey', `${idx}-${matchesUsers || reply.snippet.authorDisplayName}-${replyCount}`);
+                           if (matchesUsers) answerCell.textContent = `↪ ${matchesUsers}`;
+                           answerCell.style.display = 'none';
+
                            const authorCell = document.createElement('td');
+                           authorCell.title = reply.snippet.authorDisplayName;
                            const authorLink = document.createElement('a');
                            authorLink.href = reply.snippet.authorChannelUrl;
                            authorLink.target = '_blank';
@@ -531,42 +568,63 @@ window.nova_plugins.push({
                            authorCell.append(authorLink);
 
                            const contentCell = document.createElement('td');
-                           const containerReply = document.createElement('span');
-                           containerReply.className = 'text-overflow-dynamic-ellipsis';
+                           // contentCell.setAttribute('sorttable_customkey', `${idx}-${matchesUsers || reply.snippet.authorDisplayName}-${replyCount}`);
 
-                           const likeCountDiv = document.createElement('div');
-                           likeCountDiv.className = 'nova-reply-time-text';
-                           likeCountDiv.textContent = reply.snippet.likeCount ? `${reply.snippet.likeCount} likes` : '';
+                           const copyLink = document.createElement('a');
+                           copyLink.className = 'nova-reply-copy-link';
+                           copyLink.href = `/watch?v=${comment.videoId}&lc=${reply.id}`;
+                           copyLink.target = '_blank';
+                           // copyLink.title = '';
+                           // copyLink.textContent = 'link';
+                           contentCell.append(copyLink);
 
-                           const replyText = document.createElement('div');
+                           if (reply.snippet.likeCount) {
+                              const likesDiv = document.createElement('span');
+                              likesDiv.className = 'nova-reply-likes-count';
+                              likesDiv.textContent = `${reply.snippet.likeCount} like${reply.snippet.likeCount > 1 ? `s` : ''}`
+                              contentCell.append(likesDiv);
+                           }
+
+                           const replyTextDiv = document.createElement('div');
+                           replyTextDiv.className = 'nova-reply-text';
                            // Atention: broken <br> tag.
                            // fix - This document requires 'TrustedHTML' assignment.
-                           replyText.innerHTML = NOVA.createSafeHTML(reply.snippet.textDisplay);
+                           replyTextDiv.innerHTML = NOVA.createSafeHTML(replyText);
 
-                           containerReply.append(likeCountDiv);
-                           containerReply.append(replyText);
-                           contentCell.append(containerReply);
+                           contentCell.append(replyTextDiv);
 
-                           li.append(authorCell);
-                           li.append(contentCell);
+                           li.append(answerCell, authorCell, contentCell);
 
                            table.append(li);
+
+                           // console.LOG_FILTER('all reply:', replyText);
                         });
                      return table;
                   }
 
-               } catch (error) {
-                  console.error('Error comment generate:\n', error.stack + '\n', comment);
+               } catch (err) {
+                  console.error('Error comment generate:\n', err.stack + '\n', comment);
                   // alert('Error comment generate\n' + comment);
                }
             });
 
-         function filterStr(str, user) {
+         function filterStr(str, user_name, ignore_min_words) {
+            const  LOG_FILTER = false;
+            // const LOG_FILTER = true;
+
             // alt - https://greasyfork.org/en/scripts/481131-youtube-comment-sponsor-blocker
-            if (keyword = BLOCK_KEYWORDS?.find(keyword => ((user && keyword?.startsWith('@')) ? user : str)
+            if (keyword = BLOCK_KEYWORDS?.find(keyword => ((user_name && keyword?.startsWith('@')) ? user_name : str)
                .toLowerCase().includes(keyword))
             ) {
-               console.log('comment filter:', `"${keyword}\n"`, str.replace(keyword, `[${keyword}]`));
+               LOG_FILTER && console.log('filter by block comment/reply:', `"${keyword}\n"`, str.replace(keyword, `[${keyword}]`));
+               return;
+            }
+
+            let strOut = str;
+
+            // the word is too long (character > 100)
+            if (strOut.length > 100 && strOut.split(' ')?.some(word => word.length > 100)) {
+               LOG_FILTER && console.log('filter comment/reply is too long:\n', str);
                return;
             }
 
@@ -574,42 +632,51 @@ window.nova_plugins.push({
                clearOfEmoji = str => str
                   // for test test 'a1^€$❤️🧠🦄🦊🥦►•●-–—🔺'
                   // .replace(/[\u2011-\u26FF]/g, ' ') // Symbols. remove "€" sign
-                  .replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2580-\u27BF]|\uD83E[\uDD10-\uDDFF]/g, ' ') // Symbols
+                  .replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2580-\u27BF]|\uD83E[\uDD10-\uDDFF]/g, ' ') // Unicode emojis (regional indicators), emoticons, and various symbols including geometric shapes and playful emojis. Excludes standard ASCII characters.
                   .replace(/(?![*#0-9]+)[\p{Emoji}]/gu, ' ') // Emoji
                   // .replace(/[^<>=\p{L}\p{N}\p{P}\p{Z}{\^\$€}]/gu, ' ') // Emoji
                   .replace(/([=:;/.()]{2,}|\))$/g, ' ') // ANSII smile at the end of the line
-                  .replace(/\s{2,}/g, ' ') // multi-spacebar
-                  .replace(/(<br>){3,}/g, '<br><br>')
-                  .replace(/<a[^>]+><\/a>/g, '') // empty links
                   .trim();
 
             // filter comments
             if (user_settings.comments_sort_clear_emoji) {
-               str = clearOfEmoji(str); // comment.textOriginal
+               strOut = clearOfEmoji(strOut); // comment.textOriginal
 
-               // skip empty after clear
-               if (!str.length) return;
-
-               if (+user_settings.comments_sort_min_words
-                  && countWords(str) <= +user_settings.comments_sort_min_words
+               if (!ignore_min_words
+                  && +user_settings.comments_sort_min_words
+                  && countWords(strOut) <= +user_settings.comments_sort_min_words
                ) {
-                  // console.debug('filter comment (by min words):', str);
+                  LOG_FILTER && console.log('filter comment (by min words):', str);
                   return;
                }
             }
 
-            return str;
-         }
+            // invalid
+            strOut = strOut
+               .replace(/[\u200B-\u200D\uFEFF\u034f\u2000-\u200F]/g, '') // remove zero-width space characters
+               .replace(/\s{2,}/g, ' ') // multi-spacebar
+               .replace(/(<br>){3,}/g, '<br><br>')
+               .replace(/<a[^>]+><\/a>/g, '') // empty links
+               .replace(/^(\+){1,}/g, ''); // useless sign of agreement
 
+            // skip empty after clear
+            if (!strOut.length) {
+               console.log('filter comment/reply:', str);
+               return;
+            }
+
+            return strOut;
+         }
 
          // render table
          const MODAL_CONTENT_FILTER_SELECTOR_ID = 'nova-search-comment';
+
          document.getElementById(MODAL_CONTENT_SELECTOR_ID).innerHTML = NOVA.createSafeHTML(
             `<table class="sortable" border="0" cellspacing="0" cellpadding="0">
                <thead id="${MODAL_CONTENT_FILTER_SELECTOR_ID}">
                   <tr>
                      <th class="sorttable_numeric">likes</th>
-                     <th class="sorttable_numeric">replys</th>
+                     <th class="sorttable_numeric">replies</th>
                      <th class="sorttable_numeric">date</th>
                      <th class="sorttable_nosort">avatar</th>
                      <th class="sorttable_numeric">comments (${commentList.length/*res.pageInfo.totalResults*/})</th>
@@ -634,27 +701,23 @@ window.nova_plugins.push({
          // const thLikes = document.createElement('th');
          // thLikes.className = 'sorttable_numeric';
          // thLikes.textContent = 'likes';
-         // headerRow.append(thLikes);
 
-         // const thReplys = document.createElement('th');
-         // // thReplys.classList.add('sorttable_numeric');
-         // thReplys.textContent = 'replys';
-         // headerRow.append(thReplys);
+         // const thReplies = document.createElement('th');
+         // // thReplies.classList.add('sorttable_numeric');
+         // thReplies.textContent = 'replies';
 
          // const thDate = document.createElement('th');
          // thDate.className = 'sorttable_numeric';
          // thDate.textContent = 'date';
-         // headerRow.append(thDate);
 
          // const thAvatar = document.createElement('th');
          // thAvatar.className = 'sorttable_nosort';
          // thAvatar.textContent = 'avatar';
-         // headerRow.append(thAvatar);
 
          // const thComment = document.createElement('th');
          // thComment.className = 'sorttable_numeric';
          // thComment.textContent = `comments (${commentList.length/*res.pageInfo.totalResults*/})`;
-         // headerRow.append(thComment);
+         // headerRow.append(thLikes, thReplies, thDate, thAvatar, thComment);
 
          // thead.append(headerRow);
          // table.append(thead);
@@ -668,14 +731,14 @@ window.nova_plugins.push({
          document.getElementById(MODAL_CONTENT_FILTER_SELECTOR_ID).after(ul); /*$ {ul.innerHTML}*/
 
          // add sort event
-         // connectSortable().makeSortable(document.body.querySelector('table.sortable'));
-         connectSortable.apply(this).makeSortable(document.body.querySelector('table.sortable'));
+         if (!sortable) sortable = connectSortable();
+         sorttable.makeSortable(document.body.querySelector('table.sortable'));
 
          // scroll to top on sorting
          // document.body.querySelector(`#${MODAL_CONTENT_SELECTOR_ID} table.sortable thead`)
          document.body.querySelector(`table.sortable thead`)
             .addEventListener('click', ({ target }) => {
-               if (['input', 'textarea', 'select'].includes(target.localName) || target.isContentEditable) return;
+               if (NOVA.editableFocused(target)) return;
 
                // new MutationObserver((mutationRecordsArray, observer) => {
                //    mutationRecordsArray.forEach(mutation => {
@@ -703,20 +766,33 @@ window.nova_plugins.push({
             `.nova-hide {
                display: none;
             }
-            table[${NOVA_REPLYS_SELECTOR_ID}] {
+            table[${NOVA_REPLIES_SELECTOR_ID}] {
                border: 1px solid #444;
                width: auto !important;
             }
-            table[${NOVA_REPLYS_SELECTOR_ID}] td {
+            table[${NOVA_REPLIES_SELECTOR_ID}] td {
                padding: auto 10px;
             }
-            .nova-reply-time-text {
-               font-size: .5em;
+
+            .nova-reply-likes-count {
+               position: absolute;
+               top: 0;
+               left: 0;
+               margin: 0 2em;
+               font-size: .3em;
                font-style: italic;
+               color: lightslategrey;
+               opacity: .6;
+            }
+
+            table[${NOVA_REPLIES_SELECTOR_ID}] .answer .nova-reply-text:last-child:before {
+               content: "↪";
+               margin: 0 .3em;
+               color: #6186c9;
             }
 
             /* replies checkbox */
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox] {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox] {
                --height: 1.5em;
                --disabled-opacity: .7;
 
@@ -760,12 +836,12 @@ window.nova_plugins.push({
                font-weight: bold;
             }
 
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:hover:before {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox]:hover:before {
                background-color: var(--off-hover-bg);
             }
 
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:after,
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:before {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox]:after,
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox]:before {
                position: absolute;
                transition: left 200ms ease-in-out;
                width: 100%;
@@ -774,51 +850,51 @@ window.nova_plugins.push({
                /* box-shadow: 0 0 .25em rgba(0, 0, 0, .3); */
             }
 
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:after {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox]:after {
                left: 100%;
                content: var(--text-on);
                font-weight: bold;
             }
 
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:before {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox]:before {
                left: 0;
                content: var(--text-off);
             }
 
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:active {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox]:active {
                /* line on press */
                background-color: var(--checked-bg);
             }
 
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:active:before {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox]:active:before {
                left: -10%;
                content: var(--text-on-press);
             }
 
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:checked {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox]:checked {
                color: var(--checked-color);
                background-color: var(--checked-bg);
             }
 
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:checked:before {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox]:checked:before {
                left: -100%;
             }
 
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:checked:after {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox]:checked:after {
                left: 0;
             }
 
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox]:checked:active:after {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox]:checked:active:after {
                left: 10%;
                content: var(--text-off-press);
                background-color: var(--checked-bg-active);
             }
 
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox] [disabled] {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox] [disabled] {
                cursor: not-allowed;
             }
 
-            .${NOVA_REPLYS_SWITCH_CLASS_NAME} input[type=checkbox] [disabled] {
+            .${NOVA_REPLIES_SWITCH_CLASS_NAME} input[type=checkbox] [disabled] {
                opacity: var(--disabled-opacity);
             }
             `);
@@ -840,7 +916,7 @@ window.nova_plugins.push({
 
       //       if (t = NOVA.queryURL.get('t', target.href)) {
       //          // '10m42s' > '10:42' > '642'
-      //          t = Math.trunc(NOVA.formatTimeOut.hmsToSec(t.replace(/m/, ':').replace(/s$/, '')));
+      //          t = Math.trunc(NOVA.formatTime.hmsToSec(t.replace(/m/, ':').replace(/s$/, '')));
 
       //          target.href = NOVA.queryURL.set({ 't': t + 's' }, target.href);
       //          NOVA.updateUrl(NOVA.queryURL.set({ 't': t + 's' }, target.href));
@@ -889,29 +965,27 @@ window.nova_plugins.push({
          //    // 'border-radius': '4px',
          //    'margin-bottom': '1.5em',
          // });
-
          ['change', 'keyup'].forEach(evt => {
-            searchInput
-               .addEventListener(evt, function () {
-                  NOVA.searchFilterHTML({
-                     'keyword': this.value,
-                     'filter_selectors': 'tr.item',
-                     'highlight_selector': '.text-overflow-dynamic-ellipsis',
-                     'highlight_class': 'nova-mark-text',
-                  });
+            searchInput.addEventListener(evt, function () {
+               NOVA.searchFilterHTML({
+                  'keyword': this.value,
+                  'search_selectors': 'tr.item',
+                  'filter_selector': '.nova-reply-text',
+                  'highlight_class': 'nova-mark-text',
                });
-            searchInput
-               .addEventListener('click', () => {
-                  searchInput.value = '';
-                  searchInput.dispatchEvent(new Event('change')); // run searchFilterHTML
-               });
+            });
+         });
+         // clear search-box
+         searchInput.addEventListener('dblclick', () => {
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('change'));
          });
 
          document.getElementById(parent_selector_id).append(searchInput);
          // return searchInput;
       };
 
-      function insertModal() {
+      function insertModal(parent = document.body) {
          NOVA.css.push(
             `.modal {
                --animation-time: .2s;
@@ -1037,12 +1111,11 @@ window.nova_plugins.push({
 
          const container = document.createElement('div');
          container.className = 'modal-container';
-         container.append(modalClose);
-         container.append(modalContent);
+
+         container.append(modalClose, modalContent);
 
          modalContainer.append(container);
-
-         document.body.append(modalContainer);
+         parent.append(modalContainer);
 
          // closeButton.innerHTML = NOVA.createSafeHTML(
          //    `<svg xmlns="http://www.w3.org/2000/svg" height="1.5rem" viewBox="0 0 384 512">
@@ -1061,7 +1134,7 @@ window.nova_plugins.push({
             });
 
          document.addEventListener(MODAL_NAME_SELECTOR_ID, ({ target }) => {
-            // console.debug('', evt.detail);
+            // console.LOG_FILTER('', evt.detail);
             const
                attrModal = target.hasAttribute('data-modal'),
                attrOpen = target.getAttribute('data-open-modal'),
@@ -1161,7 +1234,11 @@ window.nova_plugins.push({
                border-bottom: 1px solid rgba(255,255,255,.1);
             }*/
 
-            #${MODAL_CONTENT_SELECTOR_ID} td .text-overflow-dynamic-ellipsis {
+            #${MODAL_CONTENT_SELECTOR_ID} td {
+               position: relative;
+            }
+
+            #${MODAL_CONTENT_SELECTOR_ID} td .nova-reply-text {
                display: block;
                max-height: 25vh;
                overflow-y: auto;
@@ -1169,25 +1246,46 @@ window.nova_plugins.push({
                text-align: left;
                font-size: 1.2em;
                line-height: 1.4;
-               padding: 10px 5px;
+               padding: .8em .5em;
 
                text-overflow: ellipsis;
                word-wrap: break-word;
             }
 
-            #${MODAL_CONTENT_SELECTOR_ID} td .text-overflow-dynamic-ellipsis:hover{
+            #${MODAL_CONTENT_SELECTOR_ID} td .nova-reply-text:hover{
                max-height: 55vh !important;
+               /* overflow-y: scroll; */
             }
 
             #${MODAL_CONTENT_SELECTOR_ID} tr.author { }
 
-            #${MODAL_CONTENT_SELECTOR_ID} .author > td > .text-overflow-dynamic-ellipsis {
+            #${MODAL_CONTENT_SELECTOR_ID} .author > td > .nova-reply-text {
                background-color: rgba(0, 47, 144, .2);
             }
 
             #${MODAL_CONTENT_SELECTOR_ID} td a {
                text-decoration: none;
                color: var(--yt-spec-call-to-action);
+            }
+
+            #${MODAL_CONTENT_SELECTOR_ID} td a.nova-reply-copy-link {
+               position: absolute;
+               top: 0;
+               right: 0;
+               padding: 1px 5px;
+               font-size: .3em;
+               background-color: #333;
+               opacity: 0;
+            }
+            #${MODAL_CONTENT_SELECTOR_ID} td a.nova-reply-copy-link::before {
+               content: "link";
+            }
+            #${MODAL_CONTENT_SELECTOR_ID} td:hover > nova-reply-text > a.nova-reply-copy-link {
+               opacity: .3;
+            }
+            #${MODAL_CONTENT_SELECTOR_ID} td > nova-reply-text > a.nova-reply-copy-link:hover {
+               opacity: 1;
+               text-decoration: underline;
             }`);
 
          // TODO add wait when sorting
@@ -1195,7 +1293,7 @@ window.nova_plugins.push({
          // document.body.querySelector('table.sortable').style.removeProperty('cursor')
 
          // https://github.com/raingart/sorttable
-         return sorttable = { selectorTables: "table.sortable", classSortBottom: "sortbottom", classNoSort: "sorttable_nosort", classSorted: "sorttable_sorted", classSortedReverse: "sorttable_sorted_reverse", idSorttableSortfwdind: "sorttable_sortfwdind", idSorttableSortfrevind: "sorttable_sortrevind", iconUp: "&nbsp;&#x25B4;", iconDown: "&nbsp;&#x25BE;", regexNonDecimal: /[^0-9\.\-]/g, regexTrim: /^\s+|\s+$/g, regexAnySorttableClass: /\bsorttable_([a-z0-9]+)\b/, init() { sorttable.init.done || (sorttable.init.done = !0, document.querySelectorAll(sorttable.selectorTables).forEach(sorttable.makeSortable)) }, innerSortFunction(t, e) { d("wait"); const o = this.classList.contains(sorttable.classSorted), s = this.classList.contains(sorttable.classSortedReverse); if (o || s) return sorttable.reverse(this.sorttable_tbody), c(this, s), void t.preventDefault(); const r = [], a = this.sorttable_columnindex, n = this.sorttable_tbody.rows; for (let t = 0; t < n.length; t++)r.push([sorttable.getInnerText(n[t].cells[a]), n[t]]); r.sort(this.sorttable_sortfunction), c(this, !0); const l = this.sorttable_tbody, i = document.createDocumentFragment(); for (let t = 0; t < r.length; t++)i.append(r[t][1]); function c(t, e) { const { id: o, icon: s } = e ? { id: sorttable.idSorttableSortfwdind, icon: sorttable.iconDown } : { id: sorttable.idSorttableSortfrevind, icon: sorttable.iconUp }; document.getElementById(sorttable.idSorttableSortfwdind)?.remove(), document.getElementById(sorttable.idSorttableSortfrevind)?.remove(); const r = document.createElement("span"); r.id = o, r.innerHTML = NOVA.createSafeHTML(s), t.append(r), t.classList.remove(sorttable.classSorted, sorttable.classSortedReverse), t.classList.add(e ? sorttable.classSorted : sorttable.classSortedReverse), d() } function d(t = null) { e.style.cursor = t } l.append(i), t.preventDefault() }, makeSortable(t) { if (!t.tHead) { const e = document.createElement("thead"); t.insertBefore(e, t.firstChild) } if (1 !== t.tHead.rows.length) return; const e = Array.from(t.rows).filter((t => t.classList.contains(sorttable.classSortBottom))); if (e.length) { let o = t.tFoot; o || (o = document.createElement("tfoot"), t.append(o)); const s = document.createDocumentFragment(); e.forEach((t => s.append(t))), o.append(s) } const o = t.tHead.rows[0].cells; for (let e = 0; e < o.length; e++) { const s = o[e]; if (!s.classList.contains(sorttable.classNoSort)) { const o = s.className.match(sorttable.regexAnySorttableClass)?.[1]; s.sorttable_sortfunction = o ? sorttable[`sort_${o}`] : sorttable.guessType(t, e), s.sorttable_columnindex = e, s.sorttable_tbody = t.tBodies[0] } } t.tHead.addEventListener("click", (e => { const o = e.target; "TH" !== o.tagName || o.classList.contains(sorttable.classNoSort) || sorttable.innerSortFunction.call(o, e, t) })) }, guessedTypesCache: new WeakMap, guessType(t, e) { const o = this.guessedTypesCache.get(t) || new Map; if (o.has(e)) return o.get(e); const s = []; for (let o = 0; o < t.rows.length; o++) { const r = t.rows[o].cells[e]; if (r.textContent?.trim()) { s.push(sorttable.sort_alpha); break } } return o.set(e, columnType), this.guessedTypesCache.set(t, o), columnType }, innerTextCache: new WeakMap, getInnerText(t) { if (!t) return ""; if (t.dataset && t.dataset.value) return t.dataset.value; if (customkey = t.getAttribute("sorttable_customkey")) return customkey; const e = sorttable.innerTextCache.get(t); if (void 0 !== e) return e; const o = "function" == typeof t?.getElementsByTagName && t.getElementsByTagName("input").length, s = t.textContent?.trim() || t.innerText?.trim() || t.text?.trim(); if (s && !o) return s; let r = ""; switch (t.nodeType) { case 3: "input" === t.nodeName.toLowerCase() && (r = t.value.trim()); break; case 1: for (let e = 0; e < t.childNodes.length; e++)r += sorttable.getInnerText(t.childNodes[e]) }return sorttable.innerTextCache.set(t, r.trim()), r.trim() }, reverse(t) { Array.from(t.rows).reverse().forEach((e => t.append(e))) }, sort_numeric: (t, e) => parseFloat(t[0].replace(sorttable.regexNonDecimal, "")) - parseFloat(e[0].replace(sorttable.regexNonDecimal, "")), sort_alpha: (t, e) => t[0].localeCompare(e[0]), shakerSort(t, e) { let o = 0, s = t.length - 1; for (; o < s;)r(t, e, o, s), s-- , a(t, e, o, s), o++; function r(t, e, o, s) { let r = !1; for (let a = o; a < s; a++)e(t[a], t[a + 1]) > 0 && ([t[a], t[a + 1]] = [t[a + 1], t[a]], r = !0); return r } function a(t, e, o, s) { let r = !1; for (let a = s; a > o; a--)e(t[a], t[a - 1]) < 0 && ([t[a], t[a - 1]] = [t[a - 1], t[a]], r = !0); return r } } };
+         return sorttable = { selectorTables: "table.sortable", classSortBottom: "sortbottom", classNoSort: "sorttable_nosort", classSorted: "sorttable_sorted", classSortedReverse: "sorttable_sorted_reverse", idSorttableSortfwdind: "sorttable_sortfwdind", idSorttableSortfrevind: "sorttable_sortrevind", iconUp: "&nbsp;&#x25B4;", iconDown: "&nbsp;&#x25BE;", regexNonDecimal: /[^0-9\.\-]/g, regexTrim: /^\s+|\s+$/g, regexAnySorttableClass: /\bsorttable_([a-z0-9]+)\b/, init() { sorttable.init.done || (sorttable.init.done = !0, document.querySelectorAll(sorttable.selectorTables).forEach(sorttable.makeSortable)) }, innerSortFunction(t, e) { d("wait"); const o = this.classList.contains(sorttable.classSorted), s = this.classList.contains(sorttable.classSortedReverse); if (o || s) return sorttable.reverse(this.sorttable_tbody), c(this, s), void t.preventDefault(); const r = [], a = this.sorttable_columnindex, n = this.sorttable_tbody.rows; for (let t = 0; t < n.length; t++)r.push([sorttable.getInnerText(n[t].cells[a]), n[t]]); r.sort(this.sorttable_sortfunction), c(this, !0); const l = this.sorttable_tbody, i = document.createDocumentFragment(); for (let t = 0; t < r.length; t++)i.append(r[t][1]); function c(t, e) { const { id: o, icon: s } = e ? { id: sorttable.idSorttableSortfwdind, icon: sorttable.iconDown } : { id: sorttable.idSorttableSortfrevind, icon: sorttable.iconUp }; document.getElementById(sorttable.idSorttableSortfwdind)?.remove(), document.getElementById(sorttable.idSorttableSortfrevind)?.remove(); const r = document.createElement("span"); r.id = o, r.innerHTML = NOVA.createSafeHTML(s), t.append(r), t.classList.remove(sorttable.classSorted, sorttable.classSortedReverse), t.classList.add(e ? sorttable.classSorted : sorttable.classSortedReverse), d() } function d(t = null) { e.style.cursor = t } l.append(i), t.preventDefault() }, makeSortable(t) { if (!t.tHead) { const e = document.createElement("thead"); t.insertBefore(e, t.firstChild) } if (1 !== t.tHead.rows.length) return; const e = Array.from(t.rows).filter((t => t.classList.contains(sorttable.classSortBottom))); if (e.length) { let o = t.tFoot; o || (o = document.createElement("tfoot"), t.append(o)); const s = document.createDocumentFragment(); e.forEach((t => s.append(t))), o.append(s) } const o = t.tHead.rows[0].cells; for (let e = 0; e < o.length; e++) { const s = o[e]; if (!s.classList.contains(sorttable.classNoSort)) { const o = s.className.match(sorttable.regexAnySorttableClass)?.[1]; s.sorttable_sortfunction = o ? sorttable[`sort_${o}`] : sorttable.guessType(t, e), s.sorttable_columnindex = e, s.sorttable_tbody = t.tBodies[0] } } t.tHead.addEventListener("click", (e => { const o = e.target; "TH" !== o.tagName || o.classList.contains(sorttable.classNoSort) || sorttable.innerSortFunction.call(o, e, t) })) }, guessedTypesCache: new WeakMap, guessType(t, e) { const o = this.guessedTypesCache.get(t) || new Map; if (o.has(e)) return o.get(e); const s = []; for (let o = 0; o < t.rows.length; o++) { const r = t.rows[o].cells[e]; if (r.textContent?.trim()) { s.push(sorttable.sort_alpha); break } } return o.set(e, columnType), this.guessedTypesCache.set(t, o), columnType }, innerTextCache: new WeakMap, getInnerText(t) { if (!t) return ""; if (t.dataset && t.dataset.value) return t.dataset.value; if (customkey = t.getAttribute("sorttable_customkey")) return customkey; const e = sorttable.innerTextCache.get(t); if (void 0 !== e) return e; const o = "function" == typeof t?.getElementsByTagName && t.getElementsByTagName("input").length, s = t.textContent?.trim() || t.innerText?.trim() || t.text?.trim(); if (s && !o) return s; let r = ""; switch (t.nodeType) { case 3: "input" === t.nodeName.toLowerCase() && (r = t.value.trim()); break; case 1: for (let e = 0; e < t.childNodes.length; e++)r += sorttable.getInnerText(t.childNodes[e]) }return sorttable.innerTextCache.set(t, r.trim()), r.trim() }, reverse(t) { Array.from(t.rows).reverse().forEach((e => t.append(e))) }, sort_numeric: (t, e) => parseFloat(t[0].replace(sorttable.regexNonDecimal, "")) - parseFloat(e[0].replace(sorttable.regexNonDecimal, "")), sort_alpha: (t, e) => t[0].localeCompare(e[0]), shakerSort(t, e) { let o = 0, s = t.length - 1; for (; o < s;)r(t, e, o, s), s--, a(t, e, o, s), o++; function r(t, e, o, s) { let r = !1; for (let a = o; a < s; a++)e(t[a], t[a + 1]) > 0 && ([t[a], t[a + 1]] = [t[a + 1], t[a]], r = !0); return r } function a(t, e, o, s) { let r = !1; for (let a = s; a > o; a--)e(t[a], t[a - 1]) < 0 && ([t[a], t[a - 1]] = [t[a - 1], t[a]], r = !0); return r } } };
 
       }
 
@@ -1222,8 +1320,8 @@ window.nova_plugins.push({
       comments_sort_min_words: {
          _tagName: 'input',
          label: 'Min words count',
-         'label:zh': '最少字数',
-         'label:ja': '最小単語数',
+         // 'label:zh': '最少字数',
+         // 'label:ja': '最小単語数',
          // 'label:ko': '최소 단어 수',
          // 'label:vi': '',
          // 'label:id': '',
@@ -1236,7 +1334,7 @@ window.nova_plugins.push({
          'label:pl': 'Minimalna liczba słów',
          // 'label:ua': 'Мінімальна кількість слів',
          type: 'number',
-         title: '0 - disable',
+         title: 'Ignore replies. 0 - disable',
          // 'title:zh': '',
          // 'title:ja': '',
          // 'title:ko': '',
@@ -1296,8 +1394,8 @@ window.nova_plugins.push({
       comments_sort_blocklist: {
          _tagName: 'textarea',
          label: 'Words/users blocklist',
-         'label:zh': '被阻止的单词列表',
-         'label:ja': 'ブロックされた単語のリスト',
+         // 'label:zh': '被阻止的单词列表',
+         // 'label:ja': 'ブロックされた単語のリスト',
          // 'label:ko': '단어 목록',
          // 'label:vi': '',
          // 'label:id': 'Daftar kata',
@@ -1310,8 +1408,8 @@ window.nova_plugins.push({
          'label:pl': 'Lista blokowanych słów',
          // 'label:ua': 'Список заблокованих слів',
          title: 'separator: "," or ";" or "new line"',
-         'title:zh': '分隔器： "," 或 ";" 或 "新队"',
-         'title:ja': 'セパレータ： "," または ";" または "改行"',
+         // 'title:zh': '分隔器： "," 或 ";" 或 "新队"',
+         // 'title:ja': 'セパレータ： "," または ";" または "改行"',
          // 'title:ko': '구분 기호: "," 또는 ";" 또는 "새 줄"',
          // 'title:vi': '',
          // 'title:id': 'pemisah: "," atau ";" atau "baris baru"',

@@ -30,14 +30,14 @@
 }
 
 .tabbed input[name=tabs]:checked+label {
-   border-bottom-color: var(--hr);
+   border-bottom-color: var(--separator);
    opacity: 1;
    z-index: 2;
 }
 
 .tabs-content {
    clear: both;
-   border-top: 2px solid var(--hr);
+   border-top: 2px solid var(--separator);
    padding: 10px 0px;
 }
 

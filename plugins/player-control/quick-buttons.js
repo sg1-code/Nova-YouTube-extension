@@ -6,8 +6,8 @@ window.nova_plugins.push({
    // id: 'player-quick-controls',
    id: 'player-quick-buttons',
    title: 'Add custom player buttons',
-   'title:zh': 'カスタム プレーヤー ボタンを追加する',
-   'title:ja': 'カスタム プレーヤー ボタンを追加する',
+   // 'title:zh': 'カスタム プレーヤー ボタンを追加する',
+   // 'title:ja': 'カスタム プレーヤー ボタンを追加する',
    // 'title:ko': '맞춤 플레이어 버튼 추가',
    // 'title:vi': '',
    // 'title:id': '',
@@ -20,7 +20,7 @@ window.nova_plugins.push({
    'title:pl': 'Dodaj własne przyciski odtwarzacza',
    // 'title:ua': 'Додайте власні кнопки програвача',
    run_on_pages: 'watch, embed, -mobile',
-   section: 'control-panel',
+   section: 'player-control',
    // desc: '',
    _runtime: user_settings => {
 
@@ -28,12 +28,8 @@ window.nova_plugins.push({
          SELECTOR_BTN_CLASS_NAME = 'nova-right-custom-button',
          SELECTOR_BTN = '.' + SELECTOR_BTN_CLASS_NAME; // for css
 
-      // NOVA.waitSelector('.ytp-left-controls')
       NOVA.waitSelector('#movie_player .ytp-right-controls')
          .then(async container => {
-            // container.prepend(new-el);
-            // container.insertBefore(new-el, container.childNodes[0])
-
             NOVA.videoElement = await NOVA.waitSelector('video'); // wait load video. rewrite just in case
 
             // global
@@ -87,6 +83,16 @@ window.nova_plugins.push({
                html[data-cast-api-enabled] ${SELECTOR_BTN}[tooltip]:hover::before {
                   font-weight: normal;
                }`);
+
+            if (user_settings.player_buttons_custom_autohide) {
+               NOVA.css.push(
+                  `.ytp-right-controls:has(>[aria-label]:hover) button.nova-right-custom-button {
+                     width: 10px;
+                  }
+                  .ytp-right-controls:not(:hover) button.nova-right-custom-button {
+                     display: none;
+                  }`);
+            }
 
             // picture-in-picture player
             if (user_settings.player_buttons_custom_items?.includes('picture-in-picture')) {
@@ -311,8 +317,7 @@ window.nova_plugins.push({
                   const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                   path.setAttribute('d', 'M477,137H352.718L349,108c0-16.568-13.432-30-30-30H191c-16.568,0-30,13.432-30,30l-3.718,29H34 c-11.046,0-20,8.454-20,19.5v258c0,11.046,8.954,20.5,20,20.5h443c11.046,0,20-9.454,20-20.5v-258C497,145.454,488.046,137,477,137 z M255.595,408.562c-67.928,0-122.994-55.066-122.994-122.993c0-67.928,55.066-122.994,122.994-122.994 c67.928,0,122.994,55.066,122.994,122.994C378.589,353.495,323.523,408.562,255.595,408.562z M474,190H369v-31h105V190z');
 
-                  g.append(circle);
-                  g.append(path);
+                  g.append(circle, path);
                   svg.append(g);
 
                   return svg;
@@ -331,26 +336,42 @@ window.nova_plugins.push({
                   ctx.drawImage(NOVA.videoElement, 0, 0, canvas.width, canvas.height);
                   canvas.title = 'Click to save';
 
-                  renderSubtitle();
+                  if (user_settings.player_buttons_custom_screenshot_subtitle) renderSubtitle();
 
                   try {
                      // fix Uncaught DOMException: Failed to execute 'toDataURL' on 'HTMLCanvasElement': Tainted canvases may not be exported.
                      // ex: https://www.youtube.com/watch?v=FZovbrEP53o
                      canvas.toBlob(blob => {
                         if (user_settings.player_buttons_custom_screenshot_format == 'popup') {
+                           const convasURL = URL.createObjectURL(blob);
                            // window.open(URL.createObjectURL(blob));
-                           NOVA.openPopup({ 'url': URL.createObjectURL(blob), 'width': canvas.width, 'height': canvas.height });
+                           NOVA.openPopup({ 'url': convasURL, 'width': canvas.width, 'height': canvas.height });
+                           URL.revokeObjectURL(convasURL); // prevent memory leaks
                         }
-                        // copy to clipboard ('write' in navigator.clipboard)
+                        // Check if navigator.clipboard.write is supported and the document is active
+                        // Solution 1
+                        // else if (user_settings.player_buttons_custom_screenshot_format == 'clipboard' && navigator.clipboard?.write && document.hasFocus()) {
                         else if (user_settings.player_buttons_custom_screenshot_format == 'clipboard' && navigator.clipboard?.write) {
-                           navigator.clipboard.write([new ClipboardItem({ [mimeType]: blob })]);
-                           NOVA.showOSD('Screenshot copied to clipboard');
+                           navigator.clipboard.write([new ClipboardItem({ [mimeType]: blob })])
+                              .then(() => NOVA.showOSD({ message: 'Screenshot copied to clipboard' }))
+                              .catch(err => {
+                                 console.error('Failed to copy to clipboard:\n', err);
+                                 // Failed to copy to clipboard. NotAllowedError: Failed to execute 'write' on 'Clipboard': Document is not focused
+                                 // Solution 2
+                                 if (err.name === 'NotAllowedError') {
+                                    alert('Clipboard access denied. Tab context is not focused');
+                                    createPreviewContainer(blob);
+                                 }
+                                 NOVA.showOSD({ message: 'Failed to copy screenshot' });
+                              });
                         }
                         else createPreviewContainer(blob);
 
                      }, mimeType);
 
-                  } catch (error) {
+                  } catch (err) {
+                     console.error('Failed to capture screenshot:', err);
+                     NOVA.showOSD({ message: 'Error: Take screenshot' });
                      // alert("The video is protected. Can't take screenshot due to security policy");
                      // container.remove();
                   }
@@ -368,7 +389,8 @@ window.nova_plugins.push({
                            max_width: movie_player.clientWidth,
                            max_height: movie_player.clientHeight,
                         });
-                     } else {
+                     }
+                     else {
                         return {
                            width: NOVA.videoElement.videoWidth,
                            height: NOVA.videoElement.videoHeight,
@@ -440,30 +462,31 @@ window.nova_plugins.push({
                         evt.preventDefault();
                         downloadCanvasAsImage(evt.target, mime);
                         container.remove();
+                        URL.revokeObjectURL(container.href); // prevent memory leaks
                      }, { capture: true });
 
-                     container.append(canvas);
-                     container.append(createCloseButton());
+                     container.append(canvas, createCloseButton());
                      document.body.append(container);
 
                      function downloadCanvasAsImage(canvas, mime = 'image/png') {
                         const
                            downloadLink = document.createElement('a'),
-                           downloadFileName =
-                              [
-                                 movie_player.getVideoData().title
-                                    .replace(/[\\/:*?"<>|]+/g, '')
-                                    .replace(/\s+/g, ' ').trim(),
-                                 (time = NOVA.formatTimeOut.HMS.abbr(NOVA.videoElement.currentTime)) ? `(${time})` : '',
-                              ]
-                                 .join(' ');
+                           time = NOVA.formatTime.HMS.abbr(NOVA.videoElement.currentTime),
+                           downloadFileName = `${cleanFileName(movie_player.getVideoData().title)} (${time}) ? (${time}) : ''`;
 
                         // downloadLink.href = canvas.toBlob(blob => URL.createObjectURL(blob)); // Doesn't work
                         downloadLink.href = canvas.toDataURL(mime).replace(mime, 'image/octet-stream');
                         // container.href = canvas.toDataURL(); // err in Brave browser (https://github.com/raingart/Nova-YouTube-extension/issues/8)
                         downloadLink.download = `${downloadFileName}.${user_settings.player_buttons_custom_screenshot_format || 'png'}`
                         downloadLink.click();
-                        // URL.revokeObjectURL(downloadLink.href);
+                        URL.revokeObjectURL(downloadLink.href); // prevent memory leaks
+
+                        function cleanFileName(str) {
+                           return str
+                              .replace(/[^\w\s._-]/g, '') // Excludes except letters, digits, spaces, periods, hyphens, and underscores
+                              .replace(/\s{2,}/g, ' ') // multi-spacebar
+                              .trim();
+                        }
                      }
 
                      function createCloseButton() {
@@ -481,6 +504,7 @@ window.nova_plugins.push({
                         button.addEventListener('click', evt => {
                            evt.preventDefault();
                            container.remove();
+                           URL.revokeObjectURL(container.href); // prevent memory leaks
                         });
                         return button;
                      }
@@ -529,15 +553,13 @@ window.nova_plugins.push({
                   circle.setAttribute('cy', '7.2');
                   circle.setAttribute('r', '2');
 
-                  const path1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-                  path1.setAttribute('d', 'M0 2v16h20V2H0z M18 16H2V4h16V16z');
+                  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                  path.setAttribute('d', 'M0 2v16h20V2H0z M18 16H2V4h16V16z');
 
                   const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
                   polygon.setAttribute('points', '17 10.9 14 7.9 9 12.9 6 9.9 3 12.9 3 15 17 15');
 
-                  g.append(circle);
-                  g.append(path1);
-                  g.append(polygon);
+                  g.append(circle, path, polygon);
                   svg.append(g);
 
                   return svg;
@@ -548,7 +570,7 @@ window.nova_plugins.push({
                thumbBtn.addEventListener('click', async () => {
                   // Solution 1 (API). Skip embed
                   // if (NOVA.currentPage == 'watch'
-                  //    && (imgUrl = document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.videoDetails?.thumbnail.thumbnails.pop().url)
+                  //    && (imgUrl = movie_player.getPlayerResponse()?.videoDetails?.thumbnail.thumbnails.pop().url)
                   // ) {
                   //    return window.open(imgUrl);
                   // }
@@ -579,30 +601,35 @@ window.nova_plugins.push({
                   thumbBtn.textContent = '🕓';
                   thumbBtn.cursor = 'wait';
                   for (const prefixSize of thumbsSizes) {
-                     const
-                        imgUrl = `https://i.ytimg.com/vi/${videoId}/${prefixSize}default.jpg`,
-                        response = await fetch(imgUrl);
+                     const imgUrl = `https://i.ytimg.com/vi/${videoId}/${prefixSize}default.jpg`;
+                     try {
+                        const response = await fetch(imgUrl);
 
-                     if (response.status === 200) {
-                        const imageBlob = await response.blob();
-                        const img = new Image();
-                        img.src = URL.createObjectURL(imageBlob);
+                        if (response.status === 200) {
+                           const imageBlob = await response.blob();
+                           const img = new Image();
+                           img.src = URL.createObjectURL(imageBlob);
 
-                        img.addEventListener('load', () => {
-                           NOVA.openPopup({
-                              'url': imgUrl,
-                              // 'title': document.getElementById('movie_player').getVideoData().title,
-                              'width': img.width,
-                              'height': img.height,
-                              // 'width': thumbsSizes.width,
-                              // 'height': thumbsSizes.height,
+                           img.addEventListener('load', () => {
+                              NOVA.openPopup({
+                                 'url': imgUrl,
+                                 // 'title': document.getElementById('movie_player').getVideoData().title,
+                                 'width': img.width,
+                                 'height': img.height,
+                                 // 'width': thumbsSizes.width,
+                                 // 'height': thumbsSizes.height,
+                              });
+                              URL.revokeObjectURL(img.src); // Revoke temporary URL
                            });
-                        });
-                        // restore icon
-                        thumbBtn.removeProperty('cursor');
+                           break;
+                        }
+                     } catch (err) {
+                        console.error('Error fetching or loading image:', err);
+                     } finally {
+                        // Restore icon
+                        thumbBtn.style.cursor = '';
                         thumbBtn.textContent = '';
                         thumbBtn.append(thumbBtnClone);
-                        break;
                      }
                   }
                });
@@ -659,8 +686,7 @@ window.nova_plugins.push({
                // hotkey
                document.addEventListener('keyup', evt => {
                   if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
-
-                  if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
+                  if (NOVA.editableFocused(evt.target)) return;
                   if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
 
                   if ((hotkey.length === 1 ? evt.key : evt.code) === hotkey) {
@@ -950,7 +976,7 @@ window.nova_plugins.push({
                   listQuality = document.createElement('ul'),
                   // btn <span>
                   SELECTOR_QUALITY_TITLE_ID = SELECTOR_QUALITY_CLASS_NAME + '-title',
-                  qualitySpan = document.createElement('span'),
+                  qualityLabelBtn = document.createElement('span'),
 
                   qualityFormatList = {
                      highres: { label: '4320p', badge: '8K' },
@@ -1027,30 +1053,30 @@ window.nova_plugins.push({
                // container <a>
                qualityContainerBtn.classList.add('ytp-button', SELECTOR_BTN_CLASS_NAME, SELECTOR_QUALITY_CLASS_NAME);
                // btn <span>
-               qualitySpan.id = SELECTOR_QUALITY_TITLE_ID;
-               // qualitySpan.title = 'Change quality';
-               // qualitySpan.setAttribute('tooltip', 'Change quality');
-               qualitySpan.textContent = qualityFormatList[movie_player.getPlaybackQuality()]?.label || '[N/A]' // '[out of range]';
+               qualityLabelBtn.id = SELECTOR_QUALITY_TITLE_ID;
+               // qualityLabelBtn.title = 'Change quality';
+               // qualityLabelBtn.setAttribute('tooltip', 'Change quality');
+               qualityLabelBtn.textContent = qualityFormatList[movie_player.getPlaybackQuality()]?.label || '[N/A]';
                // list <ul>
                listQuality.id = SELECTOR_QUALITY_LIST_ID;
 
-               // show current quality
-               movie_player.addEventListener('onPlaybackQualityChange', quality => {
-                  document.getElementById(SELECTOR_QUALITY_TITLE_ID)
-                     .textContent = qualityFormatList[quality]?.label || '[N/A]' // '[out of range]';
-                  // .textContent = movie_player.getVideoData().video_quality
-                  // dirty hack (clear list) replaces this prototype code
-                  // document.getElementById(SELECTOR_QUALITY_LIST_ID li..) li.className = 'active';
-               });
-
-               qualityContainerBtn.prepend(qualitySpan);
+               qualityContainerBtn.prepend(qualityLabelBtn);
                qualityContainerBtn.append(listQuality);
 
                container.prepend(qualityContainerBtn);
 
                fillQualityMenu(); // init
+               // NOVA.videoElement?.addEventListener('loadeddata', () => qualityList.textContent = ''); // clear on update
+               // show current quality
+               movie_player.addEventListener('onPlaybackQualityChange', quality => {
+                  document.getElementById(SELECTOR_QUALITY_TITLE_ID)
+                     .textContent = qualityFormatList[quality]?.label || '[N/A]';
+                  // .textContent = movie_player.getVideoData().video_quality
+                  // dirty hack (clear list) replaces this prototype code
+                  // document.getElementById(SELECTOR_QUALITY_LIST_ID li..) li.className = 'active';
+                  fillQualityMenu();
+               });
 
-               NOVA.videoElement?.addEventListener('loadeddata', fillQualityMenu); // update
                // clear quality state after page changed
                // if (user_settings['video-quality']) {
                //    document.addEventListener('yt-navigate-start', () => delete window['nova-quality']);
@@ -1240,8 +1266,7 @@ window.nova_plugins.push({
                // hotkey
                document.addEventListener('keyup', evt => {
                   if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
-
-                  if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
+                  if (NOVA.editableFocused(evt.target)) return;
                   if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
 
                   if ((hotkey.length === 1 ? evt.key : evt.code) === hotkey) {
@@ -1252,7 +1277,13 @@ window.nova_plugins.push({
                NOVA.videoElement.addEventListener('ratechange', function () {
                   speedBtn.setAttribute('tooltip', genTooltip());
                   // same fn in "video-rate" plugin
-                  if (!user_settings['video-rate']) NOVA.showOSD(this.playbackRate + 'x');
+                  if (!user_settings['video-rate']) {
+                     NOVA.showOSD({
+                        message: this.playbackRate + 'x',
+                        ui_value: this.playbackRate,
+                        source: 'rate',
+                     });
+                  }
                });
 
                function switchRate() {
@@ -1270,7 +1301,7 @@ window.nova_plugins.push({
                         ? { 'default': movie_player.getPlaybackRate() }
                         : { 'html5': NOVA.videoElement.playbackRate };
 
-                     let resetRate = Object.assign({}, rateOrig); // clone obj
+                     let resetRate = { ...rateOrig }; // clone obj
                      resetRate[Object.keys(resetRate)[0]] = 1; // first property of object
                      playerRate.set(resetRate);
 
@@ -1297,6 +1328,7 @@ window.nova_plugins.push({
                   },
 
                   // saveInSession(level = required()) {
+                  //    if (!window?.sessionStorage) return;
                   //    try {
                   //       // https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API/Using
                   //       sessionStorage['yt-player-playback-rate'] = JSON.stringify({
@@ -1344,8 +1376,7 @@ window.nova_plugins.push({
 
       // path.setAttribute('fill', '#fff');
       // path.setAttribute('fill-rule', 'evenodd');
-      // svg.append(use);
-      // svg.append(path);
+      // svg.append(use, path);
 
       // const btnContent = svg.outerHTML;
 
@@ -1354,8 +1385,8 @@ window.nova_plugins.push({
       player_buttons_custom_items: {
          _tagName: 'select',
          label: 'Buttons',
-         'label:zh': '纽扣',
-         'label:ja': 'ボタン',
+         // 'label:zh': '纽扣',
+         // 'label:ja': 'ボタン',
          // 'label:ko': '버튼',
          // 'label:vi': '',
          // 'label:id': 'Tombol',
@@ -1368,8 +1399,8 @@ window.nova_plugins.push({
          'label:pl': 'Przyciski',
          // 'label:ua': 'Кнопки',
          title: '[Ctrl+Click] to select several',
-         'title:zh': '[Ctrl+Click] 选择多个',
-         'title:ja': '「Ctrl+Click」して、いくつかを選択します',
+         // 'title:zh': '[Ctrl+Click] 选择多个',
+         // 'title:ja': '「Ctrl+Click」して、いくつかを選択します',
          // 'title:ko': '[Ctrl+Click] 여러 선택',
          // 'title:vi': '',
          // 'title:id': '[Ctrl+Klik] untuk memilih beberapa',
@@ -1403,8 +1434,8 @@ window.nova_plugins.push({
             },
             {
                label: 'quick quality', value: 'quick-quality',
-               'label:zh': '质量',
-               'label:ja': '品質',
+               // 'label:zh': '质量',
+               // 'label:ja': '品質',
                // 'label:ko': '품질',
                // 'label:vi': '',
                // 'label:id': 'kualitas',
@@ -1435,8 +1466,8 @@ window.nova_plugins.push({
             },
             {
                label: 'toggle speed', value: 'toggle-speed',
-               'label:zh': '切换速度',
-               'label:ja': 'トグル速度',
+               // 'label:zh': '切换速度',
+               // 'label:ja': 'トグル速度',
                // 'label:ko': '토글 속도',
                // 'label:vi': '',
                // 'label:id': 'beralih kecepatan',
@@ -1467,8 +1498,8 @@ window.nova_plugins.push({
             },
             {
                label: 'screenshot', value: 'screenshot',
-               'label:zh': '截屏',
-               'label:ja': 'スクリーンショット',
+               // 'label:zh': '截屏',
+               // 'label:ja': 'スクリーンショット',
                // 'label:ko': '스크린샷',
                // 'label:vi': '',
                // 'label:id': 'tangkapan layar',
@@ -1500,8 +1531,8 @@ window.nova_plugins.push({
             },
             {
                label: 'popup', value: 'popup',
-               'label:zh': '弹出式播放器',
-               'label:ja': 'ポップアッププレーヤー',
+               // 'label:zh': '弹出式播放器',
+               // 'label:ja': 'ポップアッププレーヤー',
                // 'label:ko': '썸네일',
                // 'label:vi': '',
                // 'label:id': 'muncul',
@@ -1516,8 +1547,8 @@ window.nova_plugins.push({
             },
             {
                label: 'rotate', value: 'rotate',
-               'label:zh': '旋转',
-               'label:ja': '回転する',
+               // 'label:zh': '旋转',
+               // 'label:ja': '回転する',
                // 'label:ko': '회전',
                // 'label:vi': '',
                // 'label:id': 'memutar',
@@ -1565,8 +1596,8 @@ window.nova_plugins.push({
             {
                // label: 'thumbnail', value: 'thumbnail',
                label: 'preview cover', value: 'thumbnail',
-               'label:zh': '缩略图',
-               'label:ja': 'サムネイル',
+               // 'label:zh': '缩略图',
+               // 'label:ja': 'サムネイル',
                // 'label:ko': '썸네일',
                // 'label:vi': '',
                // 'label:id': 'miniatura',
@@ -1580,6 +1611,40 @@ window.nova_plugins.push({
                // 'label:ua': 'мініатюра',
             },
          ],
+      },
+      player_buttons_custom_autohide: {
+         _tagName: 'input',
+         label: 'Auto-hide (if not hovered)',
+         // 'label:zh': '',
+         // 'label:ja': '',
+         // 'label:ko': '',
+         // 'label:vi': '',
+         // 'label:id': '',
+         // 'label:es': '',
+         // 'label:pt': '',
+         // 'label:fr': '',
+         // 'label:it': '',
+         // 'label:tr': '',
+         // 'label:de': '',
+         // 'label:pl': '',
+         // 'label:ua': '',
+         type: 'checkbox',
+         // title: '',
+         'data-dependent': {
+            'player_buttons_custom_items': [
+               // 'clock',
+               // 'quick-quality',
+               'range-speed',
+               // 'toggle-speed',
+               'card-switch',
+               'screenshot',
+               'picture-in-picture',
+               'popup', 'rotate',
+               'aspect-ratio',
+               'watch-later',
+               'thumbnail'
+            ]
+         },
       },
       // player_buttons_custom_popup_width: {
       //    _tagName: 'input',
@@ -1599,8 +1664,8 @@ window.nova_plugins.push({
       //    // 'label:ua': 'Співвідношення розміру вікна відтворювача',
       //    type: 'number',
       //    title: 'Less value - larger size',
-      //    'title:zh': '较小的值 - 较大的尺寸',
-      //    'title:ja': '小さい値-大きいサイズ',
+      //    // 'title:zh': '较小的值 - 较大的尺寸',
+      //    // 'title:ja': '小さい値-大きいサイズ',
       //    // 'title:ko': '더 작은 값 - 더 큰 크기',
       //    // 'title:vi': '',
       //    // 'title:id': 'Nilai lebih kecil - ukuran lebih besar',
@@ -1623,8 +1688,8 @@ window.nova_plugins.push({
       player_buttons_custom_hotkey_toggle_speed: {
          _tagName: 'select',
          label: 'Speed switch hotkey',
-         'label:zh': '速度切换热键',
-         'label:ja': '速度を切り替えるためのホットボタン',
+         // 'label:zh': '速度切换热键',
+         // 'label:ja': '速度を切り替えるためのホットボタン',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',
@@ -1800,7 +1865,7 @@ window.nova_plugins.push({
       },
       player_buttons_custom_screenshot_format: {
          _tagName: 'select',
-         label: 'Screenshot out',
+         label: 'Screenshot out type',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',
@@ -1900,7 +1965,7 @@ window.nova_plugins.push({
       },
       player_buttons_custom_screenshot_size: {
          _tagName: 'select',
-         label: 'Get screenshot size from',
+         label: 'Screenshot frame size from',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',
@@ -1950,6 +2015,26 @@ window.nova_plugins.push({
          ],
          'data-dependent': { 'player_buttons_custom_items': ['screenshot'] },
       },
+      player_buttons_custom_screenshot_subtitle: {
+         _tagName: 'input',
+         label: 'Add screenshot subtitle',
+         // 'label:zh': '',
+         // 'label:ja': '',
+         // 'label:ko': '',
+         // 'label:vi': '',
+         // 'label:id': '',
+         // 'label:es': '',
+         // 'label:pt': '',
+         // 'label:fr': '',
+         // 'label:it': '',
+         // 'label:tr': '',
+         // 'label:de': '',
+         // 'label:pl': '',
+         // 'label:ua': '',
+         type: 'checkbox',
+         // title: '',
+         'data-dependent': { 'player_buttons_custom_items': ['screenshot'] },
+      },
       player_buttons_custom_screenshot_subtitle_color: {
          _tagName: 'input',
          type: 'color',
@@ -1969,7 +2054,7 @@ window.nova_plugins.push({
          // 'label:pl': 'Kolor',
          // 'label:ua': 'Колір',
          // title: 'default - #fff',
-         'data-dependent': { 'player_buttons_custom_items': ['screenshot'] },
+         'data-dependent': { 'player_buttons_custom_screenshot_subtitle': true },
       },
       player_buttons_custom_screenshot_subtitle_shadow_color: {
          _tagName: 'input',
@@ -1990,7 +2075,7 @@ window.nova_plugins.push({
          // 'label:pl': 'Kolor',
          // 'label:ua': 'Колір',
          // title: 'default - #000',
-         'data-dependent': { 'player_buttons_custom_items': ['screenshot'] },
+         'data-dependent': { 'player_buttons_custom_screenshot_subtitle': true },
       },
       // player_buttons_custom_screenshot_subtitle_font_size: {
       //    _tagName: 'input',
@@ -2028,7 +2113,7 @@ window.nova_plugins.push({
       //    min: 20,
       //    max: 80,
       //    value: 40,
-      //    'data-dependent': { 'player_buttons_custom_items': ['screenshot'] },
+      //    'data-dependent': { 'player_buttons_custom_screenshot_subtitle': true },
       // },
       range_speed_unlimit: {
          _tagName: 'input',

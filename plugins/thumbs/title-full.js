@@ -2,8 +2,8 @@ window.nova_plugins.push({
    // id: 'thumbs_title_show_full',
    id: 'thumbs-title-show-full',
    title: 'Show full title',
-   'title:zh': '显示完整标题',
-   'title:ja': '完全なタイトルを表示',
+   // 'title:zh': '显示完整标题',
+   // 'title:ja': '完全なタイトルを表示',
    // 'title:ko': '전체 제목 표시',
    // 'title:vi': '',
    // 'title:id': 'Tampilkan judul lengkap',
@@ -36,7 +36,7 @@ window.nova_plugins.push({
             .map(i => i + ':not(:empty)');
 
       NOVA.css.push(
-         VIDEO_TITLE_SELECTOR.join(',') + `{
+         VIDEO_TITLE_SELECTOR.join(',') + ` {
             display: block !important;
             max-height: unset !important;
          }`);

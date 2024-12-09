@@ -5,8 +5,8 @@
 window.nova_plugins.push({
    id: 'thumbs-title-lang',
    title: "Show titles original language",
-   'title:zh': '显示缩略图标题原始语言',
-   'title:ja': 'サムネイルのタイトルを元の言語で表示する',
+   // 'title:zh': '显示缩略图标题原始语言',
+   // 'title:ja': 'サムネイルのタイトルを元の言語で表示する',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -66,13 +66,14 @@ window.nova_plugins.push({
       let
          idsToProcess = [],
          newCacheItem = {},
-         timeout;
+         timeoutId;
 
-      // Solution 1 (HTML5). page update event
-      // document.addEventListener('scrollend', function self() {
-      //    if (typeof self.timeout === 'number') clearTimeout(self.timeout);
-      //    self.timeout = setTimeout(patchThumb, 50); // 50ms
+      // // Solution 1 (HTML5). page update event
+      // document.addEventListener('scroll', () => {
+      //    requestAnimationFrame(patchThumb);
       // });
+
+      // document.addEventListener('visibilitychange', () => !document.hidden && patchThumb());
 
       // // Solution 2 (API). page update event
       // document.addEventListener('yt-action', evt => {
@@ -80,7 +81,7 @@ window.nova_plugins.push({
       //    switch (evt.detail?.actionName) {
       //       case 'yt-append-continuation-items-action': // home, results, feed, channel, watch
       //       case 'ytd-update-grid-state-action': // feed, channel
-      //       case 'yt-rich-grid-layout-refreshed': // feed
+      //       case 'yt-rich-grid-layout-refreshed': // feed. Warning! loads too early
       //       // case 'ytd-rich-item-index-update-action': // home, channel
       //       case 'yt-store-grafted-ve-action': // results, watch
       //          // case 'ytd-update-elements-per-row-action': // feed
@@ -121,8 +122,8 @@ window.nova_plugins.push({
       });
 
       function run_process(sec = 1) {
-         clearTimeout(timeout);
-         timeout = setTimeout(() => {
+         clearTimeout(timeoutId);
+         timeoutId = setTimeout(() => {
             refreshCache(newCacheItem);
             patchThumbs(idsToProcess); // comment for test
             // requestTitle(idsToProcess); // uncomment for test (ignore cache)
@@ -154,6 +155,7 @@ window.nova_plugins.push({
 
       function refreshCache(new_cache = {}) {
          // console.debug('refreshCache', ...arguments);
+         if (!window?.sessionStorage) return;
          newCacheItem = {}; // clear
          const cacheData = JSON.parse(sessionStorage.getItem(CACHE_NAME)) || {};
          sessionStorage.setItem(CACHE_NAME, JSON.stringify(Object.assign(new_cache, cacheData))); // save

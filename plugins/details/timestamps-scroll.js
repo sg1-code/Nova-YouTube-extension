@@ -6,8 +6,8 @@ window.nova_plugins.push({
    id: 'description-timestamps-scroll',
    // title: 'No scroll to top when clicking timestamps',
    title: 'Disable scroll to top on click timestamps',
-   'title:zh': '没有在时间戳上滚动到播放器',
-   'title:ja': 'タイムスタンプでプレーヤーにスクロールしない',
+   // 'title:zh': '没有在时间戳上滚动到播放器',
+   // 'title:ja': 'タイムスタンプでプレーヤーにスクロールしない',
    // 'title:ko': '타임스탬프에서 플레이어로 스크롤하지 않음',
    // 'title:vi': '',
    // 'title:id': 'Tidak ada gulir ke pemain pada stempel waktu',
@@ -47,12 +47,12 @@ window.nova_plugins.push({
          // <a href="/playlist?list=XX"> - erroneous filtering "t=XX" without the character "&"
          if (!evt.isTrusted || !evt.target.matches('a[href*="&t="]')) return;
 
-         // if (sec = NOVA.formatTimeOut.hmsToSec(evt.target.textContent)) {
+         // if (sec = NOVA.formatTime.hmsToSec(evt.target.textContent)) {
          if (sec = parseInt(NOVA.queryURL.get('t', evt.target.href))) {
             // preventScroll
             evt.preventDefault();
             evt.stopPropagation();
-            evt.stopImmediatePropagation();
+            // evt.stopImmediatePropagation();
 
             // NOVA.videoElement?.currentTime = sec;
             movie_player.seekTo(sec);

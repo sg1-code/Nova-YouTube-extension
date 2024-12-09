@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'header-compact',
    title: 'Header compact',
-   'title:zh': '标题紧凑',
-   'title:ja': 'ヘッダーコンパクト',
+   // 'title:zh': '标题紧凑',
+   // 'title:ja': 'ヘッダーコンパクト',
    // 'title:ko': '헤더 컴팩트',
    // 'title:vi': '',
    // 'title:id': 'Kompak tajuk',

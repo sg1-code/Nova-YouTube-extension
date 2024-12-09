@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'sidebar-thumbs-channel-link-patch',
    title: 'Fix channel links in sidebar',
-   'title:zh': '修复侧边栏中的频道链接',
-   'title:ja': 'サイドバーのチャネルリンクを修正',
+   // 'title:zh': '修复侧边栏中的频道链接',
+   // 'title:ja': 'サイドバーのチャネルリンクを修正',
    // 'title:ko': '사이드바에서 채널 링크 수정',
    // 'title:vi': '',
    // 'title:id': 'Perbaiki tautan saluran di bilah sisi',
@@ -30,49 +30,47 @@ window.nova_plugins.push({
          if (evt.isTrusted
             && NOVA.currentPage == 'watch'
             && evt.target.closest('#channel-name')
-            && (link = evt.target.closest('a'))
          ) {
             // evt.preventDefault();
-            // // evt.stopPropagation();
+            // evt.stopPropagation();
             // evt.stopImmediatePropagation();
 
-            if ((data = evt.target.closest('ytd-compact-video-renderer, ytd-video-meta-block')?.data)
-               && (res = NOVA.searchInObjectBy.key({
-                  'obj': data,
-                  'key': 'navigationEndpoint',
-                  'match_fn': val => {
-                     // console.debug('match_fn:', val);
-                     return val?.commandMetadata?.webCommandMetadata?.webPageType == 'WEB_PAGE_TYPE_CHANNEL';
-                  },
-               })?.data)
-            ) {
-               // console.debug('res:', res);
-               // console.debug('res:', res);
-               const
-                  urlOrigData = link.data,
-                  urlOrig = link.href, // '/watch?v=' + link.data.watchEndpoint.videoId
-                  endpoint = (user_settings['channel-default-tab'] && user_settings.channel_default_tab) || 'videos';
+            const link = evt.target.closest('a');
+            const targetElement = evt.target.closest('ytd-compact-video-renderer, ytd-video-meta-block');
 
-               // patch
-               link.data = res;
-               link.href = link.data.commandMetadata.webCommandMetadata.url
-                  += (link.data.commandMetadata.webCommandMetadata.url.endsWith('/') ? endpoint : `/${endpoint}`);
+            if (link && targetElement && (data = targetElement.data)) {
+               const res = NOVA.searchInObjectBy.key({
+                  obj: data,
+                  key: 'navigationEndpoint',
+                  match_fn: val => val?.commandMetadata?.webCommandMetadata?.webPageType === 'WEB_PAGE_TYPE_CHANNEL'
+               });
+               if (res) {
+                  const
+                     urlOrigData = link.data,
+                     urlOrig = link.href, // '/watch?v=' + link.data.watchEndpoint.videoId
+                     endpoint = (user_settings['channel-default-tab'] && user_settings.channel_default_tab) || 'videos';
 
-               // restore native code
-               evt.target.addEventListener('mouseout', ({ target }) => {
-                  link.data = urlOrigData;
-                  link.href = urlOrig;
-                  // console.debug('restore link:', link.data);
-               }, { capture: true, once: true });
+                  // patch
+                  link.data = res;
+                  link.href = link.data.commandMetadata.webCommandMetadata.url
+                     += (link.data.commandMetadata.webCommandMetadata.url.endsWith('/') ? endpoint : `/${endpoint}`);
 
-               // const url = res.commandMetadata.webCommandMetadata.url + '/videos';
+                  // restore native code
+                  evt.target.addEventListener('mouseout', ({ target }) => {
+                     link.data = urlOrigData;
+                     link.href = urlOrig;
+                     // console.debug('restore link:', link.data);
+                  }, { capture: true, once: true });
 
-               // // patch
-               // link.href = url;
-               // link.data.commandMetadata.webCommandMetadata.url = url;
-               // link.data.commandMetadata.webCommandMetadata.webPageType = 'WEB_PAGE_TYPE_CHANNEL';
-               // link.data.browseEndpoint = res.browseEndpoint;
-               // link.data.browseEndpoint.params = encodeURIComponent(btoa(String.fromCharCode(0x12, 0x06) + 'videos'));
+                  // const url = res.commandMetadata.webCommandMetadata.url + '/videos';
+
+                  // // patch
+                  // link.href = url;
+                  // link.data.commandMetadata.webCommandMetadata.url = url;
+                  // link.data.commandMetadata.webCommandMetadata.webPageType = 'WEB_PAGE_TYPE_CHANNEL';
+                  // link.data.browseEndpoint = res.browseEndpoint;
+                  // link.data.browseEndpoint.params = encodeURIComponent(btoa(String.fromCharCode(0x12, 0x06) + 'videos'));
+               }
             }
          }
       }

@@ -5,8 +5,8 @@ window.nova_plugins.push({
    title: 'Skip "Continue watching?" popup',
    // title: 'Player stay active forever',
    // title: 'Disable player sleep mode',
-   'title:zh': '玩家永远保持活跃',
-   'title:ja': 'プレーヤーは永遠にアクティブなままです',
+   // 'title:zh': '玩家永远保持活跃',
+   // 'title:ja': 'プレーヤーは永遠にアクティブなままです',
    // 'title:ko': '플레이어는 영원히 활성 상태를 유지',
    // 'title:vi': '',
    // 'title:id': 'Pemain tetap aktif selamanya',
@@ -38,14 +38,16 @@ window.nova_plugins.push({
    // 'desc:ua': 'Вимикає спливаюче вікно "продовжити перегляд?"',
    _runtime: user_settings => {
 
-      // alt - https://greasyfork.org/en/scripts/437123-youtube-background-playback-kiwi-browser
-      // alt1 - https://greasyfork.org/en/scripts/443234-background-youtube-music
-      // alt2 - https://greasyfork.org/en/scripts/390352-youtube-stay-active-and-play-forever
-      // alt3 - https://greasyfork.org/en/scripts/457219-disable-youtube-autopause
-      // alt4 - https://greasyfork.org/en/scripts/458173-youtube-don-t-stop
-      // alt5 - https://greasyfork.org/en/scripts/444298-youtube-don-t-stop
-      // alt6 - https://greasyfork.org/en/scripts/458929-youtube-background-nonstop
-      // alt7 - https://greasyfork.org/en/scripts/489717-nonstop-youtube
+      // alt1 - https://greasyfork.org/en/scripts/437123-youtube-background-playback-kiwi-browser
+      // alt2 - https://greasyfork.org/en/scripts/443234-background-youtube-music
+      // alt3 - https://greasyfork.org/en/scripts/390352-youtube-stay-active-and-play-forever
+      // alt4 - https://greasyfork.org/en/scripts/457219-disable-youtube-autopause
+      // alt5 - https://greasyfork.org/en/scripts/458173-youtube-don-t-stop
+      // alt6 - https://greasyfork.org/en/scripts/444298-youtube-don-t-stop
+      // alt7 - https://greasyfork.org/en/scripts/458929-youtube-background-nonstop
+      // alt8 - https://greasyfork.org/en/scripts/489717-nonstop-youtube
+      // alt9 - https://greasyfork.org/en/scripts/503616-yes-continue
+      // alt10 - https://greasyfork.org/en/scripts/514233-ignore-video-paused-continue-watching-using-xpath
 
       setInterval(() => {
          // if (document.visibilityState == 'hidden') {

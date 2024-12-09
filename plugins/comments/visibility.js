@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'comments-visibility',
    title: 'Collapse comments section',
-   'title:zh': '收起评论区',
-   'title:ja': 'コメント欄を折りたたむ',
+   // 'title:zh': '收起评论区',
+   // 'title:ja': 'コメント欄を折りたたむ',
    // 'title:ko': '댓글 섹션 축소',
    // 'title:vi': '',
    // 'title:id': 'Ciutkan bagian komentar',
@@ -34,8 +34,8 @@ window.nova_plugins.push({
       comments_visibility_mode: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',

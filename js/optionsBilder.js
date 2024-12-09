@@ -10,7 +10,7 @@ const Opt = {
    // DEBUG: true,
 
    // https://gist.github.com/wpsmith/7604842
-   lang_code: window.navigator.language.substring(0, 2),
+   lang_code: window.navigator.language.slice(0, 2),
    // lang_code = 'zh',
    // lang_code = 'ja',
    // lang_code = 'ko',
@@ -112,10 +112,7 @@ const Opt = {
                   }
 
                   if (plugin.options) {
-                     li.append(
-                        document.createElement('li')
-                           .appendChild(this.generate.options.apply(this, [plugin.options, plugin.id]))
-                     );
+                     li.append(this.generate.options.apply(this, [plugin.options, plugin.id]));
                   }
 
                   let p = this.UI.pluginsContainer;
@@ -125,8 +122,8 @@ const Opt = {
 
                   document.body.querySelector(p).append(li); // insert to section tab
 
-               } catch (error) {
-                  console.error('Error plugin generate:\n', error.stack + '\n', plugin);
+               } catch (err) {
+                  console.error('Error plugin generate:\n', err.stack + '\n', plugin);
                   alert('Error plugin generate\n' + plugin?.id);
                }
             });
@@ -177,6 +174,20 @@ const Opt = {
                // exportContainer.setAttribute('data-dependent', '{\"'+ id +'\":[true]}');
                exportContainer.setAttribute('data-dependent', JSON.stringify(property['data-dependent']));
                delete property['data-dependent'];
+            }
+
+            if (property.opt_api_key_warn) {
+               exportProperty.insertAdjacentHTML('beforeend',
+                  `<b tooltip="${i18n('opt_api_key_warn')}" flow="left">
+                     <span style="font-size: inherit;">⚠️</span>
+                  </b>`);
+
+               // const tagOption = document.createElement('b');
+               // tagOption.setAttribute('flow', 'left');
+               // tagOption.innerHTML = '<span style="font-size: inherit;">⚠️</span></b>';
+               // exportProperty.append(tagOption);
+
+               delete property['opt_api_key_warn'];
             }
 
             // localize
@@ -360,55 +371,59 @@ const Opt = {
       // search bar
       const searchInput = document.body.querySelector('form input[type=search]');
       ['change', 'keyup'].forEach(evt => {
-         searchInput
-            .addEventListener(evt, function () {
-               searchFilterHTML({
-                  'keyword': this.value,
-                  'filter_selectors': `${Opt.UI.pluginsContainer} li.item`,
-                  'highlight_selector': 'label',
-                  // 'highlight_class': 'nova-mark-text',
-               });
+         searchInput.addEventListener(evt, function () {
+            searchFilterHTML({
+               'keyword': this.value,
+               'search_selectors': `${Opt.UI.pluginsContainer} li.item`,
+               'filter_selector': 'label',
+               // 'highlight_class': 'nova-mark-text',
             });
-         document.getElementById('search_clear')
-            .addEventListener('click', () => {
-               searchInput.value = '';
-               searchInput.dispatchEvent(new Event('change')); // run searchFilterHTML
-            });
+         });
       });
+      // clear search-box
+      document.getElementById('search_clear')
+         .addEventListener('dblclick', () => {
+            searchInput.value = '';
+            searchInput.dispatchEvent(new Event('change'));
+         });
 
       function searchFilterHTML({
          keyword = required(),
-         filter_selectors = required(),
-         highlight_selector,
+         search_selectors = required(),
+         filter_selector,
          highlight_class,
       }) {
          // console.debug('searchFilterHTML:', ...arguments);
          keyword = keyword.toString().toLowerCase();
 
-         document.body.querySelectorAll(filter_selectors)
+         document.body.querySelectorAll(search_selectors)
             .forEach(item => {
-               const
-                  text = item.textContent,
-                  // text = item.getAttribute('tooltip'),
-                  hasText = text?.toLowerCase().includes(keyword),
-                  highlight = el => {
-                     if (el.innerHTML.includes('<mark ')) {
-                        // el.innerHTML = el.textContent
-                        el.innerHTML = el.innerHTML
-                           .replace(/<\/?mark[^>]*>/g, ''); // clear highlight tags
-                     }
-                     item.style.display = hasText ? '' : 'none'; // hide el out of search
-                     if (hasText && keyword) {
-                        highlightTerm({
-                           'target': el,
-                           'keyword': keyword,
-                           'highlightClass': highlight_class,
-                        });
-                     }
-                  };
+               const text = item.innerText;
+               const isfound = text.toLowerCase().includes(keyword);
 
-               (highlight_selector ? item.querySelectorAll(highlight_selector) : [item])
-                  .forEach(highlight);
+               if (filter_selector) {
+                  item.querySelectorAll(filter_selector).forEach(highlight);
+               }
+               else {
+                  highlight(item);
+               }
+
+               function highlight(el) {
+                  // clear highlight tags
+                  if (el.innerHTML.includes('<mark ')) {
+                     el.innerHTML = el.innerHTML.replace(/<\/?mark[^>]*>/g, '');
+                  }
+                  // hide el out of search
+                  item.style.display = isfound ? '' : 'none';
+
+                  if (isfound && keyword) {
+                     highlightTerm({
+                        target: el,
+                        keyword,
+                        highlight_class,
+                     });
+                  }
+               }
             });
 
          function highlightTerm({ target = required(), keyword = required(), highlightClass }) {
@@ -416,12 +431,19 @@ const Opt = {
             const
                // content = target.innerHTML,
                content = target.textContent,
-               pattern = new RegExp('(>[^<.]*)?(' + keyword + ')([^<.]*)?', 'gi'),
+               pattern = new RegExp('(>[^<.]*)?(' + escapeRegExp(keyword) + ')([^<.]*)?', 'gi'),
                highlightStyle = highlightClass ? `class="${highlightClass}"` : 'style="background-color:#afafaf"',
                replaceWith = `$1<mark ${highlightStyle}>$2</mark>$3`,
                marked = content.replaceAll(pattern, replaceWith);
 
             return (target.innerHTML = marked) !== content;
+         }
+
+         // function escapeRegExp(string) {
+         //    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+         // }
+         function escapeRegExp(str) { // Escape RegExp special characters
+            return str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&'); // skip '.', '+', '?', и '*'
          }
       }
 
@@ -461,15 +483,17 @@ document.addEventListener('settings-sync', () => {
    // load settings
    Storage.getParams(settings => {
       if (settings?.lang_code) Opt.lang_code = settings.lang_code; // locale predefinitions
-      PopulateForm.init();
-      // remove api warn if has api
+
+      FormManager.init();
+
       if (settings && settings['user-api-key']) {
          document.body.querySelectorAll('.info b').forEach(el => el.remove());
       }
-      pluginConflictDisable();
+
+      resolvePluginConflicts();
    }, storageMethod);
 
-   function pluginConflictDisable() {
+   function resolvePluginConflicts() {
       const attributeName = 'plugins-conflict';
       document.body.querySelectorAll(`[${attributeName}]`)
          .forEach(targetEl => {

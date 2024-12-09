@@ -7,8 +7,9 @@
 
 window.nova_plugins.push({
    id: 'description-dropdown',
-   title: 'Description section in dropdown menu',
-   'title:zh': '下拉菜单中的描述部分',
+   title: 'Dropdown description',
+   // title: 'Description section in dropdown menu',
+   // 'title:zh': '下拉菜单中的描述部分',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -147,20 +148,17 @@ window.nova_plugins.push({
       function restoreDateLine() {
          NOVA.waitSelector('#title h1')
             .then(container => {
-               // // Solution 1
-               // // date = document.body.querySelector('.ytd-page-manager[video-id]')?.playerData?.microformat?.playerMicroformatRenderer.publishDate;
-               // if (videoDate = NOVA.searchInObjectBy.key({
-               //    'obj': (document.body.querySelector('.ytd-page-manager[video-id]')?.playerData
-               //       || document.body.querySelector('ytd-app')?.__data?.data?.response
-               //       || document.body.querySelector('ytd-app')?.data?.response
-               //       || window.ytInitialData
-               //    ),
-               //    'key': 'publishDate',
-               //    match_fn: null,
-               // })?.data) {
+               // Solution 1
+               // if (videoDate = movie_player.getPlayerResponse()?.microformat?.playerMicroformatRenderer.publishDate
+               //    // || NOVA.searchInObjectBy.key({
+               //    //    'obj': movie_player.getPlayerResponse(),
+               //    //    'key': 'publishDate',
+               //    //    match_fn: null,
+               //    // })?.data
+               // ) {
                //    insertToHTML({ 'text': videoDate.simpleText || videoDate, 'container': container });
                // }
-               // // Solution 2
+               // Solution 2
                // else {
                NOVA.waitSelector('ytd-watch-metadata #description.ytd-watch-metadata')
                   .then(async textDateEl => {
@@ -179,7 +177,7 @@ window.nova_plugins.push({
                            && text != oldDateText // new date
                         ) {
                            oldDateText = text;
-                           // NOVA.formatTimeOut.ago();
+                           // NOVA.formatTime.ago();
                            insertToHTML({ 'text': oldDateText, 'container': container });
                            return true;
                         }
@@ -204,7 +202,10 @@ window.nova_plugins.push({
 
          function insertToHTML({ text = '', container = required() }) {
             // console.debug('insertToHTML', ...arguments);
-            if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+            if (!(container instanceof HTMLElement)) {
+               console.error('Container is not an HTMLElement:', container);
+               return;
+            }
 
             (document.getElementById(DATE_SELECTOR_ID) || (function () {
                const el = document.createElement('span');

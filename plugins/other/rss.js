@@ -1,11 +1,12 @@
 // for test:
 // https://www.youtube.com/@Azurestar/videos
+// https://www.youtube.com/playlist?list=OLAK5uy_lGkKfcYvA7uehAIeQuLgXs6XotQkQeidA
 
 window.nova_plugins.push({
    id: 'rss-link',
    title: 'Add RSS feed link',
-   'title:zh': '添加 RSS 提要链接',
-   'title:ja': 'RSSフィードリンクを追加',
+   // 'title:zh': '添加 RSS 提要链接',
+   // 'title:ja': 'RSSフィードリンクを追加',
    // 'title:ko': 'RSS 피드 링크 추가',
    // 'title:vi': '',
    // 'title:id': 'Tambahkan tautan Umpan RSS',
@@ -38,15 +39,15 @@ window.nova_plugins.push({
       switch (NOVA.currentPage) {
          case 'channel':
             // NOVA.waitSelector('#channel-header #links-holder #primary-links')
-            // NOVA.waitSelector('#page-header h1, #page-header button:last-of-type')
             NOVA.waitSelector('#page-header h1')
-               .then(container => {
+               .then(async container => {
+                  await NOVA.delay(500); // dirty fix
                   // Doesn't work.
                   // // https://www.youtube.com/feeds/videos.xml?user=<username>
                   // // if ((channelName_ = document.body.querySelector('#channel-handle')?.textContent)
                   // //    && channelName_.startsWith('@')
                   // // ) {
-                  // //    channelName = channelName_.substring(1);
+                  // //    channelName = channelName_.slice(1);
                   // // }
 
                   // // fix https://github.com/raingart/Nova-YouTube-extension/issues/60
@@ -54,16 +55,17 @@ window.nova_plugins.push({
                   //    container = document.body.querySelector('#channel-header #inner-header-container #buttons');
                   // }
 
-                  if (url = (document.head.querySelector('link[type="application/rss+xml"][href]')?.href
-                     || genChannelURL(NOVA.getChannelId(user_settings['user-api-key'])))
-                  ) {
-                     insertToHTML({ 'url': url, 'container': container });
+                  const rssLink = document.head.querySelector('link[type="application/rss+xml"][href]')?.href
+                     || genChannelURL(NOVA.getChannelId(user_settings['user-api-key']));
+
+                  if (rssLink) {
+                     insertToHTML({ 'url': rssLink, 'container': container });
                   }
                });
             break;
 
          case 'playlist':
-            NOVA.waitSelector('ytd-playlist-header-renderer .metadata-buttons-wrapper', { destroy_after_page_leaving: true })
+            NOVA.waitSelector('.page-header-sidebar h1', { destroy_after_page_leaving: true })
                .then(container => {
                   insertToHTML({ 'url': playlistURL, 'container': container, 'is_playlist': true });
                });
@@ -72,7 +74,10 @@ window.nova_plugins.push({
 
       function insertToHTML({ url = required(), container = required(), is_playlist }) {
          // console.debug('insertToHTML', ...arguments);
-         if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+         if (!(container instanceof HTMLElement)) {
+            console.error('Container is not an HTMLElement:', container);
+            return;
+         }
 
          // (document.getElementById(SELECTOR_ID) || (function () { // for 1 pages
          (container.querySelector(`#${SELECTOR_ID}`) || (function () { // for 2 parallel pages - playlist, watch
@@ -115,24 +120,24 @@ window.nova_plugins.push({
                display: 'inline-block',
                padding: '5px',
             });
-            if (is_playlist) {
-               // link.style.cssText += '';
-               Object.assign(link.style, {
-                  'margin-right': '8px',
-                  'border-radius': '20px',
-                  'background-color': 'var(--yt-spec-static-overlay-button-secondary)',
-                  // 'background-color': '#ffffff1a',
-                  color: 'var(--yt-spec-static-overlay-text-primary)',
-                  // padding: 'var(--yt-button-padding)',
-                  padding: '8px',
-                  'margin-right': '8px',
-                  'white-space': 'nowrap',
-                  'font-size': 'var(--ytd-tab-system-font-size, 1.4rem)',
-                  'font-weight': 'var(--ytd-tab-system-font-weight, 500)',
-                  'letter-spacing': 'var(--ytd-tab-system-letter-spacing, .007px)',
-                  'text-transform': 'var(--ytd-tab-system-text-transform, uppercase)',
-               });
-            }
+            // if (is_playlist) {
+            //    // link.style.cssText += '';
+            //    Object.assign(link.style, {
+            //       'margin-right': '8px',
+            //       'border-radius': '20px',
+            //       'background-color': 'var(--yt-spec-static-overlay-button-secondary)',
+            //       // 'background-color': '#ffffff1a',
+            //       color: 'var(--yt-spec-static-overlay-text-primary)',
+            //       // padding: 'var(--yt-button-padding)',
+            //       padding: '8px',
+            //       'margin-right': '8px',
+            //       'white-space': 'nowrap',
+            //       'font-size': 'var(--ytd-tab-system-font-size, 1.4rem)',
+            //       'font-weight': 'var(--ytd-tab-system-font-weight, 500)',
+            //       'letter-spacing': 'var(--ytd-tab-system-letter-spacing, .007px)',
+            //       'text-transform': 'var(--ytd-tab-system-text-transform, uppercase)',
+            //    });
+            // }
             // container.prepend(link);
             container.append(link);
             return link;

@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'player-disable-fullscreen-scroll',
    title: 'Disable scrolling for fullscreen player',
-   'title:zh': '禁用全屏滚动',
-   'title:ja': 'フルスクリーンスクロールを無効にする',
+   // 'title:zh': '禁用全屏滚动',
+   // 'title:ja': 'フルスクリーンスクロールを無効にする',
    // 'title:ko': '전체 화면 스크롤 비활성화',
    // 'title:vi': '',
    // 'title:id': 'Nonaktifkan pengguliran pemain dalam mode layar penuh',

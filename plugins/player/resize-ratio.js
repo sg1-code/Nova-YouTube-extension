@@ -63,15 +63,7 @@ window.nova_plugins.push({
                   const
                      heightRatio = .5625, // 0.5625 as a fraction is 9/16 (https://hellothinkster.com/math-questions/fractions/what-is-0.5625-as-a-fraction)
                      squareAspectRatio = () => {
-                        const aspectRatio = NOVA.aspectRatio.getAspectRatio({
-                           // 'width': movie_player.clientWidth,
-                           // 'height': movie_player.clientHeight,
-                           // 'width': NOVA.videoElement?.videoWidth,
-                           // 'height': NOVA.videoElement?.videoHeight,
-                           'width': video.videoWidth,
-                           'height': video.videoHeight,
-                        });
-
+                        const aspectRatio = NOVA.aspectRatio.getAspectRatio({ width: video.videoWidth, height: video.videoHeight });
                         return (
                            (video.videoWidth / video.videoHeight) > 2.3 // ultra wide
                            || '4:3' == aspectRatio || '1:1' == aspectRatio
@@ -86,9 +78,7 @@ window.nova_plugins.push({
                      // init
                      patchYtCalculateFn()
                      // update video
-                     video.addEventListener('loadeddata', () => {
-                        (NOVA.currentPage == 'watch') && patchYtCalculateFn();
-                     });
+                     video.addEventListener('loadeddata', () => (NOVA.currentPage == 'watch') && patchYtCalculateFn());
 
                      function sizeBypass() {
                         let width = height = NaN;
@@ -153,7 +143,7 @@ window.nova_plugins.push({
       //       //    width = movie_player.offsetWidth,
       //       // height = Math.ceil(movie_player.offsetWidth / (16 / 9));
 
-      //       const aspectRatio = NOVA.aspectRatio.getAspectRatio(video.videoWidth, video.videoHeight);
+      //       const aspectRatio = NOVA.aspectRatio.getAspectRatio(width: video.videoWidth, height: video.videoHeight);
       //       console.debug('>', aspectRatio, video.videoWidth, height);
       //       // update only height ratio
       //       // Solution 1 (HTML)

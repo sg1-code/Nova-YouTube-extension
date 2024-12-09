@@ -9,4 +9,5 @@ function localizePage() {
    }
 }
 
-window.addEventListener('DOMContentLoaded', localizePage);
+// window.addEventListener('DOMContentLoaded', localizePage, { capture: true });
+localizePage();

@@ -2,8 +2,8 @@ window.nova_plugins.push({
    id: 'player-resume-playback',
    title: 'Remember playback time',
    // title: 'Resume playback time position',
-   'title:zh': '恢复播放时间状态',
-   'title:ja': '再生時間の位置を再開します',
+   // 'title:zh': '恢复播放时间状态',
+   // 'title:ja': '再生時間の位置を再開します',
    // 'title:ko': '재생 시간 위치 재개',
    // 'title:vi': '',
    // 'title:id': 'Lanjutkan posisi waktu pemutaran',
@@ -42,7 +42,7 @@ window.nova_plugins.push({
       // alt7 - https://greasyfork.org/en/scripts/487305-youtube-save-resume-progress
 
       // fix - Failed to read the 'sessionStorage' property from 'Window': Access is denied for this document.
-      if (!navigator.cookieEnabled && NOVA.currentPage == 'embed') return;
+      if (!window?.sessionStorage) return;
 
       // TODO adSkip alt. - add comparison by duration. Need stream test
       const
@@ -56,7 +56,6 @@ window.nova_plugins.push({
             cacheName = getCacheName(); // for optimization
 
             resumePlayback.apply(video);
-
             video.addEventListener('loadeddata', resumePlayback.bind(video));
 
             video.addEventListener('timeupdate', savePlayback.bind(video));
@@ -66,10 +65,13 @@ window.nova_plugins.push({
             // embed don't support "t=" parameter
             if (user_settings.player_resume_playback_url_mark && NOVA.currentPage != 'embed') {
                // ignore if initialized with a "t=" parameter
-               if (NOVA.queryURL.has('t') || NOVA.queryURL.getFromHash('t')) {
+               if (NOVA.queryURL.has('t')
+                  // outdated methods:
+                  || NOVA.queryURL.getFromHash('t')
+                  || NOVA.queryURL.has('time_continue')
+               ) {
                   // for next video
-                  document.addEventListener('yt-navigate-finish', connectSaveStateInURL.bind(video)
-                     , { capture: true, once: true });
+                  document.addEventListener('yt-navigate-finish', connectSaveStateInURL.bind(video), { capture: true, once: true });
                }
                else {
                   connectSaveStateInURL.apply(video);
@@ -82,13 +84,15 @@ window.nova_plugins.push({
          if (this.currentTime > 5 && this.duration > 30 && !movie_player.classList.contains('ad-showing')) {
             // console.debug('save progress time', this.currentTime);
             sessionStorage.setItem(cacheName, Math.trunc(this.currentTime));
-            // new URL(location.href).searchParams.set('t', Math.trunc(this.currentTime)); // url way
+            // new URL(location.href).searchParams.set('t', Math.trunc(this.currentTime) + 's'); // url way
          }
       }
 
       async function resumePlayback() {
-         if (NOVA.queryURL.has('t') || NOVA.queryURL.getFromHash('t')
-            // || NOVA.queryURL.has('time_continue') // ex - https://www.youtube.com/watch?time_continue=68&v=yWUMMg3dmFY
+         if (NOVA.queryURL.has('t')
+            // outdated methods:
+            || NOVA.queryURL.getFromHash('t')
+            || NOVA.queryURL.has('time_continue') // ex - https://www.youtube.com/watch?time_continue=68&v=yWUMMg3dmFY
 
             // Due to the inability to implement the correct work of player_resume_playback_skip_music, the [save-channel-state] plugin was used
             // Solution 1
@@ -119,7 +123,7 @@ window.nova_plugins.push({
 
       function connectSaveStateInURL() {
          let delaySaveOnPauseURL; // fix glitch update url when rewinding video
-         // save
+         // Save playback state on pause
          this.addEventListener('pause', () => {
             // fix video ended
             if (this.currentTime < (this.duration - 1) && this.currentTime > 5 && this.duration > 10) {
@@ -128,10 +132,9 @@ window.nova_plugins.push({
                }, 100); // 100ms
             }
          });
-         // clear
+         // Clear playback state on play
          this.addEventListener('playing', () => {
             if (typeof delaySaveOnPauseURL === 'number') clearTimeout(delaySaveOnPauseURL); // reset timeout
-
             if (NOVA.queryURL.has('t')) NOVA.updateUrl(NOVA.queryURL.remove('t'));
          });
       }
@@ -141,8 +144,8 @@ window.nova_plugins.push({
       player_resume_playback_url_mark: {
          _tagName: 'input',
          label: 'Mark time in URL when paused',
-         'label:zh': '暂停时在 URL 中节省时间',
-         'label:ja': '一時停止したときにURLで時間を節約する',
+         // 'label:zh': '暂停时在 URL 中节省时间',
+         // 'label:ja': '一時停止したときにURLで時間を節約する',
          // 'label:ko': '일시 중지 시 URL에 시간 표시',
          // 'label:vi': '',
          // 'label:id': 'Tandai waktu di URL saat dijeda',
@@ -157,8 +160,8 @@ window.nova_plugins.push({
          type: 'checkbox',
          // title: 'update ?t=',
          title: 'Makes sense when saving bookmarks',
-         'title:zh': '保存书签时有意义',
-         'title:ja': 'ブックマークを保存するときに意味があります',
+         // 'title:zh': '保存书签时有意义',
+         // 'title:ja': 'ブックマークを保存するときに意味があります',
          // 'title:ko': '북마크를 저장할 때 의미가 있습니다.',
          // 'title:vi': '',
          // 'title:id': 'Masuk akal saat menyimpan bookmark',

@@ -4,8 +4,8 @@
 window.nova_plugins.push({
    id: 'player-live-duration',
    title: 'Show duration on live video',
-   'title:zh': '显示直播视频的时长',
-   'title:ja': 'ライブビデオの表示時間',
+   // 'title:zh': '显示直播视频的时长',
+   // 'title:ja': 'ライブビデオの表示時間',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',
@@ -18,7 +18,7 @@ window.nova_plugins.push({
    'title:pl': 'Pokaż czas trwania wideo na żywo',
    // 'title:ua': 'Показувати тривалість трансляції',
    run_on_pages: 'watch, embed, -mobile',
-   section: 'control-panel',
+   section: 'player-control',
    // desc: '',
    _runtime: user_settings => {
 
@@ -39,9 +39,10 @@ window.nova_plugins.push({
                   el.style.cssText = 'display: block !important; margin-right: 5px;';
                }
 
-               // // meta[itemprop="isLiveBroadcast"][content="True"]
-               // if (document.body.querySelector('.ytd-page-manager[video-id]')?.playerData.videoDetails.isLiveContent) {
-               // if (movie_player.getVideoData().isLive) {
+               // meta[itemprop="isLiveBroadcast"][content="True"]
+               // if (// movie_player.getVideoData().isLive  // Doesn't work if the video is not running
+               //    movie_player.getPlayerResponse()?.videoDetails?.isLiveContent
+               // ) {
                //    NOVA.waitSelector('#movie_player .ytp-chrome-controls .ytp-live .ytp-time-current', { destroy_after_page_leaving: true })
                //       .then(el => {
                //          el.style.cssText = 'display: block !important; margin-right: 5px;';
@@ -70,7 +71,7 @@ window.nova_plugins.push({
 
       //                insertToHTML({
       //                   // movie_player.getCurrentTime() == '#ytd-player .ytp-chrome-bottom  .ytp-time-current'
-      //                   'text': NOVA.formatTimeOut.HMS.abbr(movie_player.getCurrentTime()),
+      //                   'text': NOVA.formatTime.HMS.abbr(movie_player.getCurrentTime()),
       //                   'container': container,
       //                });
       //             });
@@ -79,7 +80,10 @@ window.nova_plugins.push({
 
       // function insertToHTML({ text = '', container = required() }) {
       //    // console.debug('insertToHTML', ...arguments);
-      //    if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+      //    if (!(container instanceof HTMLElement)) {
+      //       console.error('Container is not an HTMLElement:', container);
+      //       return;
+      //    }
 
       //    (document.getElementById(SELECTOR_ID) || (function () {
       //       const el = document.createElement('span');

@@ -18,6 +18,7 @@ zip -q -r $filename \
                   icons/16.png \
                   icons/48.png \
                   icons/128.png \
+                  icons/favicon.ico \
                   js/*.js \
                   js/*/*.js \
                   manifest.json \

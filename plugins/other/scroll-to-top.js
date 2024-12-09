@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'scroll-to-top',
    title: 'Add "Scroll to top" button',
-   'title:zh': '滚动到顶部按钮',
-   'title:ja': 'トップボタンまでスクロール',
+   // 'title:zh': '滚动到顶部按钮',
+   // 'title:ja': 'トップボタンまでスクロール',
    // 'title:ko': '맨 위로 스크롤 버튼',
    // 'title:vi': '',
    // 'title:id': 'Gulir ke tombol atas',
@@ -67,7 +67,7 @@ window.nova_plugins.push({
             });
             if (user_settings.scroll_to_top_autoplay && NOVA.currentPage == 'watch'
                // && NOVA.videoElement?.paused // restart ENDED
-               && ['UNSTARTED', 'PAUSED'].includes(NOVA.getPlayerState())
+               && ['UNSTARTED', 'PAUSED'].includes(NOVA.getPlayerState.playback())
             ) {
                movie_player.playVideo();
                // NOVA.videoElement?.play();
@@ -113,8 +113,8 @@ window.nova_plugins.push({
       scroll_to_top_smooth: {
          _tagName: 'input',
          label: 'Smooth',
-         'label:zh': '光滑的',
-         'label:ja': 'スムーズ',
+         // 'label:zh': '光滑的',
+         // 'label:ja': 'スムーズ',
          // 'label:ko': '매끄러운',
          // 'label:vi': '',
          // 'label:id': 'Mulus',
@@ -131,8 +131,8 @@ window.nova_plugins.push({
       scroll_to_top_autoplay: {
          _tagName: 'input',
          label: 'Unpause a video',
-         'label:zh': '视频取消暂停',
-         'label:ja': 'ビデオの一時停止解除',
+         // 'label:zh': '视频取消暂停',
+         // 'label:ja': 'ビデオの一時停止解除',
          // 'label:ko': '비디오 일시 중지 해제',
          // 'label:vi': '',
          // 'label:id': 'Video batalkan Jeda',

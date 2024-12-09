@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'time-remaining',
    title: 'Remaining time',
-   'title:zh': '剩余时间',
-   'title:ja': '余日',
+   // 'title:zh': '剩余时间',
+   // 'title:ja': '余日',
    // 'title:ko': '남은 시간',
    // 'title:vi': '',
    // 'title:id': 'Waktu yang tersisa',
@@ -15,7 +15,7 @@ window.nova_plugins.push({
    'title:pl': 'Pozostały czas',
    // 'title:ua': 'Час, що залишився',
    run_on_pages: 'watch, embed, -mobile',
-   section: 'control-panel',
+   section: 'player-control',
    desc: 'Remaining time until the end of the video',
    'desc:zh': '距离视频结束的剩余时间',
    'desc:ja': 'ビデオの終わりまでの残り時間',
@@ -76,29 +76,29 @@ window.nova_plugins.push({
                ) return;
 
                const
-                   playbackRate = this.playbackRate,
-                   currentTime = Math.trunc(this.currentTime),
-                   duration = Math.trunc(this.duration),
-                   left = duration - currentTime, // tiny optimization
-                   floatRound = (value, total) => {
-                      const precision = total > 3600 ? 2 // >1 hour
-                          : total > 1500 ? 1 // >25 minutes
-                              : 0;
-                      return value.toFixed(precision);
-                   },
-                   getPercent = (partialValue, totalValue) => floatRound(partialValue * 100 / totalValue, totalValue) + '%';
+                  playbackRate = this.playbackRate,
+                  currentTime = Math.trunc(this.currentTime),
+                  duration = Math.trunc(this.duration),
+                  left = duration - currentTime, // tiny optimization
+                  floatRound = (value, total) => {
+                     const precision = total > 3600 ? 2 // >1 hour
+                        : total > 1500 ? 1 // >25 minutes
+                           : 0;
+                     return value.toFixed(precision);
+                  },
+                  getPercent = (partialValue, totalValue) => floatRound(partialValue * 100 / totalValue, totalValue) + '%';
 
                const patternHandlers = {
                   '{speed}': () => playbackRate + 'x',
                   '{speed*}': () => playbackRate === 1 ? '' : playbackRate + 'x',
-                  '{left}': () => '-' + NOVA.formatTimeOut.HMS.digit(left),
-                  '{left^}': () => '-' + NOVA.formatTimeOut.HMS.digit(left / playbackRate),
+                  '{left}': () => '-' + NOVA.formatTime.HMS.digit(left),
+                  '{left^}': () => '-' + NOVA.formatTime.HMS.digit(left / playbackRate),
                   '{left%}': () => '-' + getPercent(left, duration),
-                  '{done}': () => NOVA.formatTimeOut.HMS.digit(currentTime),
-                  '{done^}': () => NOVA.formatTimeOut.HMS.digit(currentTime / playbackRate),
+                  '{done}': () => NOVA.formatTime.HMS.digit(currentTime),
+                  '{done^}': () => NOVA.formatTime.HMS.digit(currentTime / playbackRate),
                   '{done%}': () => getPercent(currentTime, duration),
-                  '{duration}': () => NOVA.formatTimeOut.HMS.digit(duration),
-                  '{duration^}': () => NOVA.formatTimeOut.HMS.digit(duration / playbackRate),
+                  '{duration}': () => NOVA.formatTime.HMS.digit(duration),
+                  '{duration^}': () => NOVA.formatTime.HMS.digit(duration / playbackRate),
                };
 
                const defaultHandler = pattern => {
@@ -107,19 +107,23 @@ window.nova_plugins.push({
                };
 
                const patternHandler = pattern => {
+                  // console.debug('Passed pattern:', pattern);
                   const handler = patternHandlers[pattern];
                   return handler ? handler.call(this) : defaultHandler(pattern);
                }
 
                const text = user_settings.time_remaining_format
-                  .replace(/\{(speed|left|done|duration)([\^%])?}/g, patternHandler);
+                  .replace(/\{(speed|left|done|duration)([\^%*])?}/g, patternHandler);
 
                if (text) insertToHTML({ 'text': text, 'container': container });
             }
 
             function insertToHTML({ text = '', container = required() }) {
                // console.debug('insertToHTML', ...arguments);
-               if (!(container instanceof HTMLElement)) return console.error('container not HTMLElement:', container);
+               if (!(container instanceof HTMLElement)) {
+                  console.error('Container is not an HTMLElement:', container);
+                  return;
+               }
 
                (document.getElementById(SELECTOR_ID) || (function () {
                   const el = document.createElement('span');
@@ -158,7 +162,7 @@ window.nova_plugins.push({
          // type: 'url',
          type: 'text',
          list: 'time_remaining_format_help_list',
-         // pattern: "",
+         pattern: "(.*)?\\{[a-z]+[\%\^\*]?\\}(.*)?",
          title: 'Clear input to show hints',
          // 'title:zh': '',
          // 'title:ja': '',
@@ -174,7 +178,7 @@ window.nova_plugins.push({
          // 'title:pl': '',
          // 'title:ua': '',
          placeholder: '{done%}/{duration^} ({speed})',
-         minlength: 4,
+         // minlength: 4,
          maxlength: 100,
          // value: '',
          required: true,
@@ -192,9 +196,9 @@ window.nova_plugins.push({
             { label: 'For a custom template, you can use these fields:', value: ' ' },
             // all available parts
             { label: '2x', value: '{speed}' },
-            { label: '2x', value: '{speed*} - "*" mean optional' },
+            { label: '2x "*" mean optional', value: '{speed*}' },
             { label: '-0:50', value: '{left}' },
-            { label: '-0:25', value: '{left^} - "^" correction current playback speed' },
+            { label: '-0:25 "^" correction current playback speed', value: '{left^}' },
             { label: '-83%', value: '{left%}' },
             { label: '0:10', value: '{done}' },
             { label: '0:05', value: '{done^}' },

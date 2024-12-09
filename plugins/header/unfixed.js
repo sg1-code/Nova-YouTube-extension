@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'header-unfixed',
    title: 'Header unpinned',
-   'title:zh': '标题未固定',
-   'title:ja': 'ヘッダーは固定されていません',
+   // 'title:zh': '标题未固定',
+   // 'title:ja': 'ヘッダーは固定されていません',
    // 'title:ko': '헤더가 고정되지 않음',
    // 'title:vi': '',
    // 'title:id': 'Tajuk tidak diperbaiki',
@@ -62,8 +62,7 @@ window.nova_plugins.push({
          const hotkey = user_settings.header_unfixed_hotkey || 'KeyV';
          // hotkey
          document.addEventListener('keyup', evt => {
-            if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
-            // if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
+            if (NOVA.editableFocused(evt.target)) return;
 
             if ((hotkey.length === 1 ? evt.key : evt.code) === hotkey) {
                document.documentElement.classList.toggle(CLASS_NAME_TOGGLE);
@@ -150,8 +149,8 @@ window.nova_plugins.push({
       header_unfixed_scroll: {
          _tagName: 'input',
          label: 'Scroll after header',
-         'label:zh': '在标题后滚动',
-         'label:ja': 'ヘッダーの後にスクロール',
+         // 'label:zh': '在标题后滚动',
+         // 'label:ja': 'ヘッダーの後にスクロール',
          // 'label:ko': '헤더 뒤 스크롤',
          // 'label:vi': '',
          // 'label:id': 'Gulir setelah tajuk',
@@ -165,8 +164,8 @@ window.nova_plugins.push({
          // 'label:ua': 'Прокручувати після шапки сайту',
          type: 'checkbox',
          title: 'Makes sense on a small screen',
-         'title:zh': '在小屏幕上有意义',
-         'title:ja': '小さな画面で意味があります',
+         // 'title:zh': '在小屏幕上有意义',
+         // 'title:ja': '小さな画面で意味があります',
          // 'title:ko': '작은 화면에서 이해하기',
          // 'title:vi': '',
          // 'title:id': 'Masuk akal di layar kecil',

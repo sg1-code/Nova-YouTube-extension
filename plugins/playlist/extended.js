@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'playlist-extended',
    title: 'Playlist extended section',
-   'title:zh': '播放列表扩展部分',
-   'title:ja': 'プレイリスト拡張セクション',
+   // 'title:zh': '播放列表扩展部分',
+   // 'title:ja': 'プレイリスト拡張セクション',
    // 'title:ko': '',
    // 'title:vi': '',
    // 'title:id': '',

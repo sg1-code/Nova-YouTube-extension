@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'redirect-disable',
    title: 'Clear links from redirect',
-   'title:zh': '清除重定向中的链接',
-   'title:ja': 'リダイレクトからリンクをクリアする',
+   // 'title:zh': '清除重定向中的链接',
+   // 'title:ja': 'リダイレクトからリンクをクリアする',
    // 'title:ko': '리디렉션에서 링크 지우기',
    // 'title:vi': '',
    // 'title:id': 'Hapus tautan dari pengalihan',

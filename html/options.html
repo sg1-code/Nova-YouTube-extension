@@ -5,7 +5,7 @@
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1">
    <title>Options page</title>
-   <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+   <link rel="icon" type="image/x-icon" href="/icons/favicon.ico">
 
    <link rel="stylesheet" href="/css/libs/normalize.min.css">
    <link rel="stylesheet" href="/css/libs/tooltip/tooltip.min.css" />
@@ -21,7 +21,7 @@
 
    <!-- libs -->
    <script src="/js/libs/browser-support.js"></script>
-   <script src="/js/libs/localization.js"></script>
+   <!-- <script src="/js/libs/localization.js"></script> -->
    <script src="/js/libs/storage.js"></script>
    <script src="/js/libs/options.js"></script>
 
@@ -64,8 +64,8 @@
                      <div class="player" id="player">
                         <span>__MSG_opt_appearance_player__</span>
                      </div>
-                     <div class="control-panel" id="control-panel">
-                        <span>__MSG_opt_appearance_control_panel__</span>
+                     <div class="player-control" id="player-control">
+                        <span>__MSG_opt_appearance_player_control__</span>
                      </div>
                      <div class="playlist" id="playlist">
                         <span>__MSG_opt_appearance_playlist__</span>
@@ -108,7 +108,7 @@
 
                   <div id="plugins">
                      <ul id="player" class="active"></ul>
-                     <ul id="control-panel" class="active"></ul>
+                     <ul id="player-control" class="active"></ul>
                      <ul id="thumbs" class="active"></ul>
                      <ul id="other" class="active"></ul>
                      <ul id="details" class="active"></ul>
@@ -174,8 +174,8 @@
                      <label for="lang_code" tooltip="__MSG_lang_code_tooltip__">__MSG_lang_code__</label>
                      <select name="lang_code" id="lang_code">
                         <option value="en">English</option>
-                        <option value="zh">繁體中文</option>
-                        <option value="ja">日本語</option>
+                        <!-- <option value="zh">繁體中文</option> -->
+                        <!-- <option value="ja">日本語</option> -->
                         <!-- <option value="ko">자막</option> -->
                         <!-- <option value="vi">Tiếng Việt</option> -->
                         <!-- <option value="id">Indonesia</option> -->
@@ -228,7 +228,8 @@
                      <legend>Translation:</legend>
                      <ul>
                         <li>Polski - <a href="https://github.com/J4CKED" target="_blank" rel="nofollow">J4CKED</a></li>
-                        <li>Українська - <a href="https://github.com/bmkuma" target="_blank" rel="nofollow">bmkuma</a></li>
+                        <li>Українська - <a href="https://github.com/bmkuma" target="_blank" rel="nofollow">bmkuma</a>
+                        </li>
                      </ul>
                   </fieldset>
 
@@ -240,6 +241,8 @@
 
       </div>
    </div>
+
+   <script src="/js/libs/localization.js"></script>
 
 </body>
 

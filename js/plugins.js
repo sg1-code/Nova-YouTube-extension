@@ -9,14 +9,11 @@ const Plugins = {
       'player/quality.js',
       'player/volume.js',
       'player/speed.js',
-      // 'player/osd.js',
+      'player/osd.js',
       'player/shorts-redirect.js',
       'player/resume-playback.js',
       'player/theater-mode.js',
       'player/auto-buffer.js',
-      // 'player/subtitle-dual.js',
-      // 'player/-subtitle-dual.js',
-      'player/subtitle-style.js',
       'player/resize-ratio.js',
       'player/pin.js',
       'player/no-sleep.js',
@@ -32,20 +29,22 @@ const Plugins = {
       // 'player/next-autoplay.js',
       // 'player/block-embed.js',
 
-      'control-panel/control-below.js',
-      'control-panel/control-autohide.js',
-      'control-panel/progress-bar-color.js',
-      'control-panel/progress-bar-float.js',
-      'control-panel/embed-control.js',
-      'control-panel/hotkeys.js',
-      'control-panel/time-jump.js',
-      'control-panel/loop.js',
-      'control-panel/hide-elements.js',
-      'control-panel/quick-buttons.js',
-      'control-panel/save-for-channel.js',
-      'control-panel/time-remaining.js',
-      'control-panel/live-duration.js',
-      'control-panel/download-video.js',
+      // 'player/subtitle-style.js',
+      'player-control/subtitle.js',
+      'player-control/control-below.js',
+      'player-control/control-autohide.js',
+      'player-control/progress-bar-color.js',
+      'player-control/progress-bar-float.js',
+      'player-control/embed-control.js',
+      'player-control/hotkeys.js',
+      'player-control/time-jump.js',
+      'player-control/loop.js',
+      'player-control/hide-elements.js',
+      'player-control/quick-buttons.js',
+      'player-control/save-for-channel.js',
+      'player-control/time-remaining.js',
+      'player-control/live-duration.js',
+      'player-control/download-video.js',
 
       'thumbs/block-title.js',
       'thumbs/block-channels.js',
@@ -123,9 +122,33 @@ const Plugins = {
    ],
 
    // for test
-   // list: [
-   //    // 'plugin_example.js'
-   // ],
+   list1: [
+      'player-control/subtitle.js',
+      // 'plugin_example.js',
+
+      // 'player/auto-stop.js',
+      // 'player/auto-pause.js',
+      // 'player/embed-popup.js',
+      // 'player/background-pause.js',
+      // 'player/quality.js',
+      // 'player/shorts-redirect.js',
+
+      'player/volume.js',
+      'player/speed.js',
+      // 'player/resume-playback.js',
+      // 'player/theater-mode.js',
+      // 'player/auto-buffer.js',
+      // 'player/subtitle-style.js',
+      // 'player/resize-ratio.js',
+      // 'player/pin.js',
+      // 'player/no-sleep.js',
+      // 'player/unblock-region.js',
+      // 'player/unblock-warn-content.js',
+      // 'player/fullscreen-scroll.js',
+      // 'player/sponsor-block.js',
+      'player/zoom.js',
+      'player/pin.js',
+   ],
 
    load(list) {
       (list || this.list)
@@ -271,7 +294,7 @@ const Plugins = {
                plugin.was_init = true;
                plugin._runtime(user_settings);
                // plugin._runtime.apply(plugin, [user_settings])
-               logTableTime = (performance.now() - startTableTime).toFixed(2);
+               logTableTime = +((performance.now() - startTableTime).toFixed(2));
                logTableStatus = true;
 
             } catch (err) {
@@ -319,6 +342,7 @@ const Plugins = {
             // watch
             case 'watch':
             case 'clip':
+            case 'live':
                page = 'watch';
                break;
 
@@ -341,6 +365,9 @@ const Plugins = {
             case 'releases':
             case 'playlists':
             case 'community':
+            // case 'membership':
+            // case 'store':
+            // case 'courses':
             case 'channels':
             case 'about':
             case 'search': // https://www.youtube.com/@channel/search?query=11

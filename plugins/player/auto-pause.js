@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'video-autopause',
    title: 'Video autopause',
-   'title:zh': '视频自动暂停',
-   'title:ja': 'ビデオの自動一時停止',
+   // 'title:zh': '视频自动暂停',
+   // 'title:ja': 'ビデオの自動一時停止',
    'title:ko': '비디오 자동 일시 중지',
    'title:id': 'Jeda otomatis video',
    'title:es': 'Pausa automática de video',
@@ -42,8 +42,9 @@ window.nova_plugins.push({
       // conflict with plugin [user_settings.player_buttons_custom_items?.indexOf('popup')], [embed-redirect-popup]
       if (NOVA.queryURL.has('popup')) return;
 
+
       if (user_settings.video_autopause_embed && NOVA.currentPage != 'embed'
-         // for video_autopause_comment_link
+         // pass to block if url has a comment link
          && (!user_settings.video_autopause_comment_link
             || (user_settings.video_autopause_comment_link && !NOVA.queryURL.has('lc')) //!location.search.includes('$lc=')
          )
@@ -53,7 +54,7 @@ window.nova_plugins.push({
 
       // skip stoped embed - https://www.youtube.com/embed/668nUCeBHyY?autoplay=1
       if (NOVA.currentPage == 'embed'
-         && window.self !== window.top// window.frameElement // is iframe?
+         && window.self !== window.top // is iframe
          && ['0', 'false'].includes(NOVA.queryURL.get('autoplay'))
       ) {
          return;
@@ -62,7 +63,10 @@ window.nova_plugins.push({
       // Solution 1
       NOVA.waitSelector('#movie_player video')
          .then(video => {
-            if (!user_settings.video_autostop_comment_link || (user_settings.video_autostop_comment_link && !NOVA.queryURL.has('lc'))) {
+            // video_autopause_comment_link has high priority
+            if (!user_settings.video_autopause_comment_link
+               || (user_settings.video_autopause_comment_link && !NOVA.queryURL.has('lc'))
+            ) {
                if (user_settings.video_autopause_ignore_live && movie_player.getVideoData().isLive) return;
             }
 
@@ -77,7 +81,7 @@ window.nova_plugins.push({
             // });
 
             NOVA.runOnPageLoad(async () => {
-               if (!location.search.includes('list=') && NOVA.currentPage == 'watch') {
+               if (NOVA.currentPage == 'watch' && !location.search.includes('list=')) {
                   // video.addEventListener('play', pauseVideo);
                   // video.addEventListener('canplay', pauseVideo, { capture: true, once: true });
                   video.addEventListener('playing', pauseVideo, { capture: true, once: true });
@@ -85,15 +89,14 @@ window.nova_plugins.push({
                }
             });
 
-            // save backup
+            // backup fn
             const backupFn = HTMLVideoElement.prototype.play;
             // patch fn
             HTMLVideoElement.prototype.play = pauseVideo;
             // restore fn
             document.addEventListener('keyup', evt => {
                if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
-
-               if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
+               if (NOVA.editableFocused(evt.target)) return;
                if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
 
                switch (evt.code) {
@@ -106,10 +109,15 @@ window.nova_plugins.push({
                      break;
                }
             });
-            navigator.mediaSession.setActionHandler('play', restorePlayFn); // add Media hotkeys support
+
+            // Media hotkeys support
+            navigator.mediaSession.setActionHandler('play', restorePlayFn);
+
+            // Click event listener to trigger autopause on trusted clicks within the player area
             document.addEventListener('click', evt => {
                if (evt.isTrusted
                   // Solution 1. Universal, click is inside the player
+                  && !evt.target.closest('.ytp-right-controls') // like click on theater button
                   && evt.target.closest('#movie_player') // movie_player.contains(document.activeElement)
                   // Solution 2. Click from some elements
                   // && ['button[class*="play-button"]',
@@ -127,6 +135,7 @@ window.nova_plugins.push({
                this.paused || this.pause(); // alt just in case
             };
 
+            // Function to restore original play method and resume video playback
             function restorePlayFn() {
                restorePlayFn = function () { } // no-op function
                HTMLVideoElement.prototype.play = backupFn;
@@ -160,8 +169,7 @@ window.nova_plugins.push({
 
       //    document.addEventListener('keyup', evt => {
       //       if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
-
-      //       if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
+      //       if (NOVA.editableFocused(evt.target)) return;
       //       if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
 
       //       switch (evt.code) {
@@ -247,9 +255,9 @@ window.nova_plugins.push({
       },
       video_autopause_ignore_playlist: {
          _tagName: 'input',
-         label: 'Ignore in playlist',
-         'label:zh': '忽略播放列表',
-         'label:ja': 'プレイリストを無視する',
+         label: 'Ignore playlist',
+         // 'label:zh': '忽略播放列表',
+         // 'label:ja': 'プレイリストを無視する',
          'label:ko': '재생목록 무시',
          'label:id': 'Abaikan daftar putar',
          'label:es': 'Ignorar lista de reproducción',
@@ -300,7 +308,7 @@ window.nova_plugins.push({
       // },
       video_autopause_comment_link: {
          _tagName: 'input',
-         label: 'Apply if URL has link to comment',
+         label: 'Apply if URL references a comment',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',
@@ -329,6 +337,7 @@ window.nova_plugins.push({
          // 'title:de': '',
          // 'title:pl': '',
          // 'label:ua': '',
+         // 'data-dependent': { 'video_autopause_embed': false && 'video_autopause_ignore_playlist': true && 'video_autopause_ignore_live': true },
       },
    }
 });

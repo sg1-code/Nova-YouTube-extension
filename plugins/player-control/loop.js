@@ -5,8 +5,8 @@ window.nova_plugins.push({
    id: 'player-loop',
    title: 'Add repeat (loop) playback button',
    // Repeat the video you're watching.
-   'title:zh': '添加循环播放按钮',
-   'title:ja': 'ループ再生ボタンを追加する',
+   // 'title:zh': '添加循环播放按钮',
+   // 'title:ja': 'ループ再生ボタンを追加する',
    // 'title:ko': '루프 재생 버튼 추가',
    // 'title:vi': '',
    // 'title:id': 'Tambahkan tombol pemutaran ulangi (loop)',
@@ -19,7 +19,7 @@ window.nova_plugins.push({
    'title:pl': 'Dodaj przycisk odtwarzania pętli',
    // 'title:ua': 'Додати кнопку повтор',
    run_on_pages: 'watch, embed, -mobile',
-   section: 'control-panel',
+   section: 'player-control',
    // desc: 'Loop video playback',
    // 'desc:zh': '循环播放视频',
    // 'desc:ja': 'ビデオ再生をループする',
@@ -112,8 +112,7 @@ window.nova_plugins.push({
 
                document.addEventListener('keyup', evt => {
                   if (NOVA.currentPage != 'watch' && NOVA.currentPage != 'embed') return;
-
-                  if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
+                  if (NOVA.editableFocused(evt.target)) return;
                   if (evt.ctrlKey || evt.altKey || evt.shiftKey || evt.metaKey) return;
 
                   if ((hotkey.length === 1 ? evt.key : evt.code) === hotkey) {
@@ -128,8 +127,8 @@ window.nova_plugins.push({
 
                NOVA.videoElement.loop = !NOVA.videoElement.loop;
                btn.style.opacity = NOVA.videoElement.loop ? 1 : .5;
-               NOVA.showOSD('Loop is ' + Boolean(NOVA.videoElement.loop));
-               // NOVA.showOSD('Loop is ' + movie_player.getLoopVideo());
+               NOVA.showOSD({ message: `Loop is ${Boolean(NOVA.videoElement.loop)}`, source: 'loop' });
+               // NOVA.showOSD({ message: `Loop is ${movie_player.getLoopVideo()}`, source: 'loop' });
             }
 
             // NOVA.runOnPageLoad(async () => {
@@ -255,8 +254,8 @@ window.nova_plugins.push({
       //    // 'label:ua': '',
       //    type: 'checkbox',
       //    title: 'Affects to next videos',
-      //    'title:zh': '对下一个视频的影响',
-      //    'title:ja': '次の動画への影響',
+      //    // 'title:zh': '对下一个视频的影响',
+      //    // 'title:ja': '次の動画への影響',
       //    // 'title:ko': '다음 동영상에 영향',
       //    // 'title:vi': '',
       //    // 'title:id': 'Mempengaruhi video berikutnya',

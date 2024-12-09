@@ -67,7 +67,7 @@ window.nova_plugins.push({
    options: {
       description_card_list: {
          _tagName: 'input',
-         label: 'Chapters/key moments/music info',
+         label: 'Chapters/key, moments/music info',
          // 'label:zh': '',
          // 'label:ja': '',
          // 'label:ko': '',

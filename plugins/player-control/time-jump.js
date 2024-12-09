@@ -31,13 +31,13 @@
 
 // false detect:
 // https://www.youtube.com/watch?v=Z9ZaEXqjZvw - broken
-// https://www.youtube.com/watch?v=E-6gg0xKTPY - lying timestamp
+// https://www.youtube.com/watch?v=kyaKpjrwAnQ - invalid
 
 window.nova_plugins.push({
    id: 'time-jump',
    title: 'Jump time/chapter',
-   'title:zh': '时间跳跃',
-   'title:ja': 'タイムジャンプ',
+   // 'title:zh': '时间跳跃',
+   // 'title:ja': 'タイムジャンプ',
    // 'title:ko': '시간 점프',
    // 'title:vi': '',
    // 'title:id': 'Lompatan waktu',
@@ -50,7 +50,7 @@ window.nova_plugins.push({
    'title:pl': 'Skok czasowy',
    // 'title:ua': 'Стрибок часу',
    run_on_pages: 'watch, embed, -mobile',
-   section: 'control-panel',
+   section: 'player-control',
    desc: 'Use to skip the intro or ad inserts',
    'desc:zh': '用于跳过介绍或广告插入',
    'desc:ja': 'イントロや広告挿入をスキップするために使用します',
@@ -150,10 +150,13 @@ window.nova_plugins.push({
                else {
                   seekTime(+user_settings.time_jump_step + currentTime);
                   // Attention! Apply after seeking
-                  msg = `+${user_settings.time_jump_step} sec` + separator + NOVA.formatTimeOut.HMS.digit(currentTime);
+                  msg = `+${user_settings.time_jump_step} sec` + separator + NOVA.formatTime.HMS.digit(currentTime);
                }
 
-               NOVA.showOSD(msg); // trigger default indicator
+               NOVA.showOSD({
+                  message: msg,
+                  source: 'time-jump'
+               });
             }
 
             function seekTime(sec) {
@@ -187,13 +190,17 @@ window.nova_plugins.push({
       //             // wait chapter-title update
       //             document.body.querySelector('.ytp-chapter-title-content')
       //                ?.addEventListener('DOMNodeInserted', ({ target }) => {
-      //                   NOVA.showOSD(
-      //                      target.textContent + ' • ' + NOVA.formatTimeOut.HMS.digit(video.currentTime)
-      //                   );// trigger default indicator
+      //                   NOVA.showOSD({
+      //                      message: target.textContent + ' • ' + NOVA.formatTime.HMS.digit(video.currentTime),
+      //                      source: 'time-jump'
+      //                   });
       //                }, { capture: true, once: true });
       //          }
       //          else {
-      //             NOVA.showOSD(`+${user_settings.time_jump_step} sec`); // trigger default indicator
+      //             NOVA.showOSD({
+      //                message: `+${user_settings.time_jump_step} sec`,
+      //                source: 'time-jump'
+      //             });
       //          }
       //          // console.debug('seekTo', sec);
       //          this.currentTime = sec;
@@ -265,12 +272,12 @@ window.nova_plugins.push({
                      ) return;
 
                      const
-                        cursorTime = NOVA.formatTimeOut.hmsToSec(tooltipEl.textContent),
+                        cursorTime = NOVA.formatTime.hmsToSec(tooltipEl.textContent),
                         offsetTime = cursorTime - NOVA.videoElement?.currentTime,
                         sign = (offsetTime >= 1) ? '+' : (Math.sign(offsetTime) === -1) ? '-' : '';
                      // updateOffsetTime
                      // console.debug('offsetTime', offsetTime, cursorTime, sign);
-                     tooltipEl.setAttribute('data-before', ` ${sign + NOVA.formatTimeOut.HMS.digit(offsetTime)}`);
+                     tooltipEl.setAttribute('data-before', ` ${sign + NOVA.formatTime.HMS.digit(offsetTime)}`);
                   });
                   // hide titleOffset
                   progressContainer.addEventListener('mouseleave', () => tooltipEl.removeAttribute('data-before'));
@@ -288,7 +295,7 @@ window.nova_plugins.push({
          document.addEventListener('keyup', keyPress);
 
          function keyPress(evt) {
-            if (['input', 'textarea', 'select'].includes(evt.target.localName) || evt.target.isContentEditable) return;
+            if (NOVA.editableFocused(evt.target)) return;
 
             pressed = (keyNameFilter.length === 1) || ['Control', 'Shift'].includes(keyNameFilter) ? evt.key : evt.code;
             // console.debug('doubleKeyPressListener %s=>%s=%s', lastPressed, pressed, isDoublePress);
@@ -316,7 +323,7 @@ window.nova_plugins.push({
                      getCacheName = () => CACHE_PREFIX + ':' + (NOVA.queryURL.get('v') || movie_player.getVideoData().video_id);
 
                   if ((NOVA.currentPage == 'watch' || NOVA.currentPage == 'embed')
-                     && !+sessionStorage.getItem(getCacheName())  // conflict with [player-resume-playback] plugin
+                     && (!window?.sessionStorage || !+sessionStorage.getItem(getCacheName()))  // conflict with [player-resume-playback] plugin
                      && (!NOVA.queryURL.has('t') && !NOVA.queryURL.getFromHash('t')) // fix conflict
                      && (customSeek = await NOVA.storage_obj_manager.getParam('skip-into')) // check param name in [save-channel-state] plugin
                   ) {
@@ -344,7 +351,7 @@ window.nova_plugins.push({
             getCacheName = () => CACHE_PREFIX + ':' + (NOVA.queryURL.get('v') || movie_player.getVideoData().video_id);
 
          if (user_settings['player-resume-playback']
-            && (saveTime = +sessionStorage.getItem(getCacheName()))
+            && (!window?.sessionStorage || (saveTime = +sessionStorage.getItem(getCacheName())))
             && (saveTime > (this.duration - 3)) // fix if (saveTime == this.duration))
          ) return;
          /* end - fix */
@@ -363,8 +370,8 @@ window.nova_plugins.push({
       time_jump_step: {
          _tagName: 'input',
          label: 'Step time',
-         'label:ja': 'ステップ時間',
-         'label:zh': '步骤时间',
+         // 'label:ja': 'ステップ時間',
+         // 'label:zh': '步骤时间',
          // 'label:ko': '단계 시간',
          // 'label:vi': '',
          // 'label:id': 'Langkah waktu',
@@ -377,6 +384,8 @@ window.nova_plugins.push({
          'label:pl': 'Krok czasowy',
          // 'label:ua': 'Крок часу',
          type: 'number',
+         // type: 'time',
+         // step: 1, // sec
          title: 'In seconds',
          placeholder: 'sec',
          min: 3,
@@ -386,8 +395,8 @@ window.nova_plugins.push({
       time_jump_hotkey: {
          _tagName: 'select',
          label: 'Hotkey (double click)',
-         'label:zh': '热键（双击）',
-         'label:ja': 'Hotkey (ダブルプレス)',
+         // 'label:zh': '热键（双击）',
+         // 'label:ja': 'Hotkey (ダブルプレス)',
          // 'label:ko': '단축키(더블 클릭)',
          // 'label:vi': '',
          // 'label:id': 'Tombol pintas (klik dua kali)',
@@ -462,8 +471,8 @@ window.nova_plugins.push({
       time_jump_title_offset: {
          _tagName: 'input',
          label: 'Show time offset on progress bar',
-         'label:zh': '在进度条中显示时间偏移',
-         'label:ja': 'プログレスバーに時間オフセットを表示する',
+         // 'label:zh': '在进度条中显示时间偏移',
+         // 'label:ja': 'プログレスバーに時間オフセットを表示する',
          // 'label:ko': '진행률 표시줄에 시간 오프셋 표시',
          // 'label:vi': '',
          // 'label:id': 'Tampilkan offset waktu di bilah kemajuan',
@@ -478,8 +487,8 @@ window.nova_plugins.push({
          type: 'checkbox',
          // title: 'When you hover offset current playback time',
          title: 'Time offset from current playback time',
-         'title:zh': '与当前播放时间的时间偏移',
-         'title:ja': '現在の再生時間からの時間オフセット',
+         // 'title:zh': '与当前播放时间的时间偏移',
+         // 'title:ja': '現在の再生時間からの時間オフセット',
          // 'title:ko': '현재 재생 시간으로부터의 시간 오프셋',
          // 'label:vi': '',
          // 'label:id': 'Waktu offset dari waktu pemutaran saat ini',
@@ -515,8 +524,8 @@ window.nova_plugins.push({
          label: 'Start playback at',
          // label: 'Set play start time',
          // label: 'Skip intro time at',
-         'label:zh': '设置开始时间',
-         'label:ja': '開始時刻を設定',
+         // 'label:zh': '设置开始时间',
+         // 'label:ja': '開始時刻を設定',
          // 'label:ko': '시작 시간 설정',
          // 'label:vi': '',
          // 'label:id': 'Tetapkan waktu mulai',
@@ -529,6 +538,8 @@ window.nova_plugins.push({
          'label:pl': 'Ustaw czas rozpoczęcia',
          // 'label:ua': 'Встановіть час початку',
          type: 'number',
+         // type: 'time',
+         // step: 1, // sec
          title: 'in sec / 0 - disable',
          // 'title:zh': '',
          // 'title:ja': '',

@@ -4,8 +4,8 @@
 window.nova_plugins.push({
    id: 'page-title-time',
    title: 'Show time in tab title',
-   'title:zh': '在标签标题中显示时间',
-   'title:ja': 'タブタイトルに時間を表示する',
+   // 'title:zh': '在标签标题中显示时间',
+   // 'title:ja': 'タブタイトルに時間を表示する',
    // 'title:ko': '탭 제목에 시간 표시',
    // 'title:vi': '',
    // 'title:id': 'Tampilkan waktu di judul tab',
@@ -101,7 +101,7 @@ window.nova_plugins.push({
             // if (this.playbackRate !== 1) newTitleArr.push(` (${this.playbackRate}x)`);
 
             newTitleArr = newTitleArr
-               .map(t => (typeof t === 'string') ? t : NOVA.formatTimeOut.HMS.digit(t / video.playbackRate))
+               .map(t => (typeof t === 'string') ? t : NOVA.formatTime.HMS.digit(t / video.playbackRate))
                .join('');
 
             this.set([newTitleArr, this.backup]);
@@ -125,8 +125,8 @@ window.nova_plugins.push({
       page_title_time_mode: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',
@@ -157,8 +157,8 @@ window.nova_plugins.push({
             // },
             {
                label: 'left', value: 'left', selected: true,
-               'label:zh': '剩下',
-               'label:ja': '左',
+               // 'label:zh': '剩下',
+               // 'label:ja': '左',
                // 'label:ko': '왼쪽',
                // 'label:vi': '',
                // 'label:id': 'tetap',
@@ -173,8 +173,8 @@ window.nova_plugins.push({
             },
             {
                label: 'current/duration', value: 'current-duration',
-               'label:zh': '现在/期间',
-               'label:ja': '現在/期間',
+               // 'label:zh': '现在/期间',
+               // 'label:ja': '現在/期間',
                // 'label:ko': '현재/기간',
                // 'label:vi': '',
                // 'label:id': 'saat ini/durasi',

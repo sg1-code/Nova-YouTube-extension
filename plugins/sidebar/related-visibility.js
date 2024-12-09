@@ -1,8 +1,8 @@
 window.nova_plugins.push({
    id: 'related-visibility',
    title: 'Collapse related section',
-   'title:zh': '收起相关栏目',
-   'title:ja': '関連セクションを折りたたむ',
+   // 'title:zh': '收起相关栏目',
+   // 'title:ja': '関連セクションを折りたたむ',
    // 'title:ko': '관련 섹션 축소',
    // 'title:vi': '',
    // 'title:id': 'Ciutkan bagian terkait',
@@ -35,8 +35,8 @@ window.nova_plugins.push({
       related_visibility_mode: {
          _tagName: 'select',
          label: 'Mode',
-         'label:zh': '模式',
-         'label:ja': 'モード',
+         // 'label:zh': '模式',
+         // 'label:ja': 'モード',
          // 'label:ko': '방법',
          // 'label:vi': '',
          // 'label:id': 'Mode',
@@ -67,8 +67,8 @@ window.nova_plugins.push({
             },
             {
                label: 'remove', value: 'disable',
-               'label:zh': '消除',
-               'label:ja': '削除',
+               // 'label:zh': '消除',
+               // 'label:ja': '削除',
                // 'label:ko': '제거하다',
                // 'label:vi': '',
                // 'label:id': 'menghapus',
