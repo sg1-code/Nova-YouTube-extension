@@ -23,7 +23,7 @@ cat ./js/plugins.js | sed -e "/   list\:/,/   run: (/c\   run: ({ user_settings,
 cat ./Userscript/user.js >> "$outFile"
 
 # Open the generated output file
-command -v VSCodium.AppImage >/dev/null && VSCodium.AppImage "$outFile" || xdg-open "$outFile"
+command -v VSCodium.AppImage >/dev/null && VSCodium.AppImage "$outFile" || open "$outFile"
 
 
 # AFTER build:
