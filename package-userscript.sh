@@ -2,7 +2,7 @@
 # created by: raingart
 
 # All .js compiled into a single one.
-outFile="/tmp/nova-tube.user.js"
+outFile="./Userscript/nova-tube.user.js"
 
 # Remove existing output file
 rm -f "$outFile"
